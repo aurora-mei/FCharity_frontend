@@ -1,0 +1,64 @@
+/* Navbar.pcss */
+:root {
+    --button-font-size: 1.1rem;
+    --button-border-radius: 12px;
+    --button-padding: 1.15rem 0.5rem;
+    --button-bg-color:transparent;
+    --primary-font-family: CircularXXWeb Trebuchet Helvetica Arial sans-serif;
+}
+.ant{
+    font-family: var(--primary-font-family);
+}
+.navbar{
+    padding: 0.4rem 6rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease-in-out;
+}
+.ant-btn {
+    font-size: var(--button-font-size) !important;
+    border-radius: var(--button-border-radius) ;
+    padding: var(--button-padding);
+    background-color: var(--button-bg-color);
+}
+.request-btn {
+    font-size: 1.1rem;
+    border: 1px solid black;
+    color: black;
+    background-color: transparent;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.request-btn:hover {
+    background-color: #008044;
+    color: white;
+    border-color: #008044;
+}
+
+
+.anticon-caret-down {
+    color: gray !important;
+    font-size: 0.8rem !important; /* Không nên dùng 0.3rem quá nhỏ */
+}
+
+.ant-affix {
+    background-color: transparent !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ant-affix .navbar {
+    background-color: white !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hiệu ứng shadow */
+}
+
+
+.ant-menu{
+    border-bottom: none !important;
+    background-color: transparent !important;
+}
+.ant-menu-item::after,
+.ant-menu-submenu::after {
+    display: none !important;
+}
