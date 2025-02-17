@@ -68,7 +68,7 @@ const Navbar = () => {
                             >
                                 <Button>
                                     <img
-                                        src={avatar}
+                                        src={currentUser.avatar ?? avatar}
                                         alt="avatar"
                                         style={{ borderRadius: '50%', width: '40px', height: '40px' }}
                                     />
