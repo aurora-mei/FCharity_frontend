@@ -26,6 +26,9 @@ export const logOut = createAsyncThunk("auth/logout", () => { });
 export const getCurrentUser = createAsyncThunk("users/current-user", async () => {
     return await authApi.getCurrentUser();
 });
+export const googleLogIn = createAsyncThunk("auth/googleLogin", async (token) => {
+    return await authApi.googleLogin(token);
+});
 
 export const authSlice = createSlice({
     name: 'auth',
@@ -77,6 +80,19 @@ export const authSlice = createSlice({
                 state.newUser = {};  // Đảm bảo làm sạch thông tin người dùng mới
                 state.verified = false;  // Đảm bảo xóa trạng thái xác minh
             })
+            .addCase(googleLogIn.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(googleLogIn.fulfilled, (state, action) => {
+                state.loading = false;
+                state.token = action.payload.token;
+                console.log("Google login token state:", state.token);
+            })
+            .addCase(googleLogIn.rejected, (state, action) => {
+                state.loading = false;
+                state.backendError = action.payload;
+                console.error("Google login error:", action.payload);
+            });
     },
 })
 

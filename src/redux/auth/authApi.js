@@ -50,5 +50,14 @@ const getCurrentUser = async () => {
     }
 };
 
-const authApi = { signup, verify, sendOTP, login, getCurrentUser };
+const googleLogin = async (token) => {
+    try {
+        const response = await API.post(`auth/google-login`, { token });
+        return response.data;
+    } catch (err) {
+        throw err.response.data;
+    }
+};
+
+const authApi = { signup, verify, sendOTP, login, getCurrentUser, googleLogin };
 export default authApi;
