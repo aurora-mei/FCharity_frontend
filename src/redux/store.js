@@ -1,12 +1,41 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import authReducer from './auth/authSlice';
-import userReducer from './user/userSlice';
+import { persistStore, persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage";
+import {
+    FLUSH,
+    REHYDRATE,
+    PAUSE,
+    PERSIST,
+    PURGE,
+    REGISTER,
+} from 'redux-persist';
 
-export const store = configureStore({
-    reducer: {
+const persistConfig = {
+    key: "root",
+    version: 1,
+    storage,
+};
+const reducer = combineReducers(
+    {
         auth: authReducer,
-        user: userReducer,
     }
+)
+
+const persistedAuthReducer = persistReducer(persistConfig, reducer);
+
+const store = configureStore({
+    reducer: persistedAuthReducer,
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: {
+                ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+            },
+        }),
 });
+
+const persistor = persistStore(store);  // Khởi tạo persistor sau khi store đã được tạo
+
+export { store, persistor };  // Xuất cả store và persistor
 
 export default store;
