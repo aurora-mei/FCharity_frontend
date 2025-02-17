@@ -12,13 +12,16 @@
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
     "@openzeppelin/contracts": "^5.2.0",
+    "@reduxjs/toolkit": "^2.5.1",
     "@tailwindcss/vite": "^4.0.4",
     "antd": "^5.23.4",
+    "axios": "^0.24.0",
     "dotenv": "^16.4.7",
     "postcss-loader": "^8.1.1",
     "postcss-nesting": "^13.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.5",
     "web3": "^4.16.0"
   },

@@ -1,15 +1,9 @@
 import './App.css'
 import React from "react";
-import Donate from "./components/Donation/Donate";
+import AppRoutes from "./routes";
 
 function App() {
-    return (
-        <div>
-            <h1>Chương trình từ thiện Blockchain</h1>
-            <Donate />
-        </div>
-
-    );
+    return <AppRoutes />;
 }
 
 export default App
