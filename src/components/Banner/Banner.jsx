@@ -1,5 +1,4 @@
 import React from 'react';
-import './Banner.pcss';
 import { Row, Col, Flex, Button } from 'antd';
 const Banner = () => {
     return (

@@ -1,6 +1,5 @@
 import React from "react";
 import { Card, Typography } from "antd";
-import "./PasswordRequirement.pcss";
 const { Text } = Typography;
 
 const PasswordRequirement = () => {

@@ -1,11 +1,11 @@
 import React from "react";
 import "./LoginScreen.pcss";
-import OtpVerification from "../../components/OtpVerification/OtpVerification";
+import OtpVerification from "../../containers/OtpVerification/OtpVerification";
 const Signup = () => {
     return (
-        <div className="login">
+        < div className="login" >
             <OtpVerification />
-        </div>
+        </div >
     )
 };
 export default Signup;

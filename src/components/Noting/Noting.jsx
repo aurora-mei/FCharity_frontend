@@ -1,7 +1,6 @@
 import { DashOutlined, HeartOutlined, DollarOutlined, FireOutlined } from '@ant-design/icons';
 import { Row, Col } from 'antd';
 import React from 'react';
-import './Noting.pcss';
 const Noting = () => {
     return (
         <div className='sth-yellow'>

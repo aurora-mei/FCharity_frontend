@@ -5,7 +5,6 @@ import { Affix, Button, Splitter, Flex, Space, Row, Col, Dropdown } from 'antd';
 import avatar from '../../assets/download (11).jpg'
 import { logOut } from '../../redux/auth/authSlice';
 import { useSelector, useDispatch } from 'react-redux';
-import './Navbar.pcss';
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -68,7 +67,7 @@ const Navbar = () => {
                             >
                                 <Button>
                                     <img
-                                        src={avatar}
+                                        src={currentUser.avatar ?? avatar}
                                         alt="avatar"
                                         style={{ borderRadius: '50%', width: '40px', height: '40px' }}
                                     />
