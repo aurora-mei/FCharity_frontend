@@ -1,9 +1,8 @@
 import { Flex } from 'antd';
-import './LoginForm.pcss';
 import { Button, Form, Input, Divider } from 'antd';
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 import { Typography } from 'antd';
-import LoadingModal from "../LoadingModal/LoadingModal";
+import LoadingModal from "../LoadingModal";
 import { useNavigate } from 'react-router-dom';
 import useLoading from "../../hooks/useLoading";
 import { useSelector, useDispatch } from 'react-redux';
@@ -12,7 +11,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const { Title, Text } = Typography;
 
-const clientId = "311913084609-l3u4pfcs7a8l3vuu7p27c63o3t09f6bn.apps.googleusercontent.com"; 
+const clientId = "311913084609-l3u4pfcs7a8l3vuu7p27c63o3t09f6bn.apps.googleusercontent.com";
 
 const LoginForm = () => {
     const loadingUI = useLoading();
@@ -21,9 +20,14 @@ const LoginForm = () => {
     const { loading } = useSelector((state) => state.auth);
 
     const loginRequest = async (values) => {
-        await dispatch(logIn(values)).unwrap();
-        await dispatch(getCurrentUser()).unwrap();
-        navigate('/', { replace: true });
+        try {
+            await dispatch(logIn(values)).unwrap();
+            await dispatch(getCurrentUser()).unwrap();
+            navigate('/', { replace: true });
+        } catch (error) {
+            console.error("Login error:", error);
+            alert(error.message);
+        }
     };
 
     const handleGoogleSuccess = async (response) => {
@@ -35,7 +39,7 @@ const LoginForm = () => {
             navigate('/', { replace: true });
         } catch (error) {
             console.error("Google login error:", error);
-            alert("Google login failed!");
+            alert(error.message);
         }
     };
 
@@ -96,12 +100,16 @@ const LoginForm = () => {
                                 placeholder="Password"
                                 className="password-input"
                             />
+
                         </Form.Item>
+                        <div className='sub-title-div'>
+                            <a href="/auth/otp-reset-password" className="sub-title-a">Forgot your password?</a>
+                        </div>
 
                         {/* Submit Button */}
                         <Form.Item>
                             <Button htmlType="submit" block className="continue-button">
-                                Continue
+                                Sign in
                             </Button>
                         </Form.Item>
                     </Form>

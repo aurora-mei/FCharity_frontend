@@ -5,7 +5,6 @@ async function main() {
     await network.provider.send("hardhat_reset");
     const CharityFund = await ethers.getContractFactory("CharityFund");
     const charity = await CharityFund.deploy(); // Deploy hợp đồng
-
     await charity.waitForDeployment(); // Chờ triển khai hoàn tất
 
     const contractAddress = await charity.getAddress(); // Lấy địa chỉ hợp đồng

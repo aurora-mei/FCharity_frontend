@@ -5,7 +5,6 @@ import { Affix, Button, Splitter, Flex, Space, Row, Col, Dropdown } from 'antd';
 import avatar from '../../assets/download (11).jpg'
 import { logOut } from '../../redux/auth/authSlice';
 import { useSelector, useDispatch } from 'react-redux';
-import './Navbar.pcss';
 
 const Navbar = () => {
     const navigate = useNavigate();

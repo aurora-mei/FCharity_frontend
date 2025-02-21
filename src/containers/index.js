@@ -1,3 +1,5 @@
 export * from './EventBoard'
 export * from './HomeContainer'
 export * from './FundraiserBoard'
+export * from './OtpResetPwd'
+export * from './OtpVerification'

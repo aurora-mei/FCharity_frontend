@@ -4,7 +4,8 @@ import LoginScreen from "../screens/auth/LoginScreen.jsx";
 import SignupScreen from "../screens/auth/SignupScreen.jsx";
 import OtpVerificationScreen from "../screens/auth/OtpVerificationScreen.jsx";
 import PrivateRoute from "./PrivateRoute";
-import LoadingModal from "../../src/components/LoadingModal/LoadingModal";
+import LoadingModal from "../components/LoadingModal/index.jsx";
+import ResetPwdScreen from "../screens/auth/ResetPwdScreen.jsx";
 const AppRoutes = () => {
     return (
         <Router>
@@ -15,6 +16,7 @@ const AppRoutes = () => {
                     <Route path="login" element={<LoginScreen />} />
                     <Route path="signup" element={<SignupScreen />} />
                     <Route path="otp-verification" element={<OtpVerificationScreen />} />
+                    <Route path="otp-reset-password" element={<ResetPwdScreen />} />
                 </Route>
                 <Route element={<PrivateRoute />}>
                     <Route path="/donate" element={<LoadingModal />} />

@@ -3,15 +3,12 @@ import { Form, Input, Button, Checkbox, Typography, Flex } from "antd";
 import { EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
-import "./SignupForm.pcss";
-import LoadingModal from "../LoadingModal/LoadingModal"; // Import LoadingScreen
+import LoadingModal from "../LoadingModal"; // Import LoadingScreen
 import useLoading from "../../hooks/useLoading"; // Import useLoading hook
 import PasswordRequirement from "../PasswordRequirement/PasswordRequirement";
 import { useSelector, useDispatch } from 'react-redux'
 import { signUp } from '../../redux/auth/authSlice';
 import { useNavigate } from "react-router-dom";
-// import { useState } from 'react';
-
 const { Title, Text } = Typography;
 
 const SignupForm = () => {
@@ -20,9 +17,14 @@ const SignupForm = () => {
     const loadingUI = useLoading(); // Gọi hook kiểm soát trạng thái loading
     const loading = useSelector((state) => state.auth.loading);
     const onFinish = async (values) => {
-        console.log("Form Values:", values);
-        await dispatch(signUp(values)).unwrap(); // unwrap() để xử lý Promise từ createAsyncThunk
-        navigate('/auth/otp-verification', { replace: true });
+        try {
+            console.log("Form Values:", values);
+            await dispatch(signUp(values)).unwrap(); // unwrap() để xử lý Promise từ createAsyncThunk
+            navigate('/auth/otp-verification', { replace: true });
+        } catch (error) {
+            console.error("Sigup error:", error);
+            alert(error.message);
+        }
     };
 
     if (loadingUI || loading) return <LoadingModal />;

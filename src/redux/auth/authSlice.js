@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import authApi from './authApi'
-import { PURGE } from "redux-persist";
 
 const initialState = {
     loading: false,
@@ -8,6 +7,7 @@ const initialState = {
     currentUser: localStorage.getItem("currentUser") || {},
     token: localStorage.getItem("token") || "",
     verified: false,
+    canResetPwd: false,
 }
 
 export const signUp = createAsyncThunk("auth/signup", async (signupData) => {
@@ -18,6 +18,15 @@ export const sendOTPCode = createAsyncThunk("auth/sendOTP", async (sendOTPData) 
 });
 export const verifyEmail = createAsyncThunk("auth/verify", async (verifyData) => {
     return await authApi.verify(verifyData);
+});
+export const sendResetPasswordOTPCode = createAsyncThunk("auth/sendResetPasswordOTP", async (sendOTPData) => {
+    return await authApi.sendResetPasswordOTP(sendOTPData);
+});
+export const verifyResetPasswordOTPCode = createAsyncThunk("auth/verifyResetPasswordOTP", async (verifyData) => {
+    return await authApi.verifyResetPasswordOTP(verifyData);
+});
+export const resetPassword = createAsyncThunk("auth/resetPassword", async (resetData) => {
+    return await authApi.resetPassword(resetData);
 });
 export const logIn = createAsyncThunk("auth/login", async (loginData) => {
     return await authApi.login(loginData);
@@ -36,13 +45,21 @@ export const authSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(PURGE, () => initialState) // Đặt lại state ban đầu khi PURGE
             .addCase(signUp.pending, (state) => {
                 state.loading = true;
             })
             .addCase(signUp.fulfilled, (state, action) => {
                 state.loading = false;
                 state.newUser = action.payload;
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('token');
+            })
+            .addCase(sendResetPasswordOTPCode.pending, (state) => {
+                state.loading = true;
+                state.verified = false;
+            })
+            .addCase(sendResetPasswordOTPCode.fulfilled, (state) => {
+                state.loading = false;
             })
             .addCase(verifyEmail.pending, (state) => {
                 state.loading = true;
@@ -79,6 +96,18 @@ export const authSlice = createSlice({
                 state.currentUser = {};
                 state.newUser = {};  // Đảm bảo làm sạch thông tin người dùng mới
                 state.verified = false;  // Đảm bảo xóa trạng thái xác minh
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('token');
+            })
+            .addCase(verifyResetPasswordOTPCode.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(verifyResetPasswordOTPCode.fulfilled, (state, action) => {
+                state.loading = false;
+                state.canResetPwd = action.payload;
+            })
+            .addCase(resetPassword.fulfilled, (state) => {
+                state.canResetPwd = false;
             })
             .addCase(googleLogIn.pending, (state) => {
                 state.loading = true;
@@ -92,7 +121,13 @@ export const authSlice = createSlice({
                 state.loading = false;
                 state.backendError = action.payload;
                 console.error("Google login error:", action.payload);
-            });
+            })
+            .addMatcher(
+                (action) => action.type.endsWith('/rejected'),
+                (state) => {
+                    state.loading = false;
+                }
+            );;
     },
 })
 

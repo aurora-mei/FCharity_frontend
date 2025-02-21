@@ -59,5 +59,30 @@ const googleLogin = async (token) => {
     }
 };
 
-const authApi = { signup, verify, sendOTP, login, getCurrentUser, googleLogin };
+const sendResetPasswordOTP = async (sendOTPModel) => {
+    try {
+        const response = await API.post(`auth/reset-password-otp`, sendOTPModel);
+        return response.data;
+    } catch (err) {
+        throw err.response.data;
+    }
+};
+const verifyResetPasswordOTP = async (verifyRequestModel) => {
+    try {
+        const response = await API.post(`auth/verify-reset-password-otp`, verifyRequestModel);
+        return response.data;
+    } catch (err) {
+        throw err.response.data;
+    }
+};
+
+const resetPassword = async (resetRequestModel) => {
+    try {
+        const response = await API.post(`auth/reset-password`, resetRequestModel);
+        return response.data;
+    } catch (err) {
+        throw err.response.data;
+    }
+};
+const authApi = { signup, verify, sendOTP, login, getCurrentUser, googleLogin, sendResetPasswordOTP, verifyResetPasswordOTP, resetPassword };
 export default authApi;
