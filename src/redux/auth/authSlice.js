@@ -88,14 +88,14 @@ export const authSlice = createSlice({
             .addCase(getCurrentUser.fulfilled, (state, action) => {
                 state.loading = false;
                 state.currentUser = action.payload;
-                localStorage.setItem('currentUser', state.currentUser);
+                localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
                 console.log("currentUser state: ", state.currentUser);
             })
             .addCase(logOut.fulfilled, (state) => {
                 state.token = "";
                 state.currentUser = {};
-                state.newUser = {};  // Đảm bảo làm sạch thông tin người dùng mới
-                state.verified = false;  // Đảm bảo xóa trạng thái xác minh
+                state.newUser = {};
+                state.verified = false;
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('token');
             })
@@ -115,6 +115,7 @@ export const authSlice = createSlice({
             .addCase(googleLogIn.fulfilled, (state, action) => {
                 state.loading = false;
                 state.token = action.payload.token;
+                localStorage.setItem('token', state.token);
                 console.log("Google login token state:", state.token);
             })
             .addCase(googleLogIn.rejected, (state, action) => {
