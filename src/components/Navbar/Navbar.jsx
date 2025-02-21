@@ -5,6 +5,7 @@ import { Affix, Button, Splitter, Flex, Space, Row, Col, Dropdown } from 'antd';
 import avatar from '../../assets/download (11).jpg'
 import { logOut } from '../../redux/auth/authSlice';
 import { useDispatch } from 'react-redux';
+
 const Navbar = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
@@ -23,10 +24,12 @@ const Navbar = () => {
         console.log("token: ", token);
         console.log("currentUser:", currentUser);
     }, [currentUser]);
+
     const logout = async () => {
         dispatch(logOut());
         window.location.reload();
     }
+
     const items = [
         {
             key: '1',
@@ -45,7 +48,6 @@ const Navbar = () => {
             ),
         },
     ];
-
 
     return (
         <Affix offsetTop={0} onChange={(affixed) => console.log(affixed)}>
@@ -66,8 +68,8 @@ const Navbar = () => {
                 </Col>
                 <Col span={8}>
                     <Flex justify='flex-end' align='center' gap='10px'>
-                        < Button type='text'><Space>About <CaretDownOutlined /></Space></Button>
-                        {(!token == "") ? (
+                        <Button type='text'><Space>About <CaretDownOutlined /></Space></Button>
+                        {token ? (
                             <Dropdown
                                 menu={{ items }}
                                 placement="bottomRight"
@@ -86,13 +88,14 @@ const Navbar = () => {
                                 Sign in
                             </Button>
                         )}
-
-
-                        <Button type="primary" shape="round" className='request-btn'><b>Start a request</b></Button>
+                        <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/create-request")}>
+                            <b>Start a request</b>
+                        </Button>
                     </Flex>
                 </Col>
             </Row>
-        </Affix >
-    )
+        </Affix>
+    );
 }
+
 export default Navbar;
