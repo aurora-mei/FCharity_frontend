@@ -4,7 +4,7 @@ import authApi from './authApi'
 const initialState = {
     loading: false,
     newUser: {},
-    currentUser: localStorage.getItem("currentUser") || {},
+    currentUser: localStorage.getItem("currentUser") ? JSON.parse(localStorage.getItem("currentUser")) : {},
     token: localStorage.getItem("token") || "",
     verified: false,
     canResetPwd: false,

@@ -57,7 +57,6 @@ const SignupForm = () => {
                             label="Email Address"
                             name="email"
                             rules={[{ required: true, type: "email", message: "Please enter a valid email" }]}
-                            initialValue="huyenhyomin@gmail.com"
                         >
                             <Input />
                         </Form.Item>
