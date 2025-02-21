@@ -4,12 +4,19 @@ import { SearchOutlined, CaretDownOutlined } from '@ant-design/icons';
 import { Affix, Button, Splitter, Flex, Space, Row, Col, Dropdown } from 'antd';
 import avatar from '../../assets/download (11).jpg'
 import { logOut } from '../../redux/auth/authSlice';
-import { useSelector, useDispatch } from 'react-redux';
-
+import { useDispatch } from 'react-redux';
 const Navbar = () => {
     const navigate = useNavigate();
-    const token = useSelector((state) => state.auth.token);
-    const currentUser = useSelector((state) => state.auth.currentUser);
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("currentUser");
+    let currentUser = {};
+    try {
+        currentUser = storedUser ? JSON.parse(storedUser) : {};
+    } catch (error) {
+        console.error("Error parsing currentUser from localStorage:", error);
+        currentUser = {};
+    }
+
     const dispatch = useDispatch();
     useEffect(() => {
         console.log("---Navbar---");
