@@ -21,6 +21,15 @@ const CreateRequestForm = () => {
     const loading = useSelector((state) => state.request.loading);
     const categories = useSelector((state) => state.category.categories);
     const tags = useSelector((state) => state.tag.tags);
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("currentUser");
+    let currentUser = {};
+    try {
+        currentUser = storedUser ? JSON.parse(storedUser) : {};
+    } catch (error) {
+        console.error("Error parsing currentUser from localStorage:", error);
+        currentUser = {};
+    }
 
     useEffect(() => {
         dispatch(fetchCategories());
@@ -28,8 +37,12 @@ const CreateRequestForm = () => {
     }, [dispatch]);
 
     const onFinish = async (values) => {
-        console.log("Form Values:", values);
-        await dispatch(createRequest(values)).unwrap();
+        const requestData = {
+            ...values,
+            userId: currentUser.userId, // Assign the current user's userId
+        };
+        console.log("Form Values:", requestData);
+        await dispatch(createRequest(requestData)).unwrap();
         navigate('/requests', { replace: true });
     };
 
@@ -82,7 +95,7 @@ const CreateRequestForm = () => {
 
                         <Form.Item label="Category" name="categoryId" rules={[{ required: true, message: "Category is required" }]}>
                             <Select placeholder="Select a category">
-                                {categories.map(category => (
+                                {Array.isArray(categories) && categories.map(category => (
                                     <Option key={category.categoryId} value={category.categoryId}>
                                         {category.categoryName}
                                     </Option>
@@ -92,7 +105,7 @@ const CreateRequestForm = () => {
 
                         <Form.Item label="Tag" name="tagId" rules={[{ required: true, message: "Tag is required" }]}>
                             <Select placeholder="Select a tag">
-                                {tags.map(tag => (
+                                {Array.isArray(tags) && tags.map(tag => (
                                     <Option key={tag.tagId} value={tag.tagId}>
                                         {tag.tagName}
                                     </Option>
