@@ -6,6 +6,7 @@ import OtpVerificationScreen from "../screens/auth/OtpVerificationScreen.jsx";
 import PrivateRoute from "./PrivateRoute";
 import LoadingModal from "../components/LoadingModal/index.jsx";
 import ResetPwdScreen from "../screens/auth/ResetPwdScreen.jsx";
+import CreateRequestForm from "../components/CreateRequestForm/CreateRequestForm.jsx";
 const AppRoutes = () => {
     return (
         <Router>
@@ -20,6 +21,7 @@ const AppRoutes = () => {
                 </Route>
                 <Route element={<PrivateRoute />}>
                     <Route path="/donate" element={<LoadingModal />} />
+                    <Route path="/create-request" element={<CreateRequestForm />} />
                 </Route>
             </Routes>
         </Router>
