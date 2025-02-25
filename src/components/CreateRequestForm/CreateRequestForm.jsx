@@ -82,7 +82,7 @@ const CreateRequestForm = () => {
 
                         <Form.Item label="Category" name="categoryId" rules={[{ required: true, message: "Category is required" }]}>
                             <Select placeholder="Select a category">
-                                {categories.map(category => (
+                                {Array.isArray(categories) && categories.map(category => (
                                     <Option key={category.categoryId} value={category.categoryId}>
                                         {category.categoryName}
                                     </Option>
@@ -92,7 +92,7 @@ const CreateRequestForm = () => {
 
                         <Form.Item label="Tag" name="tagId" rules={[{ required: true, message: "Tag is required" }]}>
                             <Select placeholder="Select a tag">
-                                {tags.map(tag => (
+                                {Array.isArray(tags) && tags.map(tag => (
                                     <Option key={tag.tagId} value={tag.tagId}>
                                         {tag.tagName}
                                     </Option>
