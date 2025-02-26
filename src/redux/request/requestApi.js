@@ -13,6 +13,7 @@ const fetchRequests = async () => {
 const createRequest = async (requestData) => {
     try {
         const response = await APIPrivate.post('requests', requestData);
+        console.log("Request created:", response.data);
         return response.data;
     } catch (err) {
         console.error("Error creating request:", err);
