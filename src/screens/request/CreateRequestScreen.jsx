@@ -1,6 +1,5 @@
 import React from "react";
 import CreateRequestForm from "../../components/CreateRequestForm/CreateRequestForm";
-import "./CreateRequestScreen.pcss";
 
 const CreateRequestScreen = () => {
     return (

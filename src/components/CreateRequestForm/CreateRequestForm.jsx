@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Form, Input, Button, Checkbox, Typography, Select, Flex } from "antd";
 import "antd/dist/reset.css";
-import "./CreateRequestForm.pcss";
+
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 import { useDispatch, useSelector } from 'react-redux';
 import { createRequest } from '../../redux/request/requestSlice';
@@ -21,6 +21,15 @@ const CreateRequestForm = () => {
     const loading = useSelector((state) => state.request.loading);
     const categories = useSelector((state) => state.category.categories || []);
     const tags = useSelector((state) => state.tag.tags || []);
+    const token = useSelector((state) => state.auth.token);
+    const storedUser = localStorage.getItem("currentUser");
+    let currentUser = {};
+    try {
+        currentUser = storedUser ? JSON.parse(storedUser) : {};
+    } catch (error) {
+        console.error("Error parsing currentUser from localStorage:", error);
+        currentUser = {};
+    }
 
     useEffect(() => {
         dispatch(fetchCategories());
@@ -30,12 +39,14 @@ const CreateRequestForm = () => {
     useEffect(() => {
         console.log("Categories:", categories);
         console.log("Tags:", tags);
+        console.log("token: ", token);
+        console.log("currentUser:", currentUser);
     }, [categories, tags]);
 
     const onFinish = async (values) => {
         const requestData = {
             ...values,
-            userId: currentUser.userId, // Assign the current user's userId
+            userId: currentUser.id,
         };
         console.log("Form Values:", requestData);
         await dispatch(createRequest(requestData)).unwrap();
@@ -45,7 +56,7 @@ const CreateRequestForm = () => {
     if (loadingUI || loading) return <LoadingModal />;
 
     return (
-        <div className="upper-container">
+        <div className="upper-container-request">
             <div className="container-request">
                 <div className="request-form">
                     <div className="request-header">
@@ -91,18 +102,19 @@ const CreateRequestForm = () => {
 
                         <Form.Item label="Category" name="categoryId" rules={[{ required: true, message: "Category is required" }]}>
                             <Select placeholder="Select a category">
-                                {Array.isArray(categories) && categories.filter(category => category.categoryId).map(category => (
-                                    <Option key={category.categoryId} value={category.categoryId}>
-                                        {category.categoryName}
-                                    </Option>
-                                ))}
+                                {Array.isArray(categories) && categories
+                                    .map(category => (
+                                        <Option key={category.id} value={category.id}>
+                                            {category.categoryName}
+                                        </Option>
+                                    ))}
                             </Select>
                         </Form.Item>
 
                         <Form.Item label="Tag" name="tagId" rules={[{ required: true, message: "Tag is required" }]}>
                             <Select placeholder="Select a tag">
-                                {Array.isArray(tags) && tags.filter(tag => tag.tagId).map(tag => (
-                                    <Option key={tag.tagId} value={tag.tagId}>
+                                {Array.isArray(tags) && tags.map(tag => (
+                                    <Option key={tag.id} value={tag.id}>
                                         {tag.tagName}
                                     </Option>
                                 ))}

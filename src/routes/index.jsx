@@ -8,22 +8,27 @@ import LoadingModal from "../components/LoadingModal/index.jsx";
 import ResetPwdScreen from "../screens/auth/ResetPwdScreen.jsx";
 import CreateRequestScreen from "../screens/request/CreateRequestScreen.jsx";
 import RequestListScreen from "../screens/request/RequestListScreen.jsx";
+import Layout from "./Layout";
+
 const AppRoutes = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<HomeScreen />} />
-                {/* <Route path="/blockchain" element={<App />} /> */}
-                <Route path="/auth">
-                    <Route path="login" element={<LoginScreen />} />
-                    <Route path="signup" element={<SignupScreen />} />
-                    <Route path="otp-verification" element={<OtpVerificationScreen />} />
-                    <Route path="otp-reset-password" element={<ResetPwdScreen />} />
-                </Route>
-                <Route element={<PrivateRoute />}>
-                    <Route path="/donate" element={<LoadingModal />} />
-                    <Route path="/create-request" element={<CreateRequestScreen />} />
-                    <Route path="/requests" element={<RequestListScreen />} />
+                <Route path="/" element={<Layout />}>
+                    <Route index element={<HomeScreen />} />
+                    <Route path="/auth">
+                        <Route path="login" element={<LoginScreen />} />
+                        <Route path="signup" element={<SignupScreen />} />
+                        <Route path="otp-verification" element={<OtpVerificationScreen />} />
+                        <Route path="otp-reset-password" element={<ResetPwdScreen />} />
+                    </Route>
+                    <Route element={<PrivateRoute />}>
+                        <Route path="/donate" element={<LoadingModal />} />
+                        <Route path="/requests">
+                            <Route path="" element={<RequestListScreen />} />
+                            <Route path="create" element={<CreateRequestScreen />} />
+                        </Route>
+                    </Route>
                 </Route>
             </Routes>
         </Router>

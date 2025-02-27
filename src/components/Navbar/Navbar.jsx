@@ -1,23 +1,22 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchOutlined, CaretDownOutlined } from '@ant-design/icons';
-import { Affix, Button, Splitter, Flex, Space, Row, Col, Dropdown } from 'antd';
+import { Affix, Button, Flex, Space, Row, Col, Dropdown } from 'antd';
 import avatar from '../../assets/download (11).jpg'
 import { logOut } from '../../redux/auth/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const token = localStorage.getItem("token");
-    // const storedUser = localStorage.getItem("currentUser");
-    // let currentUser = {};
-    // try {
-    //     currentUser = storedUser ? JSON.parse(storedUser) : {};
-    // } catch (error) {
-    //     console.error("Error parsing currentUser from localStorage:", error);
-    //     currentUser = {};
-    // }
-    const currentUser = useSelector((state) => state.auth.currentUser);
+    const token = useSelector((state) => state.auth.token);
+    const storedUser = localStorage.getItem("currentUser");
+    let currentUser = {};
+    try {
+        currentUser = storedUser ? JSON.parse(storedUser) : {};
+    } catch (error) {
+        console.error("Error parsing currentUser from localStorage:", error);
+        currentUser = {};
+    }
 
     const dispatch = useDispatch();
     useEffect(() => {
@@ -58,11 +57,12 @@ const Navbar = () => {
                         <Button type="text" icon={<SearchOutlined />}>Search</Button>
                         <Button type='text'><Space>Donate <CaretDownOutlined /></Space></Button>
                         <Button type='text'><Space>Fundraise <CaretDownOutlined /></Space></Button>
+                        <Button type='text'><Space>Community </Space></Button>
                     </Flex>
                 </Col>
                 <Col span={8}>
                     <Flex justify='center' align='flex-start' style={{ height: '80px' }}>
-                        <a href="#">
+                        <a href="/">
                             <img src="./src/assets/apgsoohzrdamo4loggow.svg" alt="" style={{ height: '90px' }} />
                         </a>
                     </Flex>
@@ -89,7 +89,7 @@ const Navbar = () => {
                                 Sign in
                             </Button>
                         )}
-                        <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/create-request")}>
+                        <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/requests/create")}>
                             <b>Start a request</b>
                         </Button>
                     </Flex>

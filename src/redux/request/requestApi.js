@@ -12,7 +12,7 @@ const fetchRequests = async () => {
 
 const createRequest = async (requestData) => {
     try {
-        const response = await APIPrivate.post('requests', requestData);
+        const response = await APIPrivate.post('requests/create', requestData);
         console.log("Request created:", response.data);
         return response.data;
     } catch (err) {
