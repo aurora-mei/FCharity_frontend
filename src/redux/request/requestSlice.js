@@ -15,6 +15,15 @@ export const createRequest = createAsyncThunk("requests/create", async (requestD
     return await requestApi.createRequest(requestData);
 });
 
+export const updateRequest = createAsyncThunk("requests/update", async ({ id, requestData }) => {
+    return await requestApi.updateRequest(id, requestData);
+});
+
+export const deleteRequest = createAsyncThunk("requests/delete", async (id) => {
+    await requestApi.deleteRequest(id);
+    return id;
+});
+
 const requestSlice = createSlice({
     name: 'request',
     initialState,
@@ -42,6 +51,31 @@ const requestSlice = createSlice({
             .addCase(createRequest.rejected, (state, action) => {
                 state.loading = false;
                 console.error("Error creating request:", action.error);
+            })
+            .addCase(updateRequest.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateRequest.fulfilled, (state, action) => {
+                state.loading = false;
+                const index = state.requests.findIndex(request => request.id === action.payload.id);
+                if (index !== -1) {
+                    state.requests[index] = action.payload;
+                }
+            })
+            .addCase(updateRequest.rejected, (state, action) => {
+                state.loading = false;
+                console.error("Error updating request:", action.error);
+            })
+            .addCase(deleteRequest.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(deleteRequest.fulfilled, (state, action) => {
+                state.loading = false;
+                state.requests = state.requests.filter(request => request.id !== action.payload);
+            })
+            .addCase(deleteRequest.rejected, (state, action) => {
+                state.loading = false;
+                console.error("Error deleting request:", action.error);
             });
     },
 });

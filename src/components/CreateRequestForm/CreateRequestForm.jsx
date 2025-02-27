@@ -19,22 +19,18 @@ const CreateRequestForm = () => {
     const navigate = useNavigate();
     const loadingUI = useLoading();
     const loading = useSelector((state) => state.request.loading);
-    const categories = useSelector((state) => state.category.categories);
-    const tags = useSelector((state) => state.tag.tags);
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("currentUser");
-    let currentUser = {};
-    try {
-        currentUser = storedUser ? JSON.parse(storedUser) : {};
-    } catch (error) {
-        console.error("Error parsing currentUser from localStorage:", error);
-        currentUser = {};
-    }
+    const categories = useSelector((state) => state.category.categories || []);
+    const tags = useSelector((state) => state.tag.tags || []);
 
     useEffect(() => {
         dispatch(fetchCategories());
         dispatch(fetchTags());
     }, [dispatch]);
+
+    useEffect(() => {
+        console.log("Categories:", categories);
+        console.log("Tags:", tags);
+    }, [categories, tags]);
 
     const onFinish = async (values) => {
         const requestData = {
@@ -95,7 +91,7 @@ const CreateRequestForm = () => {
 
                         <Form.Item label="Category" name="categoryId" rules={[{ required: true, message: "Category is required" }]}>
                             <Select placeholder="Select a category">
-                                {Array.isArray(categories) && categories.map(category => (
+                                {Array.isArray(categories) && categories.filter(category => category.categoryId).map(category => (
                                     <Option key={category.categoryId} value={category.categoryId}>
                                         {category.categoryName}
                                     </Option>
@@ -105,7 +101,7 @@ const CreateRequestForm = () => {
 
                         <Form.Item label="Tag" name="tagId" rules={[{ required: true, message: "Tag is required" }]}>
                             <Select placeholder="Select a tag">
-                                {Array.isArray(tags) && tags.map(tag => (
+                                {Array.isArray(tags) && tags.filter(tag => tag.tagId).map(tag => (
                                     <Option key={tag.tagId} value={tag.tagId}>
                                         {tag.tagName}
                                     </Option>
