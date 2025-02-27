@@ -13,6 +13,7 @@ const fetchRequests = async () => {
 const createRequest = async (requestData) => {
     try {
         const response = await APIPrivate.post('requests', requestData);
+        console.log("Request created:", response.data);
         return response.data;
     } catch (err) {
         console.error("Error creating request:", err);
@@ -20,5 +21,25 @@ const createRequest = async (requestData) => {
     }
 };
 
-const requestApi = { fetchRequests, createRequest };
+const updateRequest = async (id, requestData) => {
+    try {
+        const response = await APIPrivate.put(`requests/${id}`, requestData);
+        console.log("Request updated:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error updating request:", err);
+        throw err.response.data;
+    }
+};
+
+const deleteRequest = async (id) => {
+    try {
+        await APIPrivate.delete(`requests/${id}`);
+    } catch (err) {
+        console.error("Error deleting request:", err);
+        throw err.response.data;
+    }
+};
+
+const requestApi = { fetchRequests, createRequest, updateRequest, deleteRequest };
 export default requestApi;

@@ -7,6 +7,7 @@ import PrivateRoute from "./PrivateRoute";
 import LoadingModal from "../components/LoadingModal/index.jsx";
 import ResetPwdScreen from "../screens/auth/ResetPwdScreen.jsx";
 import CreateRequestScreen from "../screens/request/CreateRequestScreen.jsx";
+import RequestListScreen from "../screens/request/RequestListScreen.jsx";
 const AppRoutes = () => {
     return (
         <Router>
@@ -22,6 +23,7 @@ const AppRoutes = () => {
                 <Route element={<PrivateRoute />}>
                     <Route path="/donate" element={<LoadingModal />} />
                     <Route path="/create-request" element={<CreateRequestScreen />} />
+                    <Route path="/requests" element={<RequestListScreen />} />
                 </Route>
             </Routes>
         </Router>
