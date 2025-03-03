@@ -1,55 +1,34 @@
 import React, { useEffect } from "react";
-import { Form, Input, Button, Checkbox, Typography, Select, Flex } from "antd";
-import "antd/dist/reset.css";
-
-import logo from "../../assets/apgsoohzrdamo4loggow.svg";
-import { useDispatch, useSelector } from 'react-redux';
-import { createRequest } from '../../redux/request/requestSlice';
-import { fetchCategories } from '../../redux/category/categorySlice';
-import { fetchTags } from '../../redux/tag/tagSlice';
-import { useNavigate } from "react-router-dom";
-import LoadingModal from "../LoadingModal/index.jsx";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams, useNavigate } from "react-router-dom";
+import { Form, Input, Button, Checkbox, Typography, Select } from "antd";
+import { fetchRequestById, updateRequest } from "../../redux/request/requestSlice";
+import LoadingModal from "../../components/LoadingModal";
 import useLoading from "../../hooks/useLoading";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 
-const CreateRequestForm = () => {
+const EditRequestScreen = () => {
+    const { id } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const loadingUI = useLoading();
     const loading = useSelector((state) => state.request.loading);
+    const request = useSelector((state) => state.request.currentRequest);
     const categories = useSelector((state) => state.category.categories || []);
     const tags = useSelector((state) => state.tag.tags || []);
-    const token = useSelector((state) => state.auth.token);
-    const storedUser = localStorage.getItem("currentUser");
-    let currentUser = {};
-    try {
-        currentUser = storedUser ? JSON.parse(storedUser) : {};
-    } catch (error) {
-        console.error("Error parsing currentUser from localStorage:", error);
-        currentUser = {};
-    }
 
     useEffect(() => {
-        dispatch(fetchCategories());
-        dispatch(fetchTags());
-    }, [dispatch]);
-
-    useEffect(() => {
-        console.log("Categories:", categories);
-        console.log("Tags:", tags);
-        console.log("token: ", token);
-        console.log("currentUser:", currentUser);
-    }, [categories, tags]);
+        dispatch(fetchRequestById(id));
+    }, [dispatch, id]);
 
     const onFinish = async (values) => {
         const requestData = {
             ...values,
-            userId: currentUser.id,
+            id: request.id,
         };
-        console.log("Form Values:", requestData);
-        await dispatch(createRequest(requestData)).unwrap();
+        await dispatch(updateRequest({ id: request.id, requestData })).unwrap();
         navigate('/requests', { replace: true });
     };
 
@@ -61,13 +40,13 @@ const CreateRequestForm = () => {
                 <div className="request-form">
                     <div className="request-header">
                         <Title level={3} style={{ lineHeight: '1' }} className="title">
-                            Create a Request
+                            Edit Request
                         </Title>
                         <p className="subtitle">
-                            Fill in the details to create a new request.
+                            Update the details of your request.
                         </p>
                     </div>
-                    <Form layout="vertical" onFinish={onFinish}>
+                    <Form layout="vertical" onFinish={onFinish} initialValues={request}>
                         <Form.Item label="Title" name="title" rules={[{ required: true, message: "Title is required" }]}>
                             <Input />
                         </Form.Item>
@@ -94,12 +73,11 @@ const CreateRequestForm = () => {
 
                         <Form.Item label="Category" name="categoryId" rules={[{ required: true, message: "Category is required" }]}>
                             <Select placeholder="Select a category">
-                                {Array.isArray(categories) && categories
-                                    .map(category => (
-                                        <Option key={category.id} value={category.id}>
-                                            {category.categoryName}
-                                        </Option>
-                                    ))}
+                                {Array.isArray(categories) && categories.map(category => (
+                                    <Option key={category.id} value={category.id}>
+                                        {category.categoryName}
+                                    </Option>
+                                ))}
                             </Select>
                         </Form.Item>
 
@@ -119,7 +97,7 @@ const CreateRequestForm = () => {
 
                         <Form.Item>
                             <Button htmlType="submit" block className="continue-button">
-                                Create Request
+                                Update Request
                             </Button>
                         </Form.Item>
                     </Form>
@@ -129,4 +107,4 @@ const CreateRequestForm = () => {
     );
 };
 
-export default CreateRequestForm;
+export default EditRequestScreen;

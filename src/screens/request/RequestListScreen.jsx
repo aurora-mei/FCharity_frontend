@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchRequests } from "../../redux/request/requestSlice";
 import LoadingModal from "../../components/LoadingModal";
 import { List, Typography } from "antd";
+import RequestCard from "../../components/RequestCard/RequestCard";
 
 const { Title } = Typography;
 
@@ -13,21 +14,19 @@ const RequestListScreen = () => {
 
     useEffect(() => {
         dispatch(fetchRequests());
-        console.log("RequestListScreen: ", requests);
     }, [dispatch]);
+
     if (loading) return <LoadingModal />;
+
     return (
         <div className="request-list">
             <Title level={2}>Requests</Title>
             <List
-                itemLayout="horizontal"
+                grid={{ gutter: 16, column: 4 }}
                 dataSource={requests}
                 renderItem={(request) => (
                     <List.Item>
-                        <List.Item.Meta
-                            title={request.title}
-                            description={request.content}
-                        />
+                        <RequestCard request={request} />
                     </List.Item>
                 )}
             />
