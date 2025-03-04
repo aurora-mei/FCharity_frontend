@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { Form, Input, Button, Checkbox, Typography, Select, Flex } from "antd";
 import "antd/dist/reset.css";
-
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 import { useDispatch, useSelector } from 'react-redux';
 import { createRequest } from '../../redux/request/requestSlice';
@@ -67,7 +66,7 @@ const CreateRequestForm = () => {
                             Fill in the details to create a new request.
                         </p>
                     </div>
-                    <Form layout="vertical" onFinish={onFinish}>
+                    <Form layout="vertical" onFinish={onFinish} className="create-request-form">
                         <Form.Item label="Title" name="title" rules={[{ required: true, message: "Title is required" }]}>
                             <Input />
                         </Form.Item>

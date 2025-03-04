@@ -1,4 +1,3 @@
-
 import { Flex } from 'antd';
 import React from 'react';
 const NotingGreen = ({ message, style, bgColor }) => {

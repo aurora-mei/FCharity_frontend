@@ -8,8 +8,8 @@ import LoadingModal from "../components/LoadingModal/index.jsx";
 import ResetPwdScreen from "../screens/auth/ResetPwdScreen.jsx";
 import CreateRequestScreen from "../screens/request/CreateRequestScreen.jsx";
 import RequestListScreen from "../screens/request/RequestListScreen.jsx";
-import RequestDetailScreen from "./screens/request/RequestDetailScreen";
-import EditRequestScreen from "./screens/request/EditRequestScreen";
+import RequestDetailScreen from "../screens/request/RequestDetailScreen";
+import EditRequestScreen from "../screens/request/EditRequestScreen";
 import Layout from "./Layout";
 
 const AppRoutes = () => {
