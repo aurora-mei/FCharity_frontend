@@ -5,8 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteRequest } from "../../redux/request/requestSlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import PropTypes from "prop-types";
+import "./RequestCard.pcss";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Paragraph } = Typography;
 
 const RequestCard = ({ request }) => {
     const navigate = useNavigate();
@@ -47,8 +48,8 @@ const RequestCard = ({ request }) => {
             <Paragraph><strong>Category:</strong> {request.categoryId}</Paragraph>
             <Paragraph><strong>Tags:</strong> {tagNames.join(", ")}</Paragraph>
             <div className="request-card-actions">
-                <Button type="primary" onClick={() => navigate(`/requests/edit/${request.id}`)}>Edit</Button>
-                <Button type="danger" onClick={handleDelete}>Delete</Button>
+                <Button type="primary" className="edit-button" onClick={() => navigate(`/requests/edit/${request.id}`)}>Edit</Button>
+                <Button type="danger" className="delete-button" onClick={handleDelete}>Delete</Button>
             </div>
         </Card>
     );
