@@ -11,6 +11,10 @@ export const fetchRequests = createAsyncThunk("requests/fetch", async () => {
     return await requestApi.fetchRequests();
 });
 
+export const fetchRequestById = createAsyncThunk("requests/fetchById", async (id) => {
+    return await requestApi.fetchRequestById(id);
+});
+
 export const createRequest = createAsyncThunk("requests/create", async (requestData) => {
     return await requestApi.createRequest(requestData);
 });
@@ -40,6 +44,17 @@ const requestSlice = createSlice({
             .addCase(fetchRequests.rejected, (state, action) => {
                 state.loading = false;
                 console.error("Error fetching requests:", action.error);
+            })
+            .addCase(fetchRequestById.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchRequestById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentRequest = action.payload;
+            })
+            .addCase(fetchRequestById.rejected, (state, action) => {
+                state.loading = false;
+                console.error("Error fetching request by ID:", action.error);
             })
             .addCase(createRequest.pending, (state) => {
                 state.loading = true;
