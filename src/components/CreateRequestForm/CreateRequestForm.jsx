@@ -60,15 +60,15 @@ const CreateRequestForm = () => {
             <div className="container-request">
                 <div className="request-form">
                     <div className="request-header">
-                        <Flex justify='center' align='center'>
+                        {/* <Flex justify='center' align='center'>
                             <a href="/"> <img
                                 src={logo}
                                 alt="FCharity logo"
                                 width="110"
                                 height="50"
                             /></a>
-                        </Flex>
-                        <Title level={3} style={{ lineHeight: '1' }} className="title">
+                        </Flex> */}
+                        <Title level={3} style={{ lineHeight: '1', paddingTop: '1rem' }} className="title">
                             Create a Request
                         </Title>
                         <p className="subtitle">

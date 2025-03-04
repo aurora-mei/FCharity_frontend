@@ -14,14 +14,14 @@ const AppRoutes = () => {
     return (
         <Router>
             <Routes>
+                <Route path="/auth">
+                    <Route path="login" element={<LoginScreen />} />
+                    <Route path="signup" element={<SignupScreen />} />
+                    <Route path="otp-verification" element={<OtpVerificationScreen />} />
+                    <Route path="otp-reset-password" element={<ResetPwdScreen />} />
+                </Route>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<HomeScreen />} />
-                    <Route path="/auth">
-                        <Route path="login" element={<LoginScreen />} />
-                        <Route path="signup" element={<SignupScreen />} />
-                        <Route path="otp-verification" element={<OtpVerificationScreen />} />
-                        <Route path="otp-reset-password" element={<ResetPwdScreen />} />
-                    </Route>
                     <Route element={<PrivateRoute />}>
                         <Route path="/donate" element={<LoadingModal />} />
                         <Route path="/requests">
