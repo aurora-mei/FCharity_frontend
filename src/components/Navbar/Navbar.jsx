@@ -6,6 +6,7 @@ import avatar from '../../assets/download (11).jpg'
 import { logOut } from '../../redux/auth/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
+
 const Navbar = () => {
     const navigate = useNavigate();
     const token = useSelector((state) => state.auth.token);
