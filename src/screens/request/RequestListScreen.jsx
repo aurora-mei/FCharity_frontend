@@ -24,11 +24,14 @@ const RequestListScreen = () => {
             <List
                 grid={{ gutter: 16, column: 4 }}
                 dataSource={requests}
-                renderItem={(request) => (
-                    <List.Item>
-                        <RequestCard request={request} />
-                    </List.Item>
-                )}
+                renderItem={(request) => {
+                    // console.log("Request:", request);
+                    return (
+                        <List.Item key={request.request.id}>
+                            <RequestCard requestData={request} />
+                        </List.Item>
+                    )
+                }}
             />
         </div>
     );

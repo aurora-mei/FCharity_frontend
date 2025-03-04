@@ -40,6 +40,15 @@ const deleteRequest = async (id) => {
         throw err.response.data;
     }
 };
+const fetchRequestById = async (id) => {
+    try {
+        const response = await APIPrivate.get(`requests/${id}`);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching request by ID:", err);
+        throw err.response.data;
+    }
+}
 
-const requestApi = { fetchRequests, createRequest, updateRequest, deleteRequest };
+const requestApi = { fetchRequests, createRequest, updateRequest, deleteRequest, fetchRequestById };
 export default requestApi;

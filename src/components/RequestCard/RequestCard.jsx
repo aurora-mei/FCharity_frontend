@@ -1,56 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Card, Button, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { deleteRequest } from "../../redux/request/requestSlice";
-import { fetchTags } from "../../redux/tag/tagSlice";
 import PropTypes from "prop-types";
-import "./RequestCard.pcss";
 
-const { Title, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
-const RequestCard = ({ request }) => {
+const RequestCard = ({ requestData }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const tags = useSelector((state) => state.tag.tags);
-    const [tagNames, setTagNames] = useState([]);
-
     useEffect(() => {
-        dispatch(fetchTags());
-    }, [dispatch]);
-
-    useEffect(() => {
-        if (tags.length > 0) {
-            const names = request.tagIds.map(tagId => {
-                const tag = tags.find(tag => tag.id === tagId);
-                return tag ? tag.tagName : tagId;
-            });
-            setTagNames(names);
-        }
-    }, [tags, request.tagIds]);
-
+        console.log('request', requestData);
+    })
     const handleDelete = async () => {
-        await dispatch(deleteRequest(request.id)).unwrap();
+        await dispatch(deleteRequest(requestData.request.id)).unwrap();
     };
 
     return (
         <Card className="request-card">
+            {/* {requestData.request.id} */}
             <div className="request-card-header">
                 <Title level={4} className="request-card-title">
-                    {request.title}
+                    {requestData.request.title}
                 </Title>
-                <Button type="link" onClick={() => navigate(`/requests/${request.id}`)}>View Details</Button>
+                <Button type="link" onClick={() => navigate(`/requests/${requestData.request.id}`)}>View Details</Button>
             </div>
-            <Paragraph>{request.content}</Paragraph>
-            <Paragraph><strong>Phone:</strong> {request.phone}</Paragraph>
-            <Paragraph><strong>Email:</strong> {request.email}</Paragraph>
-            <Paragraph><strong>Location:</strong> {request.location}</Paragraph>
-            <Paragraph><strong>Category:</strong> {request.categoryId}</Paragraph>
-            <Paragraph><strong>Tags:</strong> {tagNames.join(", ")}</Paragraph>
+            <Text>{requestData.request.content}</Text>
             <div className="request-card-actions">
                 <Button type="primary" onClick={() => {
-                    console.log('request id', request.id);
-                    navigate(`/requests/edit/${request.id}`);
+                    console.log('request id', requestData.request.id);
+                    navigate(`/requests/edit/${requestData.request.id}`);
                 }}>Edit</Button>
                 <Button type="danger" onClick={handleDelete}>Delete</Button>
             </div>
@@ -58,17 +38,12 @@ const RequestCard = ({ request }) => {
     );
 };
 
-RequestCard.propTypes = {
-    request: PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        title: PropTypes.string.isRequired,
-        content: PropTypes.string.isRequired,
-        phone: PropTypes.string.isRequired,
-        email: PropTypes.string.isRequired,
-        location: PropTypes.string.isRequired,
-        categoryId: PropTypes.number.isRequired,
-        tagIds: PropTypes.arrayOf(PropTypes.number).isRequired,
-    }).isRequired,
-};
+// RequestCard.propTypes = {
+//     request: PropTypes.shape({
+//         id: PropTypes.number.isRequired,
+//         title: PropTypes.string.isRequired,
+//         content: PropTypes.string.isRequired,
+//     }).isRequired,
+// };
 
 export default RequestCard;
