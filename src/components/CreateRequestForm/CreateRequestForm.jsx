@@ -46,6 +46,7 @@ const CreateRequestForm = () => {
         const requestData = {
             ...values,
             userId: currentUser.id,
+            tagIds: values.tagIds,
         };
         console.log("Form Values:", requestData);
         await dispatch(createRequest(requestData)).unwrap();
@@ -102,8 +103,12 @@ const CreateRequestForm = () => {
                             </Select>
                         </Form.Item>
 
-                        <Form.Item label="Tag" name="tagId" rules={[{ required: true, message: "Tag is required" }]}>
-                            <Select placeholder="Select a tag">
+                        <Form.Item label="Tags" name="tagIds" rules={[{ required: true, message: "At least one tag is required" }]}>
+                            <Select
+                                mode="multiple"
+                                placeholder="Select tags"
+                                allowClear
+                            >
                                 {Array.isArray(tags) && tags.map(tag => (
                                     <Option key={tag.id} value={tag.id}>
                                         {tag.tagName}
