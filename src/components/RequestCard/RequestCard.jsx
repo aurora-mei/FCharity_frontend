@@ -25,7 +25,10 @@ const RequestCard = ({ request }) => {
             </div>
             <Text>{request.content}</Text>
             <div className="request-card-actions">
-                <Button type="primary" onClick={() => navigate(`/requests/edit/${request.id}`)}>Edit</Button>
+                <Button type="primary" onClick={() => {
+                    console.log('request id', request.id);
+                    navigate(`/requests/edit/${request.id}`);
+                }}>Edit</Button>
                 <Button type="danger" onClick={handleDelete}>Delete</Button>
             </div>
         </Card>

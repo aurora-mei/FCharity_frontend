@@ -11,7 +11,7 @@ const RequestDetailScreen = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const loading = useSelector((state) => state.request.loading);
-    const request = useSelector((state) => state.request.currentRequest);
+    const requestData = useSelector((state) => state.request.currentRequest);
 
     useEffect(() => {
         dispatch(fetchRequestById(id));
@@ -23,12 +23,12 @@ const RequestDetailScreen = () => {
         <div className="request-detail">
             <Title level={2}>{request.title}</Title>
             <Paragraph>{request.content}</Paragraph>
-            <Paragraph><strong>Phone:</strong> {request.phone}</Paragraph>
-            <Paragraph><strong>Email:</strong> {request.email}</Paragraph>
-            <Paragraph><strong>Location:</strong> {request.location}</Paragraph>
-            <Paragraph><strong>Category:</strong> {request.categoryId}</Paragraph>
-            <Paragraph><strong>Tags:</strong> {request.tagIds.join(", ")}</Paragraph>
-            <Paragraph><strong>Status:</strong> {request.status}</Paragraph>
+            <Paragraph><strong>Phone:</strong> {requestData.request.phone}</Paragraph>
+            <Paragraph><strong>Email:</strong> {requestData.request.email}</Paragraph>
+            <Paragraph><strong>Location:</strong> {requestData.request.location}</Paragraph>
+            <Paragraph><strong>Category:</strong> {requestData.request.categoryId}</Paragraph>
+            <Paragraph><strong>Tags:</strong> {requestData.requestTags.map((tag) => tag.tagName)}</Paragraph>
+            <Paragraph><strong>Status:</strong> {requestData.request.status}</Paragraph>
         </div>
     );
 };
