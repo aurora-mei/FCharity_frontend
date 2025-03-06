@@ -1,11 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { uploadImage } from "./helperApi";
+import { uploadFile } from "./helperApi";
 
 const initialState = {
     loading: false,
 }
-export const uploadImageBook = createAsyncThunk("helper/uploadImage", async (file) => {
-    return await uploadImage(file);
+export const uploadFileHelper = createAsyncThunk("helper/uploadImageHelper", async (file, folderName = "default-folder") => {
+    return await uploadFile(file, folderName);
 }
 );
 export const helperSlice = createSlice({
@@ -14,10 +14,10 @@ export const helperSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(uploadImageBook.pending, (state) => {
+            .addCase(uploadFileHelper.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(uploadImageBook.fulfilled, (state) => {
+            .addCase(uploadFileHelper.fulfilled, (state) => {
                 state.loading = false;
             });
     },

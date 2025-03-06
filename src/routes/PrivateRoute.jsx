@@ -1,8 +1,11 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
-import useLoading from "../../hooks/useLoading";
+import useLoading from "../hooks/useLoading";
+import LoadingModal from "../components/LoadingModal";
+import { useSelector } from "react-redux";
 const PrivateRoute = () => {
     const loadingUI = useLoading();
+    const loading = useSelector((state) => state.auth.loading);
     const [isAuthenticated, setIsAuthenticated] = useState(null); // Track authentication status
 
     useEffect(() => {
