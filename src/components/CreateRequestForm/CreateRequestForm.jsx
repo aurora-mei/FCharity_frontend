@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
-import { Form, Input, Button, Checkbox, Typography, Select, Flex } from "antd";
+import { Form, Input, Button, Checkbox, Typography, Select } from "antd";
 import "antd/dist/reset.css";
-import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 import { useDispatch, useSelector } from 'react-redux';
 import { createRequest } from '../../redux/request/requestSlice';
 import { fetchCategories } from '../../redux/category/categorySlice';
@@ -10,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import LoadingModal from "../LoadingModal/index.jsx";
 import useLoading from "../../hooks/useLoading";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 
 const CreateRequestForm = () => {
@@ -122,7 +121,7 @@ const CreateRequestForm = () => {
                         </Form.Item>
 
                         <Form.Item>
-                            <Button htmlType="submit" block className="continue-button">
+                            <Button type="primary" htmlType="submit" block className="continue-button">
                                 Create Request
                             </Button>
                         </Form.Item>

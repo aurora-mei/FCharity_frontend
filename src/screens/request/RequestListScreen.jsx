@@ -13,8 +13,11 @@ const RequestListScreen = () => {
     const loading = useSelector((state) => state.request.loading);
 
     useEffect(() => {
-        dispatch(fetchRequests());
+        dispatch(fetchRequests()).then((res) => {
+            console.log("Fetched requests:", res.payload);
+        });
     }, [dispatch]);
+    
 
     if (loading) return <LoadingModal />;
 
@@ -25,12 +28,11 @@ const RequestListScreen = () => {
                 grid={{ gutter: 16, column: 4 }}
                 dataSource={requests}
                 renderItem={(request) => {
-                    // console.log("Request:", request);
                     return (
-                        <List.Item key={request.request.id}>
-                            <RequestCard requestData={request} />
+                        <List.Item key={request.id}>
+                            <RequestCard requestData={ request } />
                         </List.Item>
-                    )
+                    );
                 }}
             />
         </div>

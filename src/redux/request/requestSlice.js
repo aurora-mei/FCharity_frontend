@@ -76,6 +76,9 @@ const requestSlice = createSlice({
                 if (index !== -1) {
                     state.requests[index] = action.payload;
                 }
+                if (state.currentRequest.id === action.payload.id) {
+                    state.currentRequest = action.payload;
+                }
             })
             .addCase(updateRequest.rejected, (state, action) => {
                 state.loading = false;
