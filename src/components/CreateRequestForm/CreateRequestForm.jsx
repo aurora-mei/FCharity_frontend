@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { Form, Input, Button, Checkbox, Typography, Select } from "antd";
+import { Form, Input, Button, Checkbox, Typography, Select, Upload, message } from "antd";
+import { UploadOutlined } from '@ant-design/icons';
 import "antd/dist/reset.css";
 import { useDispatch, useSelector } from 'react-redux';
 import { createRequest } from '../../redux/request/requestSlice';
@@ -88,7 +89,13 @@ const CreateRequestForm = () => {
                         </Form.Item>
 
                         <Form.Item label="Attachment" name="attachment">
-                            <Input />
+                            <Upload
+                                name="file"
+                                listType="picture"
+                                beforeUpload={() => false} // Prevent automatic upload
+                            >
+                                <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                            </Upload>
                         </Form.Item>
 
                         <Form.Item label="Category" name="categoryId" rules={[{ required: true, message: "Category is required" }]}>
