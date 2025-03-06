@@ -93,6 +93,7 @@ const CreateRequestForm = () => {
                                 name="file"
                                 listType="picture"
                                 beforeUpload={() => false} 
+                                accept=".jpg, .png, .jpeg, .mp4, .mov, .avi, .mkv"
                             >
                                 <Button icon={<UploadOutlined />}>Click to Upload</Button>
                             </Upload>
