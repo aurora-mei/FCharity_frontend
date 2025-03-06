@@ -92,7 +92,7 @@ const CreateRequestForm = () => {
                             <Upload
                                 name="file"
                                 listType="picture"
-                                beforeUpload={() => false} // Prevent automatic upload
+                                beforeUpload={() => false} 
                             >
                                 <Button icon={<UploadOutlined />}>Click to Upload</Button>
                             </Upload>
