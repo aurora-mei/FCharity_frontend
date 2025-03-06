@@ -6,6 +6,7 @@ const initialState = {
     newUser: {},
     currentUser: localStorage.getItem("currentUser") ? JSON.parse(localStorage.getItem("currentUser")) : {},
     token: localStorage.getItem("token") || "",
+    refreshToken: localStorage.getItem("refreshToken") || "",
     verified: false,
     canResetPwd: false,
 }
@@ -75,8 +76,12 @@ export const authSlice = createSlice({
             .addCase(logIn.fulfilled, (state, action) => {
                 state.loading = false;
                 state.token = action.payload.token;
+                state.refreshToken = action.payload.refreshToken;
                 localStorage.setItem('token', state.token);
+                localStorage.setItem('refreshToken', state.refreshToken);
                 console.log("Token state:", state.token);
+                console.log("Refresh token state:", state.refreshToken);
+
             })
             .addCase(getCurrentUser.pending, (state) => {
                 state.loading = true;

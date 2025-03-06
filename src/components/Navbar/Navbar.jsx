@@ -6,7 +6,7 @@ import avatar from '../../assets/download (11).jpg'
 import { logOut } from '../../redux/auth/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
-
+import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 const Navbar = () => {
     const navigate = useNavigate();
     const token = useSelector((state) => state.auth.token);
@@ -55,38 +55,38 @@ const Navbar = () => {
             <Row className='navbar'>
                 <Col span={8} >
                     <Flex justify='flex-start' align='center' gap='10px'>
-                        <Button type="text" icon={<SearchOutlined />}>Search</Button>
-                        <Button type='text'><Space>Donate <CaretDownOutlined /></Space></Button>
-                        <Button type='text'><Space>Fundraise <CaretDownOutlined /></Space></Button>
-                        <Button type='text'><Space>Community </Space></Button>
+                        <Button className='btn-custom' type="text" icon={<SearchOutlined />}>Search</Button>
+                        <Button className='btn-custom' type='text'><Space>Donate <CaretDownOutlined /></Space></Button>
+                        <Button className='btn-custom' type='text'><Space>Fundraise <CaretDownOutlined /></Space></Button>
+                        <Button className='btn-custom' type='text'><Space>Community </Space></Button>
                     </Flex>
                 </Col>
                 <Col span={8}>
                     <Flex justify='center' align='flex-start' style={{ height: '80px' }}>
                         <a href="/">
-                            <img src="./src/assets/apgsoohzrdamo4loggow.svg" alt="" style={{ height: '90px' }} />
+                            <img src={logo} alt="" style={{ height: '90px' }} />
                         </a>
                     </Flex>
                 </Col>
                 <Col span={8}>
                     <Flex justify='flex-end' align='center' gap='10px'>
-                        <Button type='text'><Space>About <CaretDownOutlined /></Space></Button>
+                        <Button className='btn-custom' type='text'><Space>About <CaretDownOutlined /></Space></Button>
                         {token ? (
                             <Dropdown
                                 menu={{ items }}
                                 placement="bottomRight"
                             >
-                                <Button>
+                                <Button className='btn-custom' type='text'>
                                     <img
                                         src={currentUser.avatar ?? avatar}
                                         alt="avatar"
-                                        style={{ borderRadius: '50%', width: '40px', height: '40px' }}
+                                        style={{ borderRadius: '50%', width: '35px', height: '35px' }}
                                     />
                                     {currentUser.fullName}
                                 </Button>
                             </Dropdown>
                         ) : (
-                            <Button type="text" onClick={() => navigate("/auth/login")}>
+                            <Button className='btn-custom' type="text" onClick={() => navigate("/auth/login")}>
                                 Sign in
                             </Button>
                         )}
