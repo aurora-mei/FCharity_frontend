@@ -1,7 +1,8 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
-
+import useLoading from "../../hooks/useLoading";
 const PrivateRoute = () => {
+    const loadingUI = useLoading();
     const [isAuthenticated, setIsAuthenticated] = useState(null); // Track authentication status
 
     useEffect(() => {
@@ -13,14 +14,10 @@ const PrivateRoute = () => {
             setIsAuthenticated(!!token); // Update state based on token
         };
 
-        checkAuth(); // Check authentication when component mounts
+        checkAuth();
     }, []);
 
-    if (isAuthenticated === null) {
-        // While authentication status is being checked, render nothing or a loading indicator
-        return <div>Loading...</div>;
-    }
-
+    if (loadingUI || loading) return <LoadingModal />;
     return isAuthenticated ? <Outlet /> : <Navigate to="/auth/login" />;
 };
 
