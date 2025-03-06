@@ -120,7 +120,10 @@ export const authSlice = createSlice({
             .addCase(googleLogIn.fulfilled, (state, action) => {
                 state.loading = false;
                 state.token = action.payload.token;
+                state.refreshToken = action.payload.refreshToken;
                 localStorage.setItem('token', state.token);
+                localStorage.setItem('refreshToken', state.refreshToken);
+                console.log("Google login token state:", state.refreshToken);
                 console.log("Google login token state:", state.token);
             })
             .addCase(googleLogIn.rejected, (state, action) => {

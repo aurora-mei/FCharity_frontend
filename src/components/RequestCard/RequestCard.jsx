@@ -6,6 +6,7 @@ import { deleteRequest, updateRequest } from "../../redux/request/requestSlice";
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import PropTypes from "prop-types";
+import "./RequestCard.pcss"; // Import the CSS file
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -14,6 +15,7 @@ const RequestCard = ({ requestData }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [currentRequestData, setCurrentRequestData] = useState(null);
     const [form] = Form.useForm();
     const categories = useSelector((state) => state.category.categories || []);
     const tags = useSelector((state) => state.tag.tags || []);
@@ -28,10 +30,10 @@ const RequestCard = ({ requestData }) => {
         return null;
     }
 
-    const handleDelete = async () => {
+    const handleDelete = async (id) => {
         try {
-            console.log("Deleting request with ID:", requestData.request.id);
-            await dispatch(deleteRequest(requestData.request.id)).unwrap();
+            console.log("Deleting request with ID:", id);
+            await dispatch(deleteRequest(id)).unwrap();
             message.success("Request deleted successfully");
             window.location.reload();
         } catch (error) {
@@ -40,33 +42,49 @@ const RequestCard = ({ requestData }) => {
         }
     };
 
-    const handleEdit = () => {
+    const handleEdit = (data) => {
+        setCurrentRequestData(data);
         setIsModalVisible(true);
-        form.setFieldsValue({
-            title: requestData.request.title,
-            content: requestData.request.content,
-            phone: requestData.request.phone,
-            email: requestData.request.email,
-            location: requestData.request.location,
-            categoryId: requestData.request.categoryId,
-            tagIds: requestData.request.tagIds,
-        });
+        const initialValues = {
+            title: data.request.title,
+            content: data.request.content,
+            phone: data.request.phone,
+            email: data.request.email,
+            location: data.request.location,
+            categoryId: data.request.category.id,
+            requestTags: data.requestTags?.map(taggable => taggable.tag.id) || [],
+        };
+        console.log("Initial form values:", initialValues);
+        form.setFieldsValue(initialValues);
     };
 
     const handleCancel = () => {
         setIsModalVisible(false);
+        setCurrentRequestData(null);
     };
 
     const handleUpdate = async (values) => {
         const updatedRequest = {
-            ...requestData.request,
-            ...values,
+            id: currentRequestData.request.id,
+            userId: currentRequestData.request.userId,
+            title: values.title,
+            content: values.content,
+            creationDate: currentRequestData.request.creationDate,
+            phone: values.phone,
+            email: values.email,
+            location: values.location,
+            attachment: currentRequestData.request.attachment,
+            isEmergency: currentRequestData.request.isEmergency,
+            categoryId: values.categoryId,
+            tagIds: values.requestTags,
+            status: currentRequestData.request.status,
         };
         try {
             console.log("Updating request:", updatedRequest);
-            await dispatch(updateRequest({ id: requestData.request.id, requestData: updatedRequest })).unwrap();
+            await dispatch(updateRequest({ id: currentRequestData.request.id, requestData: updatedRequest })).unwrap();
             message.success("Request updated successfully");
             setIsModalVisible(false);
+            setCurrentRequestData(null);
         } catch (error) {
             console.error("Error updating request:", error);
             message.error("Failed to update request: " + (error.message || "Unknown error"));
@@ -74,17 +92,33 @@ const RequestCard = ({ requestData }) => {
     };
 
     return (
-        <Card className="request-card">
-            <div className="request-card-header">
-                <Title level={4} className="request-card-title">
-                    {requestData.request.title}
-                </Title>
+        <div className="flex flex-col gap-4 p-4 items-center">
+            {/* Full Card */}
+            <div className="w-80 bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="bg-green-200 h-32 flex items-center justify-center">
+                    <img src="https://via.placeholder.com/50" alt="Placeholder" className="opacity-50" />
+                </div>
+                <div className="p-4">
+                    <div className="category-badge">
+                        {requestData.request.category.categoryName}
+                    </div>
+                    <h2 className="text-lg font-bold">{requestData.request.title}</h2>
+                    <p className="text-gray-600 text-sm">{requestData.request.content}</p>
+                    <p className="text-gray-600 text-sm">Phone: {requestData.request.phone}</p>
+                    <p className="text-gray-600 text-sm">Email: {requestData.request.email}</p>
+                    <div className="tags">
+                        {requestData.requestTags.map(tag => (
+                            <span key={tag.id} className="tag">
+                                #{tag.tag.tagName}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+                <div className="request-card-actions flex justify-between p-4">
+                    <Button type="primary" className="edit-button" onClick={() => handleEdit(requestData)}>Edit</Button>
+                    <Button type="danger" className="delete-button" onClick={() => handleDelete(requestData.request.id)}>Delete</Button>
+                </div>
                 <Button type="link" onClick={() => navigate(`/requests/${requestData.request.id}`)}>View Details</Button>
-            </div>
-            <Text>{requestData.request.content}</Text>
-            <div className="request-card-actions">
-                <Button type="primary" className="edit-button" onClick={handleEdit}>Edit</Button>
-                <Button type="danger" className="delete-button" onClick={handleDelete}>Delete</Button>
             </div>
 
             <Modal
@@ -118,7 +152,7 @@ const RequestCard = ({ requestData }) => {
                             ))}
                         </Select>
                     </Form.Item>
-                    <Form.Item label="Tags" name="tagIds" rules={[{ required: true, message: "At least one tag is required" }]}>
+                    <Form.Item label="Tags" name="requestTags" rules={[{ required: true, message: "At least one tag is required" }]}>
                         <Select
                             mode="multiple"
                             placeholder="Select tags"
@@ -132,13 +166,13 @@ const RequestCard = ({ requestData }) => {
                         </Select>
                     </Form.Item>
                     <Form.Item>
-                        <Button type="primary" htmlType="submit" block>
+                        <Button type="primary" htmlType="submit" block className="request-btn">
                             Update Request
                         </Button>
                     </Form.Item>
                 </Form>
             </Modal>
-        </Card>
+        </div>
     );
 };
 
@@ -151,9 +185,18 @@ RequestCard.propTypes = {
             phone: PropTypes.string.isRequired,
             email: PropTypes.string.isRequired,
             location: PropTypes.string.isRequired,
-            categoryId: PropTypes.string.isRequired,
-            tagIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+            category: PropTypes.shape({
+                id: PropTypes.string.isRequired,
+                categoryName: PropTypes.string.isRequired,
+            }).isRequired,                               
         }).isRequired,
+        requestTags: PropTypes.arrayOf(PropTypes.shape({
+            id: PropTypes.string.isRequired,
+            tag: PropTypes.shape({
+                id: PropTypes.string.isRequired,
+                tagName: PropTypes.string.isRequired,
+            }).isRequired,
+        })),
     }).isRequired,
 };
 
