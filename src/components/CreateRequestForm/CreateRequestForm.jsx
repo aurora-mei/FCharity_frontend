@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { Form, Input, Button, Checkbox, Typography, Select, Flex } from "antd";
+import { Form, Input, Button, Checkbox, Typography, Select, Upload, message } from "antd";
+import { UploadOutlined } from '@ant-design/icons';
 import "antd/dist/reset.css";
-import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 import { useDispatch, useSelector } from 'react-redux';
 import { createRequest } from '../../redux/request/requestSlice';
 import { fetchCategories } from '../../redux/category/categorySlice';
@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import LoadingModal from "../LoadingModal/index.jsx";
 import useLoading from "../../hooks/useLoading";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 
 const CreateRequestForm = () => {
@@ -89,7 +89,14 @@ const CreateRequestForm = () => {
                         </Form.Item>
 
                         <Form.Item label="Attachment" name="attachment">
-                            <Input />
+                            <Upload
+                                name="file"
+                                listType="picture"
+                                beforeUpload={() => false} 
+                                accept=".jpg, .png, .jpeg, .mp4, .mov, .avi, .mkv"
+                            >
+                                <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                            </Upload>
                         </Form.Item>
 
                         <Form.Item label="Category" name="categoryId" rules={[{ required: true, message: "Category is required" }]}>
@@ -122,7 +129,7 @@ const CreateRequestForm = () => {
                         </Form.Item>
 
                         <Form.Item>
-                            <Button htmlType="submit" block className="continue-button">
+                            <Button type="primary" htmlType="submit" block className="continue-button">
                                 Create Request
                             </Button>
                         </Form.Item>

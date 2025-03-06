@@ -72,10 +72,11 @@ const requestSlice = createSlice({
             })
             .addCase(updateRequest.fulfilled, (state, action) => {
                 state.loading = false;
-                const index = state.requests.findIndex(request => request.id === action.payload.id);
+                const index = state.requests.findIndex(request => request.request.id === action.payload.request.id);
                 if (index !== -1) {
                     state.requests[index] = action.payload;
                 }
+                    state.currentRequest = action.payload;
             })
             .addCase(updateRequest.rejected, (state, action) => {
                 state.loading = false;
