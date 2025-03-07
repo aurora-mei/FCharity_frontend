@@ -12,9 +12,6 @@ export const APIPrivate = axios.create({
 // ✅ Get state dynamically inside interceptor
 APIPrivate.interceptors.request.use(
     async (config) => {
-        // const storeModule = await import("../../redux/store"); // ✅ Dùng dynamic import
-        // const store = storeModule.default;
-        // const token = store.getState().auth.token;
 
         const token = localStorage.getItem("token");
         console.log("Token before request: ", token);
