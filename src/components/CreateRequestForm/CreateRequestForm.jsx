@@ -53,11 +53,12 @@ const CreateRequestForm = () => {
             ...values,
             userId: currentUser.id,
             tagIds: values.tagIds,
-            attachments: attachments, // Gửi danh sách file đã upload
+            imageUrls: attachments.images, 
+            videoUrls: attachments.videos// Gửi danh sách file đã upload
         };
         console.log("Final Request Data:", requestData);
-        // await dispatch(createRequest(requestData)).unwrap();
-        // navigate('/requests', { replace: true });
+        await dispatch(createRequest(requestData)).unwrap();
+        navigate('/requests', { replace: true });
     };
 
     const handleImageChange = async ({ fileList }) => {
