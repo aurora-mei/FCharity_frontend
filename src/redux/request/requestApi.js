@@ -10,6 +10,16 @@ const fetchRequests = async () => {
     }
 };
 
+const fetchActiveRequests = async () => {
+    try {
+        const response = await APIPrivate.get('requests/active');
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching active requests:", err);
+        throw err.response ? err.response.data : err;
+    }
+};
+
 const createRequest = async (requestData) => {
     try {
         const response = await APIPrivate.post('requests/create', requestData);
@@ -50,5 +60,5 @@ const fetchRequestById = async (id) => {
     }
 }
 
-const requestApi = { fetchRequests, createRequest, updateRequest, deleteRequest, fetchRequestById };
+const requestApi = { fetchRequests, createRequest, updateRequest, deleteRequest, fetchRequestById, fetchActiveRequests };
 export default requestApi;

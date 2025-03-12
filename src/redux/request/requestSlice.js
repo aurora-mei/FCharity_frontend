@@ -4,11 +4,17 @@ import requestApi from './requestApi';
 const initialState = {
     loading: false,
     requests: [],
+    activeRequests: [],
     currentRequest: {},
+    error: null,
 };
 
 export const fetchRequests = createAsyncThunk("requests/fetch", async () => {
     return await requestApi.fetchRequests();
+});
+
+export const fetchActiveRequests = createAsyncThunk("requests/fetchActive", async () => {
+    return await requestApi.fetchActiveRequests();
 });
 
 export const fetchRequestById = createAsyncThunk("requests/fetchById", async (id) => {
@@ -43,7 +49,18 @@ const requestSlice = createSlice({
             })
             .addCase(fetchRequests.rejected, (state, action) => {
                 state.loading = false;
-                console.error("Error fetching requests:", action.error);
+                state.error = action.error;
+            })
+            .addCase(fetchActiveRequests.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchActiveRequests.fulfilled, (state, action) => {
+                state.loading = false;
+                state.activeRequests = action.payload;
+            })
+            .addCase(fetchActiveRequests.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
             })
             .addCase(fetchRequestById.pending, (state) => {
                 state.loading = true;
@@ -54,7 +71,7 @@ const requestSlice = createSlice({
             })
             .addCase(fetchRequestById.rejected, (state, action) => {
                 state.loading = false;
-                console.error("Error fetching request by ID:", action.error);
+                state.error = action.error;
             })
             .addCase(createRequest.pending, (state) => {
                 state.loading = true;
@@ -65,7 +82,7 @@ const requestSlice = createSlice({
             })
             .addCase(createRequest.rejected, (state, action) => {
                 state.loading = false;
-                console.error("Error creating request:", action.error);
+                state.error = action.error;
             })
             .addCase(updateRequest.pending, (state) => {
                 state.loading = true;
@@ -76,11 +93,11 @@ const requestSlice = createSlice({
                 if (index !== -1) {
                     state.requests[index] = action.payload;
                 }
-                    state.currentRequest = action.payload;
+                state.currentRequest = action.payload;
             })
             .addCase(updateRequest.rejected, (state, action) => {
                 state.loading = false;
-                console.error("Error updating request:", action.error);
+                state.error = action.error;
             })
             .addCase(deleteRequest.pending, (state) => {
                 state.loading = true;
@@ -91,7 +108,7 @@ const requestSlice = createSlice({
             })
             .addCase(deleteRequest.rejected, (state, action) => {
                 state.loading = false;
-                console.error("Error deleting request:", action.error);
+                state.error = action.error;
             });
     },
 });

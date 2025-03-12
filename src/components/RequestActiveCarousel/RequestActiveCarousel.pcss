@@ -1,0 +1,43 @@
+.request-active-carousel {
+  .slick-slide {
+    padding: 10px;
+  }
+
+
+  position: relative;
+
+  .slick-prev,
+  .slick-next {
+    z-index: 2;
+    top: 50%;
+    transform: translateY(-50%);
+    position: absolute;
+
+    &::before {
+      color: #333;
+      font-size: 24px;
+    }
+  }
+
+  .slick-prev {
+    left: 20px;
+  }
+
+  .slick-next {
+    right: 20px;
+  }
+
+  .slick-dots {
+    bottom: -30px;
+  }
+}
+
+.request-active-carousel {
+    position: relative; /* Để làm cha cho các mũi tên */
+}
+
+.request-active-carousel .slick-prev,
+.request-active-carousel .slick-next {
+    z-index: 10 !important;
+}
+
