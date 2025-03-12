@@ -5,10 +5,16 @@ import { Affix, Button, Flex, Space, Row, Col, Dropdown } from 'antd';
 import avatar from '../../assets/download (11).jpg'
 import { logOut } from '../../redux/auth/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation, Trans } from 'react-i18next';
 
+const lngs = {
+    en: { nativeName: 'English' },
+    de: { nativeName: 'Deutsch' }
+};
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 const Navbar = () => {
     const navigate = useNavigate();
+    const { t, i18n } = useTranslation();
     const token = useSelector((state) => state.auth.token);
     const storedUser = localStorage.getItem("currentUser");
     let currentUser = {};
@@ -93,6 +99,13 @@ const Navbar = () => {
                         <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/requests/create")}>
                             <b>Start a request</b>
                         </Button>
+                        <div>
+                            {Object.keys(lngs).map((lng) => (
+                                <button key={lng} style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }} type="submit" onClick={() => i18n.changeLanguage(lng)}>
+                                    {lngs[lng].nativeName}
+                                </button>
+                            ))}
+                        </div>
                     </Flex>
                 </Col>
             </Row>
