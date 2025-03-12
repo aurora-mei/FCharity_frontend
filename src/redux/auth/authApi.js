@@ -1,54 +1,66 @@
-import { API, APIPrivate } from '../../config/API/api';
+import { API, APIPrivate } from "../../config/API/api";
 
 const signup = async (signupRequestModel) => {
-    try {
-        const response = await API.post(`auth/signup`, signupRequestModel);
-        return response.data;
-    } catch (err) {
-        throw err.response.data;
-    }
+  try {
+    const response = await API.post(`auth/signup`, signupRequestModel);
+    return response.data;
+  } catch (err) {
+    throw err.response.data;
+  }
 };
 const verify = async (verifyRequestModel) => {
-    try {
-        const response = await API.post(`auth/verify`, verifyRequestModel);
-        return response.data;
-    } catch (err) {
-        throw err.response.data;
-    }
+  try {
+    const response = await API.post(`auth/verify`, verifyRequestModel);
+    return response.data;
+  } catch (err) {
+    throw err.response.data;
+  }
 };
 const sendOTP = async (sendOTPModel) => {
-    try {
-        const response = await API.post(`auth/resendOTP`, sendOTPModel);
-        return response.data;
-    } catch (err) {
-        throw err.response.data;
-    }
+  try {
+    const response = await API.post(`auth/resendOTP`, sendOTPModel);
+    return response.data;
+  } catch (err) {
+    throw err.response.data;
+  }
 };
 const login = async (loginRequestModel) => {
-    try {
-        const response = await API.post(`auth/login`, loginRequestModel);
-        return response.data;
-    } catch (err) {
-        throw err.response.data;
-    }
+  try {
+    const response = await API.post(`auth/login`, loginRequestModel);
+    localStorage.setItem("token", response.data.token);
+    return response.data;
+  } catch (err) {
+    throw err.response.data;
+  }
 };
+
+const logout = async () => {
+  try {
+    const response = await API.post("auth/logout");
+    localStorage.removeItem("token");
+    return response.data;
+  } catch (err) {
+    throw err.response.data;
+  }
+};
+
 const getCurrentUser = async () => {
-    try {
-        console.log("Gửi request lấy current user...");
-        const response = await APIPrivate.get(`users/current-user`);
-        console.log("response get current user: ", response?.data);
-        return response?.data;
-    } catch (err) {
-        console.error("Error fetching current user:", err);
+  try {
+    console.log("Gửi request lấy current user...");
+    const response = await APIPrivate.get(`users/current-user`);
+    console.log("response get current user: ", response?.data);
+    return response?.data;
+  } catch (err) {
+    console.error("Error fetching current user:", err);
 
-        // Kiểm tra err.response trước khi truy cập data
-        if (err.response) {
-            throw err.response.data;
-        } else {
-            throw new Error("Server không phản hồi hoặc bị lỗi.");
-        }
+    // Kiểm tra err.response trước khi truy cập data
+    if (err.response) {
+      throw err.response.data;
+    } else {
+      throw new Error("Server không phản hồi hoặc bị lỗi.");
     }
+  }
 };
 
-const authApi = { signup, verify, sendOTP, login, getCurrentUser };
+const authApi = { signup, verify, sendOTP, login, logout, getCurrentUser };
 export default authApi;
