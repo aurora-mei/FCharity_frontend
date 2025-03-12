@@ -18,9 +18,16 @@
 
 .request-card-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 10px;
     margin-top: 20px;
+}
+
+.request-card-actions .edit-button,
+.request-card-actions .delete-button {
+    flex: 1;
+    display: flex;
+    justify-content: center;
 }
 
 .request-card-actions .edit-button {
@@ -31,4 +38,12 @@
 .request-card-actions .delete-button {
     color: red;
     border-color: red;
+}
+
+.request-btn {
+    font-size: 1.1rem;
+    border: 1px solid black;
+    color: black;
+    background-color: transparent;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }

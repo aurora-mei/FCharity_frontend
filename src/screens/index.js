@@ -4,3 +4,5 @@ export * from "./auth/OtpVerificationScreen";
 export * from "./auth/ResetPwdScreen";
 export * from "./request/CreateRequestScreen";
 export * from "./request/RequestListScreen";
+export * from "./request/RequestDetailScreen";
+export * from "./request/EditRequestScreen";
