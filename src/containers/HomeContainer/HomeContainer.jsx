@@ -6,6 +6,8 @@ import FundraiserBoard from "../FundraiserBoard/FundraiserBoard";
 import EventBoard from "../EventBoard/EventBoard";
 import ForumBoard from "../ForumBoard/ForumBoard";
 import NotingGreen from "../../components/NotingGreen/NotingGreen";
+import RequestListScreen from "../../screens/request/RequestListScreen";
+import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
 import { Flex } from 'antd';
 const HomeContainer = () => {
     return (
@@ -14,9 +16,10 @@ const HomeContainer = () => {
                 <Banner />
                 <Noting />
                 <Flex vertical='true' gap='4rem' style={{ margin: '4rem 10rem' }}>
+                    <RequestActiveCarousel />
                     <FundraiserBoard />
                     <EventBoard />
-                </Flex>
+                </Flex>                
                 <NotingGreen message={
                     <>
                         A forum dedicated to charity and kindness. <br />
