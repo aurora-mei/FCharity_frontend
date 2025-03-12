@@ -1,14 +1,105 @@
-.request-detail {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-    background-color: #f0f0f0;
+.request-detail-page {
+  max-width: 800px;
+  margin: 0 auto; /* canh giữa trang */
+  padding: 20px;
+  background-color: #fff;
 }
 
 .request-title {
-    text-align: center;
-    width: 100%;
-    margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* Carousel nằm ngay dưới title */
+.request-carousel {
+  margin-bottom: 24px;
+  position: relative; /* để mũi tên absolute bám vào */
+}
+
+/* Cho phép mũi tên hiển thị ra ngoài slide nếu bị tràn */
+.request-carousel .slick-list,
+.request-carousel .slick-track {
+  overflow: visible !important;
+}
+
+/* Slide ảnh/video */
+.media-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.media-slide img,
+.media-slide video {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Mũi tên slick */
+.slick-arrow {
+  font-size: 24px;
+  color: #333 !important;
+  z-index: 2;
+  position: absolute; 
+  top: 50%;
+  transform: translateY(-50%);
+  display: block !important; /* Ép hiển thị mũi tên */
+}
+
+/* Đẩy mũi tên ra ngoài ảnh */
+.slick-prev {
+  left: -40px; /* Thay đổi tuỳ ý, ví dụ -40px, -50px */
+}
+
+.slick-next {
+  right: -40px; /* Thay đổi tuỳ ý, ví dụ -40px, -50px */
+}
+
+/* Xoá icon mặc định của slick */
+.slick-prev::before,
+.slick-next::before {
+  content: '';
+}
+
+/* Thông tin tổ chức + donation tag */
+.organizer-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.organizer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.organizer-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.organizer-text {
+  font-size: 16px;
+}
+
+/* Nội dung chính */
+.request-main-content {
+  margin-bottom: 24px;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.request-tags {
+  margin-top: 12px;
+}
+
+/* Nút Donate */
+.donate-button-container {
+  text-align: center;
+  margin-bottom: 20px;
 }
