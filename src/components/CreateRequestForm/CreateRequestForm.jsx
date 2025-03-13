@@ -92,7 +92,7 @@ const CreateRequestForm = () => {
         for (const file of fileList) {
             try {
                 const response = await dispatch(uploadFileHelper(file.originFileObj, "videos")).unwrap();
-                uploadedFiles.push(response.url);
+                uploadedFiles.push(response);
                 message.success(`Uploaded ${file.name}`);
             } catch (error) {
                 console.error("Error uploading video:", error);

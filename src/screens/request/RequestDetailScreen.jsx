@@ -5,6 +5,7 @@ import { fetchRequestById } from "../../redux/request/requestSlice";
 import LoadingModal from "../../components/LoadingModal";
 import { Carousel, Typography, Alert, Tag, Button } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -42,15 +43,11 @@ const RequestDetailScreen = () => {
   const { request, requestTags } = requestData;
   const { user } = request || {};
 
-  // Lọc ảnh/video (nếu backend trả về attachments)
-  const imageUrls = requestData.attachments?.filter((url) =>
-    url.match(/\.(jpeg|jpg|png|gif)$/i)
-  ) || [];
-  const videoUrls = requestData.attachments?.filter((url) =>
-    url.match(/\.(mp4|webm|ogg)$/i)
-  ) || [];
+  const attachments = (requestData.attachments || []).filter(
+    (url) => url && typeof url === "string"
+  );
 
-  // Mũi tên tuỳ chỉnh cho carousel
+  // Mũi tên tuỳ chỉnh cho carousel (nếu cần)
   const PrevArrow = ({ onClick }) => (
     <LeftOutlined className="slick-arrow slick-prev" onClick={onClick} />
   );
@@ -65,37 +62,37 @@ const RequestDetailScreen = () => {
     slidesToShow: 1,
     slidesToScroll: 1,
     prevArrow: <PrevArrow />,
-    nextArrow: <NextArrow />
+    nextArrow: <NextArrow />,
   };
 
   return (
     <div className="request-detail-page">
+      {/* 📌 Hiển thị tất cả attachments ở đầu trang */}
+      {attachments.length > 0 && (
+        <Carousel {...carouselSettings} className="attachments-carousel">
+          {attachments.map((url, index) => (
+            <div key={index} className="attachment-slide">
+              {url.match(/\.(jpeg|jpg|png|gif)$/i) ? (
+                <img src={url} alt={`Attachment ${index}`} className="carousel-image" />
+              ) : url.match(/\.(mp4|webm|ogg)$/i) ? (
+                <video controls className="carousel-video">
+                  <source src={url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : null}
+            </div>
+          ))}
+        </Carousel>
+      )}
+  
       {/* Tiêu đề */}
       <Title level={1} className="request-title">{request.title}</Title>
-
-      {/* Carousel ảnh/video ngay dưới tiêu đề */}
-      {(imageUrls.length > 0 || videoUrls.length > 0) && (
-        <div className="request-carousel">
-          <Carousel {...carouselSettings}>
-            {imageUrls.map((url, index) => (
-              <div key={`img-${index}`} className="media-slide">
-                <img src={url} alt={`request-img-${index}`} />
-              </div>
-            ))}
-            {videoUrls.map((url, index) => (
-              <div key={`vid-${index}`} className="media-slide">
-                <video src={url} controls />
-              </div>
-            ))}
-          </Carousel>
-        </div>
-      )}
+  
 
       {/* Thông tin người tổ chức + badge */}
       <div className="organizer-section">
         {user && (
           <div className="organizer-info">
-            {/* Avatar user nếu có */}
             {user.avatarUrl && (
               <img
                 src={user.avatarUrl}
@@ -117,15 +114,11 @@ const RequestDetailScreen = () => {
       {/* Nội dung mô tả chính */}
       <div className="request-main-content">
         <Paragraph>{request.content}</Paragraph>
-
-        {/* Thông tin phone/email/location */}
         <Paragraph>
           <strong>Phone:</strong> {request.phone} <br />
           <strong>Email:</strong> {request.email} <br />
           <strong>Location:</strong> {request.location}
         </Paragraph>
-
-        {/* Tags */}
         {requestTags?.length > 0 && (
           <Paragraph className="request-tags">
             {requestTags.map((taggable) => (
@@ -143,6 +136,11 @@ const RequestDetailScreen = () => {
           Donate Now
         </Button>
       </div>
+
+      {/* Active Requests Carousel - Loại bỏ request hiện tại */}
+      { <div className="active-requests-section">
+        <RequestActiveCarousel />
+      </div> }
     </div>
   );
 };
