@@ -49,6 +49,14 @@ const Navbar = () => {
         {
             key: '2',
             label: (
+                <a rel="noopener noreferrer" href="/requests">
+                    My Request
+                </a>
+            ),
+        },
+        {
+            key: '3',
+            label: (
                 <a onClick={logout}>
                     Sign out
                 </a>
@@ -76,7 +84,7 @@ const Navbar = () => {
                 </Col>
                 <Col span={8}>
                     <Flex justify='flex-end' align='center' gap='10px'>
-                        <Button className='btn-custom' type='text'><Space>About <CaretDownOutlined /></Space></Button>
+                        {/* <Button className='btn-custom' type='text'><Space>About <CaretDownOutlined /></Space></Button> */}
                         {token ? (
                             <Dropdown
                                 menu={{ items }}
@@ -101,7 +109,7 @@ const Navbar = () => {
                         <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/requests/create")}>
                             <b>Start a request</b>
                         </Button>
-                        <div>
+                        <Flex vertical>
                             {Object.keys(lngs).map((lng) => (
                                 <button key={lng} style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }} type="submit" onClick={() => {
                                     i18n.changeLanguage(lng);
@@ -110,7 +118,7 @@ const Navbar = () => {
                                     {lngs[lng].nativeName}
                                 </button>
                             ))}
-                        </div>
+                        </Flex>
                     </Flex>
                 </Col>
             </Row>

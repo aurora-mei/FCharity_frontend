@@ -1,39 +1,35 @@
 .request-detail-page {
-  max-width: 800px;
   margin: 0 auto; /* canh giữa trang */
-  padding: 20px;
-  background-color: #fff;
+  padding:4rem 10rem;
+  padding-top:1rem;
+  background-color: #f2f2f2;
 }
-
-.request-title {
-  text-align: center;
+.request-detail{
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
+}
+.request-title {
+  text-align: left;
+  margin-bottom: 24px;
+
 }
 
 /* Carousel nằm ngay dưới title */
 .request-carousel {
-  margin-bottom: 24px;
-  position: relative; /* để mũi tên absolute bám vào */
-}
-
-/* Cho phép mũi tên hiển thị ra ngoài slide nếu bị tràn */
-.request-carousel .slick-list,
-.request-carousel .slick-track {
-  overflow: visible !important;
-}
-
-/* Slide ảnh/video */
-.media-slide {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100%;
+  margin-bottom: 1rem;
 }
 
 .media-slide img,
 .media-slide video {
+  border-radius: 1rem;
   max-width: 100%;
   height: auto;
   object-fit: cover;
+  object-position: center;
 }
 
 /* Mũi tên slick */

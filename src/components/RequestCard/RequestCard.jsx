@@ -104,9 +104,9 @@ const RequestCard = ({ requestData, showActions = true }) => {
     };
 
     return (
-        <div className="flex flex-col gap-4 p-4 items-center">
+        <div>
             {/* Full Card */}
-            <div className="w-80 bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="w-80 bg-white rounded-2xl shadow-lg overflow-hidden h-85 cursor-pointer" onClick={() => navigate(`/requests/${requestData.request.id}`)}>
                 {/* Ảnh đầu tiên hoặc placeholder */}
                 <div className="bg-green-200 h-32 flex items-center justify-center">
                     {requestData.attachments && requestData.attachments.length > 0 ? (
@@ -163,12 +163,6 @@ const RequestCard = ({ requestData, showActions = true }) => {
                     </div>
                 )}
 
-                <Button
-                    type="link"
-                    onClick={() => navigate(`/requests/${requestData.request.id}`)}
-                >
-                    View Details
-                </Button>
             </div>
 
             {/* Modal Edit */}

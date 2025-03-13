@@ -13,7 +13,9 @@ const RequestActiveCarousel = () => {
     const error = useSelector((state) => state.request.error);
 
     useEffect(() => {
-        dispatch(fetchActiveRequests());
+        if (activeRequests.length === 0) {
+            dispatch(fetchActiveRequests());
+        }
     }, [dispatch]);
 
     const settings = {
