@@ -6,6 +6,7 @@ const initialState = {
     requests: [],
     activeRequests: [],
     currentRequest: {},
+    requestByUserID: [],
     error: null,
 };
 
@@ -33,6 +34,18 @@ export const deleteRequest = createAsyncThunk("requests/delete", async (id) => {
     await requestApi.deleteRequest(id);
     return id;
 });
+
+// Thunk mới để lấy requests theo userId
+export const fetchRequestsByUserIdThunk = createAsyncThunk(
+    "requests/fetchByUserId",
+    async (userId, thunkAPI) => {
+      try {
+        return await requestApi.fetchRequestsByUserId(userId);
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error);
+      }
+    }
+  );
 
 const requestSlice = createSlice({
     name: 'request',
@@ -109,6 +122,18 @@ const requestSlice = createSlice({
             .addCase(deleteRequest.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
+            })
+            // Xử lý thunk fetchRequestsByUserId
+            .addCase(fetchRequestsByUserIdThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchRequestsByUserIdThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.requestsByUserId = action.payload;
+            })
+            .addCase(fetchRequestsByUserIdThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error;
             });
     },
 });

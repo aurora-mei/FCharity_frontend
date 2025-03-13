@@ -60,5 +60,16 @@ const fetchRequestById = async (id) => {
     }
 }
 
-const requestApi = { fetchRequests, createRequest, updateRequest, deleteRequest, fetchRequestById, fetchActiveRequests };
+// Hàm API lấy request theo userId
+export const fetchRequestsByUserId = async (userId) => {
+    try {
+        const response = await APIPrivate.get(`requests/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching requests by user id:", error);
+        throw error.response?.data || error;
+    }
+};
+
+const requestApi = { fetchRequests, createRequest, updateRequest, deleteRequest, fetchRequestById, fetchActiveRequests, fetchRequestsByUserId };
 export default requestApi;
