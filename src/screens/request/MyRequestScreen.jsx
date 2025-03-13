@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { List, Typography } from "antd";
 import LoadingModal from "../../components/LoadingModal";
@@ -9,28 +9,38 @@ const { Title } = Typography;
 
 const MyRequestScreen = () => {
   const dispatch = useDispatch();
-
-  // Lấy thông tin user từ state auth (giả sử có trường user)
-  const user = useSelector((state) => state.auth.user);
-  
-  // Lấy danh sách request theo userId từ state request (đã được cập nhật qua fetchRequestsByUserIdThunk)
-  const requestsByUserId = useSelector((state) => state.request.requestsByUserId);
   const loading = useSelector((state) => state.request.loading);
+  const requestsByUserId = useSelector((state) => state.request.requestsByUserId) || [];
   const error = useSelector((state) => state.request.error);
 
+  // Lấy user từ localStorage
+  const storedUser = localStorage.getItem("currentUser");
+  let currentUser = {};
+  
+  try {
+    currentUser = storedUser ? JSON.parse(storedUser) : {};
+  } catch (error) {
+    console.error("Error parsing currentUser from localStorage:", error);
+  }
+
   useEffect(() => {
-    if (user?.id) {
-      dispatch(fetchRequestsByUserIdThunk(user.id));
+    if (currentUser?.id) {
+      console.log("Fetching requests for user ID:", currentUser.id);
+      if (Array.isArray(requestsByUserId) && requestsByUserId.length === 0) {
+        dispatch(fetchRequestsByUserIdThunk(currentUser.id));
+      }
+    } else {
+      console.error("User ID is undefined:", currentUser);
     }
-  }, [dispatch, user]);
+  }, [dispatch, currentUser, requestsByUserId]);
 
   if (loading) return <LoadingModal />;
   if (error) return <p style={{ color: "red" }}>Failed to load your requests: {error.message || error}</p>;
 
   return (
-    <div className="my-request-screen">
+    <div style={{ padding: "2rem" }}>
       <Title level={2}>My Requests</Title>
-      {Array.isArray(requestsByUserId) && requestsByUserId.length > 0 ? (
+      {requestsByUserId.length > 0 ? (
         <List
           grid={{ gutter: 16, column: 4 }}
           dataSource={requestsByUserId}

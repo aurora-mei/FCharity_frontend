@@ -106,7 +106,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
     return (
         <div>
             {/* Full Card */}
-            <div className="w-80 bg-white rounded-2xl shadow-lg overflow-hidden h-85 cursor-pointer" onClick={() => navigate(`/requests/${requestData.request.id}`)}>
+            <div className="w-80 bg-white rounded-2xl shadow-lg overflow-hidden h-115 cursor-pointer" onClick={() => navigate(`/requests/${requestData.request.id}`)}>
                 {/* Ảnh đầu tiên hoặc placeholder */}
                 <div className="bg-green-200 h-32 flex items-center justify-center">
                     {requestData.attachments && requestData.attachments.length > 0 ? (

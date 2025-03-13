@@ -63,7 +63,7 @@ const fetchRequestById = async (id) => {
 // Hàm API lấy request theo userId
 export const fetchRequestsByUserId = async (userId) => {
     try {
-        const response = await APIPrivate.get(`requests/${userId}`);
+        const response = await APIPrivate.get(`requests/user/${userId}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching requests by user id:", error);
