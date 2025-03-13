@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { fetchPostById } from "../../redux/slices/postSlice";
+// import { fetchPostById } from "../../redux/post/postSlice";
 import { Layout, Typography, Card, Spin } from "antd";
-import Sidebar from "../../components/Sidebar/Sidebar";
+import Sidebar from "../../components/Sidebar/LeftSidebar";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -14,7 +14,7 @@ const PostDetailPage = () => {
     const { postDetail, loading } = useSelector((state) => state.post);
 
     useEffect(() => {
-        dispatch(fetchPostById(id));
+        // dispatch(fetchPostById(id));
     }, [dispatch, id]);
 
     return (

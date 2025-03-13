@@ -15,6 +15,9 @@ import RequestDetailScreen from "../screens/request/RequestDetailScreen";
 import EditRequestScreen from "../screens/request/EditRequestScreen";
 import Layout from "./Layout";
 
+
+<Route path="/create-post" element={<CreatePostPage />} />
+
 const AppRoutes = () => {
     return (
         <Router>
@@ -27,9 +30,8 @@ const AppRoutes = () => {
                 </Route>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<HomeScreen />} />
-                    <Route path="forum" element={<ForumPage />} />
-                    <Route path="create-post" element={<CreatePostPage />} />
-                    <Route path="/" element={<ForumPage />} />
+                    <Route path="/forum" element={<ForumPage />} />
+                    <Route path="/create-post" element={<CreatePostPage />} />
                     <Route path="/post/:id" element={<PostDetailPage />} />                    <Route element={<PrivateRoute />}>
                         <Route path="donate" element={<LoadingModal />} />
                         <Route path="requests">

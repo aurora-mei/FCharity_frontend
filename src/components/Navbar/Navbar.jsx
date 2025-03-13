@@ -58,7 +58,20 @@ const Navbar = () => {
                         <Button className='btn-custom' type="text" icon={<SearchOutlined />}>Search</Button>
                         <Button className='btn-custom' type='text'><Space>Donate <CaretDownOutlined /></Space></Button>
                         <Button className='btn-custom' type='text'><Space>Fundraise <CaretDownOutlined /></Space></Button>
-                        <Button className='btn-custom' type='text'><Space>Community </Space></Button>
+                        <Button 
+    type="text" 
+    className='btn-custom' 
+    onClick={() => {
+        console.log("Navigating to ForumPage..."); // Kiểm tra log
+        navigate("/forum");
+    }}
+>
+    <b>Forum</b>
+</Button>
+
+
+
+
                     </Flex>
                 </Col>
                 <Col span={8}>
