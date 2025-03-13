@@ -11,6 +11,7 @@ import RequestListScreen from "../screens/request/RequestListScreen.jsx";
 import RequestDetailScreen from "../screens/request/RequestDetailScreen";
 import EditRequestScreen from "../screens/request/EditRequestScreen";
 import Layout from "./Layout";
+import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
 
 const AppRoutes = () => {
     return (
@@ -31,6 +32,7 @@ const AppRoutes = () => {
                             <Route path="create" element={<CreateRequestScreen />} />
                             <Route path=":id" element={<RequestDetailScreen />} />
                             <Route path="edit/:id" element={<EditRequestScreen />} />
+                            <Route path="myrequests" element={<MyRequestScreen />} />
                         </Route>
                     </Route>
                 </Route>

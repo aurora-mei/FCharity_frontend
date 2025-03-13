@@ -42,9 +42,13 @@ const RequestDetailScreen = () => {
   const { request, requestTags } = requestData;
   const { user } = request || {};
 
-  const attachments = (requestData.attachments || []).filter(
-    (url) => url && typeof url === "string"
-  );
+  // Lọc ảnh/video (nếu backend trả về attachments)
+  const imageUrls = requestData.attachments?.filter((url) =>
+    url.match(/\.(jpeg|jpg|png|gif)$/i)
+  ) || [];
+  const videoUrls = requestData.attachments?.filter((url) =>
+    url.match(/\.(mp4|webm|ogg)$/i)
+  ) || [];
 
   const carouselSettings = {
     arrows: true,

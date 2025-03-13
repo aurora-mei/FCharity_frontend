@@ -49,7 +49,7 @@ const Navbar = () => {
         {
             key: '2',
             label: (
-                <a rel="noopener noreferrer" href="/requests">
+                <a rel="noopener noreferrer" href="/requests/myrequests">
                     My Request
                 </a>
             ),
