@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Typography, Form, Input, Modal, Select, message } from "antd";
+import { Card, Button, Typography, Form, Input, Modal, Select, Upload, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteRequest, updateRequest } from "../../redux/request/requestSlice";
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import PropTypes from "prop-types";
+import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { UploadOutlined } from '@ant-design/icons';
 import "./RequestCard.pcss"; // Import the CSS file
 
 const { Title, Text } = Typography;
@@ -17,8 +19,9 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [currentRequestData, setCurrentRequestData] = useState(null);
-
+       const [attachments, setAttachments] = useState({});
     const [form] = Form.useForm();
+    const [uploading, setUploading] = useState(false); 
 
     const categories = useSelector((state) => state.category.categories || []);
     const tags = useSelector((state) => state.tag.tags || []);
@@ -59,6 +62,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
             location: data.request.location,
             categoryId: data.request.category.id,
             requestTags: data.requestTags?.map((taggable) => taggable.tag.id) || [],
+            attachment: data.attachments || [],
         };
 
         console.log("Initial form values:", initialValues);
@@ -73,42 +77,89 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
     // Cập nhật request
     const handleUpdate = async (values) => {
-        const updatedRequest = {
-            id: currentRequestData.request.id,
-            userId: currentRequestData.request.userId,
-            title: values.title,
-            content: values.content,
-            creationDate: currentRequestData.request.creationDate,
-            phone: values.phone,
-            email: values.email,
-            location: values.location,
-            attachment: currentRequestData.request.attachment,
-            isEmergency: currentRequestData.request.isEmergency,
-            categoryId: values.categoryId,
-            tagIds: values.requestTags,
-            status: currentRequestData.request.status,
-        };
+      const updatedRequest = {
+          id: currentRequestData.request.id,
+          userId: currentRequestData.request.userId,
+          title: values.title,
+          content: values.content,
+          phone: values.phone,
+          email: values.email,
+          location: values.location,
+          imageUrls: attachments.images,
+            videoUrls: attachments.videos,
+          isEmergency: currentRequestData.request.isEmergency,
+          categoryId: values.categoryId,
+          tagIds: values.requestTags,
+          status: currentRequestData.request.status,
+      };
+  
+      try {
+          console.log("Updating request:", updatedRequest);
+          await dispatch(updateRequest({ id: currentRequestData.request.id, requestData: updatedRequest })).unwrap();
+          message.success("Request updated successfully");
+          setIsModalVisible(false);
+          setCurrentRequestData(null);
+      } catch (error) {
+          console.error("Error updating request:", error);
+          message.error("Failed to update request: " + (error.message || "Unknown error"));
+      }
+  };
+    const handleImageChange = async ({ fileList }) => {
+        setUploading(true);
+        let uploadedFiles = [];
 
-        try {
-            console.log("Updating request:", updatedRequest);
-            await dispatch(
-                updateRequest({ id: currentRequestData.request.id, requestData: updatedRequest })
-            ).unwrap();
-            message.success("Request updated successfully");
-            setIsModalVisible(false);
-            setCurrentRequestData(null);
-        } catch (error) {
-            console.error("Error updating request:", error);
-            message.error("Failed to update request: " + (error.message || "Unknown error"));
+        for (const file of fileList) {
+            try {
+                const response = await dispatch(uploadFileHelper(file.originFileObj, "images")).unwrap();
+                console.log("response", response);
+                uploadedFiles.push(response);
+                message.success(`Uploaded ${file.name}`);
+            } catch (error) {
+                console.error("Error uploading image:", error);
+                message.error(`Upload failed for ${file.name}`);
+            }
         }
+
+        setAttachments((prev) => ({
+            ...prev,
+            images: uploadedFiles,
+            videos: prev.videos || []
+        }));
+        console.log("attachment", attachments);
+        setUploading(false);
+    };
+
+    const handleVideoChange = async ({ fileList }) => {
+        setUploading(true);
+        let uploadedFiles = [];
+
+        for (const file of fileList) {
+            try {
+                const response = await dispatch(uploadFileHelper(file.originFileObj, "videos")).unwrap();
+                console.log("response", response);
+                uploadedFiles.push(response);
+                message.success(`Uploaded ${file.name}`);
+            } catch (error) {
+                console.error("Error uploading video:", error);
+                message.error(`Upload failed for ${file.name}`);
+            }
+        }
+
+        setAttachments((prev) => ({
+            ...prev,
+            videos: uploadedFiles,
+            images: prev.images || []
+        }));
+        console.log("attachment", attachments);
+        setUploading(false);
     };
 
     return (
         <div>
             {/* Full Card */}
-            <div className="w-80 bg-white rounded-2xl shadow-lg overflow-hidden h-115 cursor-pointer" onClick={() => navigate(`/requests/${requestData.request.id}`)}>
+            <div className="w-80 bg-white h-30 rounded-2xl overflow-hidden cursor-pointer" style={{boxShadow:"rgba(0, 0, 0, 0.2) 0px 4px 8px 0px",borderRadius:"1rem"}} >
                 {/* Ảnh đầu tiên hoặc placeholder */}
-                <div className="bg-green-200 h-32 flex items-center justify-center">
+                <div className="bg-green-200 h-32 flex items-center justify-center" onClick={() => navigate(`/requests/${requestData.request.id}`)}>
                     {requestData.attachments && requestData.attachments.length > 0 ? (
                         <img
                             src={requestData.attachments[0]}
@@ -124,8 +175,9 @@ const RequestCard = ({ requestData, showActions = true }) => {
                     )}
                 </div>
 
-                {/* Nội dung */}
-                <div className="p-4">
+                <div style={{padding:"2rem"}}>
+                  {/* Nội dung */}
+                <div className="p-4" >
                     <div className="category-badge">
                         {requestData.request.category.categoryName}
                     </div>
@@ -162,6 +214,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
                         </Button>
                     </div>
                 )}
+                </div>
 
             </div>
 
@@ -214,6 +267,29 @@ const RequestCard = ({ requestData, showActions = true }) => {
                     >
                         <Input />
                     </Form.Item>
+                     <Form.Item label="Images" name="images">
+                                                <Upload
+                                                    multiple
+                                                    listType="picture"
+                                                    beforeUpload={() => false} // Không upload ngay, chờ xử lý thủ công
+                                                    accept="image/*"
+                                                    onChange={handleImageChange} // Xử lý khi chọn file
+                                                >
+                                                    <Button icon={<UploadOutlined />} loading={uploading}>Click to Upload</Button>
+                                                </Upload>
+                                            </Form.Item>
+                                            <Form.Item label="Videos" name="videos">
+                                                <Upload
+                                                    multiple
+                                                    listType="picture"
+                                                    beforeUpload={() => false} // Không upload ngay, chờ xử lý thủ công
+                                                    accept="video/*"
+                                                    onChange={handleVideoChange} // Xử lý khi chọn file
+                                                >
+                                                    <Button icon={<UploadOutlined />} loading={uploading}>Click to Upload</Button>
+                                                </Upload>
+                                            </Form.Item>
+
 
                     <Form.Item
                         label="Category"

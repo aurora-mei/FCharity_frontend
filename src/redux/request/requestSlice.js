@@ -6,7 +6,7 @@ const initialState = {
     requests: [],
     activeRequests: [],
     currentRequest: {},
-    requestByUserID: [],
+    requestsByUserId: [],
     error: null,
 };
 
@@ -102,12 +102,14 @@ const requestSlice = createSlice({
             })
             .addCase(updateRequest.fulfilled, (state, action) => {
                 state.loading = false;
-                const index = state.requests.findIndex(request => request.request.id === action.payload.request.id);
-                if (index !== -1) {
-                    state.requests[index] = action.payload;
-                }
+                
+                state.requestsByUserId = state.requestsByUserId.map(req =>
+                    req.request.id === action.payload.request.id ? action.payload : req
+                );
+            
                 state.currentRequest = action.payload;
             })
+                   
             .addCase(updateRequest.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;

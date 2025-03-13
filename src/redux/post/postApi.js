@@ -42,6 +42,7 @@ const deletePost = async (id) => {
 };
 const fetchPostById = async (id) => {
     try {
+        
         const response = await APIPrivate.get(`posts/${id}`);
         return response.data;
     } catch (err) {
