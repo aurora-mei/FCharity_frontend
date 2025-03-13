@@ -4,6 +4,7 @@ import postApi from './postApi';
 const initialState = {
     loading: false,
     posts: [],
+    currentPost :{},
     error: null,
 };
 

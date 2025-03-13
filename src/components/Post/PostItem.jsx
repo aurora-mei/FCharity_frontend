@@ -1,17 +1,18 @@
 import React, { useEffect } from "react";
 import { List, Avatar, Typography } from "antd";
 import dayjs from "dayjs"; // Thư viện để format thời gian
-
+import { useNavigate } from "react-router-dom";
 const { Title, Text } = Typography;
 
-const PostItem = ({ postResponse, onClick }) => {
+const PostItem = ({ postResponse }) => {
+    const navigate = useNavigate();
     useEffect(() => {
         console.log(postResponse);
     }, [postResponse]);
 
     return (
         <List.Item
-            onClick={() => onClick(postResponse.post.id)}
+            onClick={()=> navigate(`/posts/${postResponse.post.id}`)}
             style={{
                 cursor: "pointer",
                 padding: "15px",
@@ -47,8 +48,12 @@ const PostItem = ({ postResponse, onClick }) => {
 
                 {/* Hiển thị tags */}
                 <Text type="secondary" style={{ display: "block", marginTop: 5 }}>
-                    {postResponse.post.tags && postResponse.post.tags.length > 0
-                        ? postResponse.post.tags.map(tag => tag.tagName).join(", ")
+                    {postResponse.taggables && postResponse.taggables.length > 0
+                        ?  postResponse.taggables.map((tag) => (
+                            <span key={tag.id} className="tag">
+                              #{tag.tag.tagName} <span> </span>
+                            </span>
+                          ))
                         : "No tags"}
                 </Text>
 

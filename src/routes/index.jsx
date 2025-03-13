@@ -32,7 +32,7 @@ const AppRoutes = () => {
                     <Route index element={<HomeScreen />} />
                     <Route path="/forum" element={<ForumPage />} />
                     <Route path="/create-post" element={<CreatePostPage />} />
-                    <Route path="/post/:id" element={<PostDetailPage />} />                    <Route element={<PrivateRoute />}>
+                    <Route path="/posts/:id" element={<PostDetailPage />} />                    <Route element={<PrivateRoute />}>
                         <Route path="donate" element={<LoadingModal />} />
                         <Route path="requests">
                             <Route index element={<RequestListScreen />} />
