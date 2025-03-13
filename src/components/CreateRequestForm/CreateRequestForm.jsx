@@ -53,7 +53,7 @@ const CreateRequestForm = () => {
             ...values,
             userId: currentUser.id,
             tagIds: values.tagIds,
-            imageUrls: attachments.images, 
+            imageUrls: attachments.images,
             videoUrls: attachments.videos// Gửi danh sách file đã upload
         };
         console.log("Final Request Data:", requestData);
@@ -68,6 +68,7 @@ const CreateRequestForm = () => {
         for (const file of fileList) {
             try {
                 const response = await dispatch(uploadFileHelper(file.originFileObj, "images")).unwrap();
+                console.log("response", response);
                 uploadedFiles.push(response);
                 message.success(`Uploaded ${file.name}`);
             } catch (error) {
@@ -92,6 +93,7 @@ const CreateRequestForm = () => {
         for (const file of fileList) {
             try {
                 const response = await dispatch(uploadFileHelper(file.originFileObj, "videos")).unwrap();
+                console.log("response", response);
                 uploadedFiles.push(response);
                 message.success(`Uploaded ${file.name}`);
             } catch (error) {

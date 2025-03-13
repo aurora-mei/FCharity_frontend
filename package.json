@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync": "locize sync --path ./public/locales --project-id 13a4e68e-3014-438f-abe9-ebb6fbf43641 --api-key 00a9e48a-6850-40c1-9ed8-31d264fc907c --reference-language-only false"
   },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
@@ -20,12 +21,21 @@
     "antd": "^5.23.4",
     "axios": "^0.24.0",
     "dotenv": "^16.4.7",
+    "i18next": "^24.2.2",
+    "i18next-browser-languagedetector": "^8.0.4",
+    "i18next-http-backend": "^3.0.2",
+    "i18next-locize-backend": "^7.0.4",
+    "locize-cli": "^8.6.1",
+    "luxon": "^3.5.0",
     "postcss-loader": "^8.1.1",
     "postcss-nesting": "^13.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^15.4.1",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.5",
+    "tailwindcss": "^4.0.13",
+    "tailwinds": "^0.0.0",
     "web3": "^4.16.0"
   },
   "devDependencies": {
@@ -44,7 +54,6 @@
     "globals": "^15.14.0",
     "hardhat": "^2.22.18",
     "postcss": "^8.5.1",
-    "tailwindcss": "^4.0.5",
     "vite": "^6.0.5"
   }
 }

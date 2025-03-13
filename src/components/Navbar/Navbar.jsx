@@ -1,14 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchOutlined, CaretDownOutlined } from '@ant-design/icons';
 import { Affix, Button, Flex, Space, Row, Col, Dropdown } from 'antd';
 import avatar from '../../assets/download (11).jpg'
 import { logOut } from '../../redux/auth/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation, Trans } from 'react-i18next';
 
+const lngs = {
+    en: { nativeName: 'English' },
+    ja: { nativeName: 'Japan' }
+};
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 const Navbar = () => {
     const navigate = useNavigate();
+    const { t, i18n } = useTranslation();
     const token = useSelector((state) => state.auth.token);
     const storedUser = localStorage.getItem("currentUser");
     let currentUser = {};
@@ -43,6 +49,14 @@ const Navbar = () => {
         {
             key: '2',
             label: (
+                <a rel="noopener noreferrer" href="/requests">
+                    My Request
+                </a>
+            ),
+        },
+        {
+            key: '3',
+            label: (
                 <a onClick={logout}>
                     Sign out
                 </a>
@@ -58,7 +72,7 @@ const Navbar = () => {
                         <Button className='btn-custom' type="text" icon={<SearchOutlined />}>Search</Button>
                         <Button className='btn-custom' type='text'><Space>Donate <CaretDownOutlined /></Space></Button>
                         <Button className='btn-custom' type='text'><Space>Fundraise <CaretDownOutlined /></Space></Button>
-                        <Button className='btn-custom' type='text'><Space>Community </Space></Button>
+                        <Button className='btn-custom' type='text'><Space>{t('play', 'play')} </Space></Button>
                     </Flex>
                 </Col>
                 <Col span={8}>
@@ -70,7 +84,7 @@ const Navbar = () => {
                 </Col>
                 <Col span={8}>
                     <Flex justify='flex-end' align='center' gap='10px'>
-                        <Button className='btn-custom' type='text'><Space>About <CaretDownOutlined /></Space></Button>
+                        {/* <Button className='btn-custom' type='text'><Space>About <CaretDownOutlined /></Space></Button> */}
                         {token ? (
                             <Dropdown
                                 menu={{ items }}
@@ -84,6 +98,8 @@ const Navbar = () => {
                                     />
                                     {currentUser.fullName}
                                 </Button>
+
+
                             </Dropdown>
                         ) : (
                             <Button className='btn-custom' type="text" onClick={() => navigate("/auth/login")}>
@@ -93,6 +109,16 @@ const Navbar = () => {
                         <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/requests/create")}>
                             <b>Start a request</b>
                         </Button>
+                        <Flex vertical>
+                            {Object.keys(lngs).map((lng) => (
+                                <button key={lng} style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }} type="submit" onClick={() => {
+                                    i18n.changeLanguage(lng);
+                                }
+                                }>
+                                    {lngs[lng].nativeName}
+                                </button>
+                            ))}
+                        </Flex>
                     </Flex>
                 </Col>
             </Row>
