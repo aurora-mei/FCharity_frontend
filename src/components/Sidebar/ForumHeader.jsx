@@ -8,7 +8,7 @@ const ForumHeader = ({ sortBy, setSortBy, viewMode, setViewMode }) => {
 
     const sortOptions = (
         <Menu>
-            {["Best", "New", "Hot", "Top", "Rising"].map((option) => (
+            {["Best", "New", "Oldest"].map((option) => (
                 <Menu.Item key={option} onClick={() => setSortBy(option)}>
                     {option}
                 </Menu.Item>
@@ -24,13 +24,23 @@ const ForumHeader = ({ sortBy, setSortBy, viewMode, setViewMode }) => {
     );
 
     return (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", paddingRight: "20px", paddingTop: "20px" }}>
-            <Dropdown overlay={sortOptions} placement="bottomLeft">
-                <Button>{sortBy} ▼</Button>
-            </Dropdown>
-            <Dropdown overlay={viewOptions} placement="bottomRight">
-                <Button>{viewMode === "card" ? <AppstoreOutlined /> : <BarsOutlined />} ▼</Button>
-            </Dropdown>
+        <div style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center", 
+            marginBottom: "20px", 
+            padding: "20px" 
+        }}>
+            {/* Nhóm Sort & View gần nhau hơn */}
+            <div style={{ display: "flex", gap: "10px" }}>
+                <Dropdown overlay={sortOptions} placement="bottomLeft">
+                    <Button>{sortBy} ▼</Button>
+                </Dropdown>
+                <Dropdown overlay={viewOptions} placement="bottomLeft">
+                    <Button>{viewMode === "card" ? <AppstoreOutlined /> : <BarsOutlined />} ▼</Button>
+                </Dropdown>
+            </div>
+
             <Button type="primary" style={{ backgroundColor: "#000", color: "#fff" }} onClick={() => navigate("/create-post")}>
                 Create Post
             </Button>

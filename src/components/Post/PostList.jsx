@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { List } from "antd";
 import PostItem from "./PostItem";
 
-const PostList = ({ posts, onPostClick }) => {
+const PostList = ({ posts }) => {
     useEffect(()=>{
         console.log(posts);
     })
@@ -10,7 +10,7 @@ const PostList = ({ posts, onPostClick }) => {
     
         <List
             dataSource={posts}
-            renderItem={(post) => <PostItem postResponse={post} onClick={onPostClick} />}
+            renderItem={(post) => <PostItem postResponse={post} />}
         />
     );
 };

@@ -89,7 +89,7 @@ const onFinish = async (values) => {
         for (const file of fileList) {
             try {
                 const response = await dispatch(uploadFileHelper(file.originFileObj, "videos")).unwrap();
-                uploadedFiles.push(response.url);
+                uploadedFiles.push(response);
                 message.success(`Uploaded ${file.name}`);
             } catch (error) {
                 console.error("Error uploading video:", error);
@@ -162,11 +162,20 @@ const onFinish = async (values) => {
                                         </Upload>
                                     </Form.Item>
 
-            <Form.Item>
-                <Button htmlType="submit" type="default" style={{ border: "1px solid #213547", backgroundColor: "transparent", color: "#213547" }}>
-                    Create Post
-                </Button>
-            </Form.Item>
+                                    <div style={{ display: "flex", justifyContent: "center" }}>
+  <Button
+    htmlType="submit"
+    type="default"
+    style={{
+      border: "1px solid #213547",
+      backgroundColor: "transparent",
+      color: "#213547",
+    }}
+  >
+    Submit
+  </Button>
+</div>
+
         </Form>
     );
 };

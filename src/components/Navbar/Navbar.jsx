@@ -62,7 +62,7 @@ const Navbar = () => {
     type="text" 
     className='btn-custom' 
     onClick={() => {
-        console.log("Navigating to ForumPage..."); // Kiểm tra log
+        console.log("Navigating to ForumPage...");
         navigate("/forum");
     }}
 >
