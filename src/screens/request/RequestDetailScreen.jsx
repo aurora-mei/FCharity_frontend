@@ -67,6 +67,8 @@ const RequestDetailScreen = () => {
 
   return (
     <div className="request-detail-page">
+      {/* Tiêu đề */}
+      <Title level={1} className="request-title">{request.title}</Title>  
       {/* 📌 Hiển thị tất cả attachments ở đầu trang */}
       {attachments.length > 0 && (
         <Carousel {...carouselSettings} className="attachments-carousel">
@@ -84,10 +86,6 @@ const RequestDetailScreen = () => {
           ))}
         </Carousel>
       )}
-  
-      {/* Tiêu đề */}
-      <Title level={1} className="request-title">{request.title}</Title>
-  
 
       {/* Thông tin người tổ chức + badge */}
       <div className="organizer-section">
@@ -138,9 +136,9 @@ const RequestDetailScreen = () => {
       </div>
 
       {/* Active Requests Carousel - Loại bỏ request hiện tại */}
-      { <div className="active-requests-section">
+      {/* { <div className="active-requests-section">
         <RequestActiveCarousel />
-      </div> }
+      </div> } */}
     </div>
   );
 };
