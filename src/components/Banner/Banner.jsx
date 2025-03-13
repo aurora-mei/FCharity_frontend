@@ -12,8 +12,8 @@ const Banner = () => {
                         <h1 className="banner-content__text-1">#1 friendly funding website in Vietnam</h1>
                         <p className='banner-content__text-2'>Successful fundraisers start here</p>
                         <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/requests/create")}>
-                                                    <b>Start a request</b>
-                                                </Button>
+                            <b>Start a request</b>
+                        </Button>
                     </Flex>
                 </Col>
                 <Col span={8}></Col>

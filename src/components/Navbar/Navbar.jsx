@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchOutlined, CaretDownOutlined } from '@ant-design/icons';
 import { Affix, Button, Flex, Space, Row, Col, Dropdown } from 'antd';
@@ -9,7 +9,7 @@ import { useTranslation, Trans } from 'react-i18next';
 
 const lngs = {
     en: { nativeName: 'English' },
-    de: { nativeName: 'Deutsch' }
+    ja: { nativeName: 'Japan' }
 };
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 const Navbar = () => {
@@ -64,7 +64,7 @@ const Navbar = () => {
                         <Button className='btn-custom' type="text" icon={<SearchOutlined />}>Search</Button>
                         <Button className='btn-custom' type='text'><Space>Donate <CaretDownOutlined /></Space></Button>
                         <Button className='btn-custom' type='text'><Space>Fundraise <CaretDownOutlined /></Space></Button>
-                        <Button className='btn-custom' type='text'><Space>Community </Space></Button>
+                        <Button className='btn-custom' type='text'><Space>{t('play', 'play')} </Space></Button>
                     </Flex>
                 </Col>
                 <Col span={8}>
@@ -90,6 +90,8 @@ const Navbar = () => {
                                     />
                                     {currentUser.fullName}
                                 </Button>
+
+
                             </Dropdown>
                         ) : (
                             <Button className='btn-custom' type="text" onClick={() => navigate("/auth/login")}>
@@ -101,7 +103,10 @@ const Navbar = () => {
                         </Button>
                         <div>
                             {Object.keys(lngs).map((lng) => (
-                                <button key={lng} style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }} type="submit" onClick={() => i18n.changeLanguage(lng)}>
+                                <button key={lng} style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }} type="submit" onClick={() => {
+                                    i18n.changeLanguage(lng);
+                                }
+                                }>
                                     {lngs[lng].nativeName}
                                 </button>
                             ))}

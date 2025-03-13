@@ -4,7 +4,14 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    /* Thêm các dòng dưới để cố định chiều cao */
+    min-height: 300px; /* hoặc giá trị tuỳ ý, ví dụ 400px */
+    display: flex;
+    flex-direction: column; /* chia card thành header/body/footer theo chiều dọc */
+    justify-content: space-between; /* footer (nút) đẩy xuống dưới */
 }
+
 
 .request-card-header {
     display: flex;
