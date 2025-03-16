@@ -32,8 +32,8 @@ const AppRoutes = () => {
                 <Route path="/" element={<Layout />}>
                     <Route index element={<HomeScreen />} />
                     <Route path="/forum" element={<ForumPage />} />
-                    <Route path="/posts/:id" element={<PostDetailPage />} />  
-                      <Route element={<PrivateRoute />}>
+                    <Route path="/posts/:id" element={<PostDetailPage />} />
+                    <Route element={<PrivateRoute />}>
                         <Route path="donate" element={<LoadingModal />} />
                         <Route path="requests">
                             <Route index element={<RequestListScreen />} />
@@ -42,7 +42,9 @@ const AppRoutes = () => {
                             <Route path="edit/:id" element={<EditRequestScreen />} />
                             <Route path="myrequests" element={<MyRequestScreen />} />
                         </Route>
-                    <Route path="/create-post" element={<CreatePostPage />} />
+                        <Route path="posts">
+                            <Route path="create-post" element={<CreatePostPage />} />
+                        </Route>
                     </Route>
                 </Route>
             </Routes>

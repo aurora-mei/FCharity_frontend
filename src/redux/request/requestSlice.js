@@ -38,14 +38,9 @@ export const deleteRequest = createAsyncThunk("requests/delete", async (id) => {
 // Thunk mới để lấy requests theo userId
 export const fetchRequestsByUserIdThunk = createAsyncThunk(
     "requests/fetchByUserId",
-    async (userId, thunkAPI) => {
-      try {
+    async (userId) => {
         return await requestApi.fetchRequestsByUserId(userId);
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error);
-      }
-    }
-  );
+    });
 
 const requestSlice = createSlice({
     name: 'request',
@@ -92,6 +87,7 @@ const requestSlice = createSlice({
             .addCase(createRequest.fulfilled, (state, action) => {
                 state.loading = false;
                 state.requests.push(action.payload);
+                state.requestsByUserId.push(action.payload);
             })
             .addCase(createRequest.rejected, (state, action) => {
                 state.loading = false;
@@ -102,14 +98,14 @@ const requestSlice = createSlice({
             })
             .addCase(updateRequest.fulfilled, (state, action) => {
                 state.loading = false;
-                
+
                 state.requestsByUserId = state.requestsByUserId.map(req =>
                     req.request.id === action.payload.request.id ? action.payload : req
                 );
-            
+
                 state.currentRequest = action.payload;
             })
-                   
+
             .addCase(updateRequest.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;

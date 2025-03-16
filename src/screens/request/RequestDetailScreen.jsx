@@ -1,13 +1,24 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { fetchRequestById } from "../../redux/request/requestSlice";
 import LoadingModal from "../../components/LoadingModal";
-import { Carousel, Typography, Alert, Tag, Button } from "antd";
+import { Carousel, Typography, Alert, Tag, Button, Breadcrumb, Flex } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
+import { Badge, Card } from "antd";
+import { CheckCircleOutlined, UserOutlined, HomeOutlined } from "@ant-design/icons";
 const { Title, Text, Paragraph } = Typography;
-
+const items =
+  [
+    {
+      href: '/requests/myrequests',
+      title: <HomeOutlined />,
+    },
+    {
+      title: 'Request Detail',
+    },
+  ];
 const RequestDetailScreen = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -15,6 +26,7 @@ const RequestDetailScreen = () => {
   const loading = useSelector((state) => state.request.loading);
   const requestData = useSelector((state) => state.request.currentRequest);
   const error = useSelector((state) => state.request.error);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     dispatch(fetchRequestById(id));
@@ -59,84 +71,103 @@ const RequestDetailScreen = () => {
   };
 
   return (
-    <div className="request-detail-page">
-      <div className="request-detail">
-        {/* Tiêu đề */}
-        <Title level={1} className="request-title">{request.title}</Title>
+    <Flex vertical gap={10} style={{ padding: "0 6rem 2rem 6rem", margin: "0" }} >
+      <Flex gap={10} vertical className="request-detail-page" >
+        <Breadcrumb
+          items={items} />
+        <Flex vertical gap={10} className="request-detail">
+          {/* Tiêu đề */}
+          <Title level={3} className="request-title">Churchtown Playground {request.title}</Title>
 
-        {/* Carousel ảnh/video ngay dưới tiêu đề */}
-        {(imageUrls.length > 0 || videoUrls.length > 0) && (
-          <div className="request-carousel">
-            <Carousel arrows  {...carouselSettings}>
-              {imageUrls.map((url, index) => (
-                <div key={`img-${index}`} className="media-slide">
-                  <img src={url} alt={`request-img-${index}`} />
-                </div>
-              ))}
-              {videoUrls.map((url, index) => (
-                <div key={`vid-${index}`} className="media-slide">
-                  <video src={url} controls />
-                </div>
-              ))}
-            </Carousel>
-          </div>
-        )}
-
-        {/* Thông tin người tổ chức + badge */}
-        <div className="organizer-section">
-          {user && (
-            <div className="organizer-info">
-              {/* Avatar user nếu có */}
-              {user.avatarUrl && (
-                <img
-                  src={user.avatarUrl}
-                  alt="avatar"
-                  className="organizer-avatar"
-                />
-              )}
-              <Text className="organizer-text">
-                {user.fullName} is organizing this fundraiser
-                {request.userOnBehalf && (
-                  <> on behalf of {request.userOnBehalf.fullName}</>
-                )}
-              </Text>
+          {/* Carousel ảnh/video ngay dưới tiêu đề */}
+          {(imageUrls.length > 0 || videoUrls.length > 0) && (
+            <div className="request-carousel" style={{ position: 'relative' }}>
+              <Carousel arrows  {...carouselSettings} style={{ position: 'relative', borderRadius: 10 }}>
+                {imageUrls.map((url, index) => (
+                  <div key={`img-${index}`} className="media-slide">
+                    <img src={url} alt={`request-img-${index}`} />
+                  </div>
+                ))}
+                {videoUrls.map((url, index) => (
+                  <div key={`vid-${index}`} className="media-slide">
+                    <video src={url} controls />
+                  </div>
+                ))}
+              </Carousel>
+              <span className="category-badge">
+                {request.category.categoryName}
+              </span>
             </div>
           )}
-          <Tag color="green">Donation Proceed</Tag>
-        </div>
 
-        {/* Nội dung mô tả chính */}
-        <div className="request-main-content">
-          <Paragraph>{request.content}</Paragraph>
+          {/* Tổ chức gây quỹ */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <UserOutlined style={{ fontSize: 24 }} />
+            <div>
+              <strong>{request.user.fullName}</strong> <br />
+              <div style={{ fontSize: 10, marginTop: 5 }}>
+                <strong>Phone:</strong> {request.phone} <br />
+                <strong>Email:</strong> {request.email} <br />
+                <strong>Location:</strong> {request.location}
+              </div>
 
-          {/* Thông tin phone/email/location */}
-          <Paragraph>
-            <strong>Phone:</strong> {request.phone} <br />
-            <strong>Email:</strong> {request.email} <br />
-            <strong>Location:</strong> {request.location}
-          </Paragraph>
+              {/* <p style={{ margin: 0, color: "#666" }}>Churchtown Primary School and David Clayton are organizing this fundraiser.</p> */}
+            </div>
+          </div>
 
-          {/* Tags */}
+          <hr />
           {requestTags?.length > 0 && (
             <Paragraph className="request-tags">
               {requestTags.map((taggable) => (
-                <Tag key={taggable.tag.id} color="blue">
-                  {taggable.tag.tagName}
-                </Tag>
+                <Badge key={taggable.tag.id}
+                  count={
+                    <span style={{ backgroundColor: "#DFF6E1", color: "#177A56", padding: "5px 10px", borderRadius: 20, display: "flex", alignItems: "center", gap: 5 }}>
+                      <CheckCircleOutlined /> {taggable.tag.tagName}
+                    </span>
+                  }
+                />
               ))}
             </Paragraph>
           )}
-        </div>
+          {/* Badge bảo vệ quyên góp */}
 
-        {/* Nút Donate */}
-        <div className="donate-button-container">
-          <Button type="primary" size="large" className="continue-button">
-            Donate Now
-          </Button>
-        </div>
-      </div>
+
+          {/* Nội dung gây quỹ */}
+          {/* <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "Read more" }}>{request.content}</Paragraph> */}
+          {expanded ? <Paragraph>{`${request.content}`} </Paragraph> : <Paragraph>{`${request.content.substring(0, 800)}...`}</Paragraph>}
+          <a style={{ fontSize: "0.9rem", color: "gray" }} onClick={() => setExpanded(!expanded)}>
+            {expanded ? "Read Less" : "Read More"}
+          </a>
+          {/* <Paragraph
+            ellipsis={{ rows: 2, expandable: true, symbol: "Read more" }}
+          >
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada. Nam sagittis quam a ligula pharetra, sit amet dictum ex tristique.
+          </Paragraph> */}
+          {/* <p style={{ color: "#444" }}>
+            Churchtown Primary School, a vibrant and beloved community school in Southport, is raising funds for a new playground to honour the memory of two children, Alice and Bebe, who tragically lost their lives in the Southport stabbings in July 2024.
+          </p>
+
+          <p style={{ color: "#444" }}>
+            This new playground, which has been proposed by Alice’s parents as a way of honouring her memory, will serve as a joyful, healing space for all our pupils...
+          </p>
+
+          <a href="#">Read more</a> */}
+
+          {/* Nút Donate & Share */}
+          <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+            <Button type="default" block style={{ flex: 1 }}>
+              Register
+            </Button>
+            <Button type="default" block style={{ flex: 1 }}>
+              Share
+            </Button>
+          </div>
+
+        </Flex>
+
+      </Flex>
       <RequestActiveCarousel />
-    </div>
+    </Flex>
   );
 };
 

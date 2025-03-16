@@ -35,8 +35,12 @@ const CreateRequestForm = () => {
     }
 
     useEffect(() => {
-        dispatch(fetchCategories());
-        dispatch(fetchTags());
+        if (categories.length === 0) {
+            dispatch(fetchCategories());
+        }
+        if (tags.length === 0) {
+            dispatch(fetchTags());
+        }
     }, [dispatch]);
 
     useEffect(() => {

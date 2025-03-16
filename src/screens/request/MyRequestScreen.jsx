@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { List, Typography } from "antd";
+import { Empty, List, Typography } from "antd";
 import LoadingModal from "../../components/LoadingModal";
 import RequestCard from "../../components/RequestCard/RequestCard";
 import { fetchRequestsByUserIdThunk } from "../../redux/request/requestSlice";
@@ -16,7 +16,7 @@ const MyRequestScreen = () => {
   // Lấy user từ localStorage
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
-  
+
   try {
     currentUser = storedUser ? JSON.parse(storedUser) : {};
   } catch (error) {
@@ -26,13 +26,13 @@ const MyRequestScreen = () => {
   useEffect(() => {
     if (currentUser?.id) {
       console.log("Fetching requests for user ID:", currentUser.id);
-      if (Array.isArray(requestsByUserId) && requestsByUserId.length === 0) {
+      if (requestsByUserId.length === 0) {
         dispatch(fetchRequestsByUserIdThunk(currentUser.id));
+      } else {
+        console.error("User ID is undefined:", currentUser);
       }
-    } else {
-      console.error("User ID is undefined:", currentUser);
     }
-  }, [dispatch, currentUser, requestsByUserId]);
+  });
 
   if (loading) return <LoadingModal />;
   if (error) return <p style={{ color: "red" }}>Failed to load your requests: {error.message || error}</p>;
@@ -51,7 +51,7 @@ const MyRequestScreen = () => {
           )}
         />
       ) : (
-        <p>No requests found.</p>
+        <Empty description="You have not created any requests yet." />
       )}
     </div>
   );

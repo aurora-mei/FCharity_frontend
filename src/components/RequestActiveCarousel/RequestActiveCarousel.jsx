@@ -16,13 +16,13 @@ const RequestActiveCarousel = () => {
         if (activeRequests.length === 0) {
             dispatch(fetchActiveRequests());
         }
-    }, [dispatch]);
+    }, [dispatch, activeRequests.length]);
 
     const settings = {
         dots: true,
         infinite: true,
         speed: 500,
-        slidesToShow: 3,
+        slidesToShow: 4,
         slidesToScroll: 1,
         arrows: true, // Bật hiển thị mũi tên
         prevArrow: <CustomPrevArrow />, // Mũi tên trước tùy chỉnh
@@ -53,6 +53,7 @@ const RequestActiveCarousel = () => {
 
     return (
         <div className="request-active-carousel">
+            <b style={{ fontSize: '1.4rem', marginBottom: '6rem' }}>Active requests</b>
             {Array.isArray(activeRequests) && activeRequests.length > 0 ? (
                 <Carousel {...settings}>
                     {activeRequests.map((request) => (
