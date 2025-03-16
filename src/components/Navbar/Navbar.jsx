@@ -49,7 +49,7 @@ const Navbar = () => {
         {
             key: '2',
             label: (
-                <a rel="noopener noreferrer" href="/requests">
+                <a rel="noopener noreferrer" href="/requests/myrequests">
                     My Request
                 </a>
             ),
@@ -72,7 +72,19 @@ const Navbar = () => {
                         <Button className='btn-custom' type="text" icon={<SearchOutlined />}>Search</Button>
                         <Button className='btn-custom' type='text'><Space>Donate <CaretDownOutlined /></Space></Button>
                         <Button className='btn-custom' type='text'><Space>Fundraise <CaretDownOutlined /></Space></Button>
-                        <Button className='btn-custom' type='text'><Space>{t('play', 'play')} </Space></Button>
+                        {/* <Button className='btn-custom' type='text'><Space>{t('play', 'play')} </Space></Button> */}
+                        <Button 
+                    type="text" 
+                    className='btn-custom' 
+                    onClick={() => {
+                        console.log("Navigating to ForumPage...");
+                        navigate("/forum");
+                    }}
+                >
+                    <b>Forum</b>
+                </Button>
+
+
                     </Flex>
                 </Col>
                 <Col span={8}>
@@ -109,7 +121,7 @@ const Navbar = () => {
                         <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/requests/create")}>
                             <b>Start a request</b>
                         </Button>
-                        <Flex vertical>
+                        {/* <Flex vertical>
                             {Object.keys(lngs).map((lng) => (
                                 <button key={lng} style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }} type="submit" onClick={() => {
                                     i18n.changeLanguage(lng);
@@ -118,7 +130,7 @@ const Navbar = () => {
                                     {lngs[lng].nativeName}
                                 </button>
                             ))}
-                        </Flex>
+                        </Flex>  */}
                     </Flex>
                 </Col>
             </Row>

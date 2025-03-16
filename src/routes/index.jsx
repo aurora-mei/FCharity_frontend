@@ -1,16 +1,23 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomeScreen from "../screens/general/HomeScreen.jsx";
+import ForumPage from "../screens/Forum/ForumPage.jsx";
+import CreatePostPage from "../screens/Forum/CreatePostPage.jsx";
+import PostDetailPage from "../screens/Forum/PostDetailPage.jsx";
 import LoginScreen from "../screens/auth/LoginScreen.jsx";
 import SignupScreen from "../screens/auth/SignupScreen.jsx";
 import OtpVerificationScreen from "../screens/auth/OtpVerificationScreen.jsx";
+import ResetPwdScreen from "../screens/auth/ResetPwdScreen.jsx";
 import PrivateRoute from "./PrivateRoute";
 import LoadingModal from "../components/LoadingModal/index.jsx";
-import ResetPwdScreen from "../screens/auth/ResetPwdScreen.jsx";
 import CreateRequestScreen from "../screens/request/CreateRequestScreen.jsx";
 import RequestListScreen from "../screens/request/RequestListScreen.jsx";
 import RequestDetailScreen from "../screens/request/RequestDetailScreen";
 import EditRequestScreen from "../screens/request/EditRequestScreen";
 import Layout from "./Layout";
+import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
+
+
+<Route path="/create-post" element={<CreatePostPage />} />
 
 const AppRoutes = () => {
     return (
@@ -24,14 +31,18 @@ const AppRoutes = () => {
                 </Route>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<HomeScreen />} />
-                    <Route element={<PrivateRoute />}>
-                        <Route path="/donate" element={<LoadingModal />} />
-                        <Route path="/requests">
-                            <Route path="" element={<RequestListScreen />} />
+                    <Route path="/forum" element={<ForumPage />} />
+                    <Route path="/posts/:id" element={<PostDetailPage />} />  
+                      <Route element={<PrivateRoute />}>
+                        <Route path="donate" element={<LoadingModal />} />
+                        <Route path="requests">
+                            <Route index element={<RequestListScreen />} />
                             <Route path="create" element={<CreateRequestScreen />} />
                             <Route path=":id" element={<RequestDetailScreen />} />
                             <Route path="edit/:id" element={<EditRequestScreen />} />
+                            <Route path="myrequests" element={<MyRequestScreen />} />
                         </Route>
+                    <Route path="/create-post" element={<CreatePostPage />} />
                     </Route>
                 </Route>
             </Routes>

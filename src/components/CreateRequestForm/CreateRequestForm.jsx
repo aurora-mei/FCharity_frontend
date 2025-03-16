@@ -58,7 +58,7 @@ const CreateRequestForm = () => {
         };
         console.log("Final Request Data:", requestData);
         await dispatch(createRequest(requestData)).unwrap();
-        navigate('/requests', { replace: true });
+        navigate('/requests/myrequests', { replace: true });
     };
 
     const handleImageChange = async ({ fileList }) => {
