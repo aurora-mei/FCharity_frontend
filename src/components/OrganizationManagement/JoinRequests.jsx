@@ -1,38 +1,28 @@
-import React, { useState, useEffect } from "react";
-import apiService from "../../services/api";
+import React, { useEffect } from "react";
+import {
+  getAllJoinRequestByOrganizationId,
+  updateJoinRequest,
+} from "../../redux/request/requestSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const JoinRequests = ({ organizationId }) => {
-  const [requests, setRequests] = useState([]);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchJoinRequests = async () => {
-      try {
-        const response = await apiService.getJoinRequestsByOrganizationId(
-          organizationId
-        );
-        // console.log(response.data);
-        setRequests(response.data);
-      } catch (err) {
-        console.error("Failed to fetch join requests:", err);
-      }
-    };
-    fetchJoinRequests();
-  }, [organizationId]);
+    dispatch(getAllJoinRequestByOrganizationId(organizationId));
+  }, [dispatch, organizationId]);
+
+  const { JoinRequests } = useSelector((state) => state.requests);
 
   const handleUpdateRequest = async (joinRequest, status) => {
-    try {
-      joinRequest.status = status;
-      // console.log("joinRequest: ---- ", joinRequest);
-      await apiService.updateJoinRequest(joinRequest);
-      setRequests(
-        requests.filter(
-          (req) => req.inviteJoinRequestId !== joinRequest.inviteJoinRequestId
-        )
-      );
-      alert(`Request ${status} successfully!`);
-    } catch (err) {
-      // console.error("Failed to update request:", err);
-      alert("Failed to update request");
+    if (window.confirm("Are you sure you want to remove this member?")) {
+      try {
+        dispatch(updateJoinRequest(joinRequest));
+        alert("Join Request update successfully!");
+      } catch (err) {
+        console.error("Failed to update join request:", err);
+        alert("Failed to update join request");
+      }
     }
   };
 
@@ -41,7 +31,7 @@ const JoinRequests = ({ organizationId }) => {
       <h2 className="text-2xl font-semibold text-gray-800 mb-5">
         Join Requests
       </h2>
-      {requests.length === 0 ? (
+      {JoinRequests?.length === 0 ? (
         <p className="text-gray-500 text-center">No join requests found.</p>
       ) : (
         <table className="w-full border-collapse">
@@ -63,7 +53,7 @@ const JoinRequests = ({ organizationId }) => {
             </tr>
           </thead>
           <tbody>
-            {requests.map((req) => (
+            {JoinRequests?.map((req) => (
               <tr
                 key={req.inviteJoinRequestId}
                 className="border-b border-gray-200 hover:bg-gray-50 transition duration-300"

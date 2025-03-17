@@ -1,31 +1,23 @@
 import React, { useState, useEffect } from "react";
-import apiService from "../../services/api";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getOrganizationMembers,
+  removeOrganizationMember,
+} from "../../redux/organization/organizationSlice";
 
 const OrganizationMembers = ({ organizationId }) => {
-  const [members, setMembers] = useState([]);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const response = await apiService.getOrganizationMembers(
-          organizationId
-        );
-        // console.log("Organization Members:", response.data);
-        setMembers(response.data);
-      } catch (err) {
-        // console.error("Failed to fetch members:", err);
-      }
-    };
-    fetchMembers();
-  }, [organizationId]);
+    dispatch(getOrganizationMembers(organizationId));
+  }, [dispatch, organizationId]);
 
-  const handleRemoveMember = async (membershipId) => {
+  const { members } = useSelector((state) => state.organizations);
+
+  const handleRemoveMember = (membershipId) => {
     if (window.confirm("Are you sure you want to remove this member?")) {
       try {
-        await apiService.removeOrganizationMember(membershipId);
-        setMembers(
-          members.filter((member) => member.membershipId !== membershipId)
-        );
+        dispatch(removeOrganizationMember(membershipId));
         alert("Member removed successfully!");
       } catch (err) {
         console.error("Failed to remove member:", err);
@@ -62,7 +54,7 @@ const OrganizationMembers = ({ organizationId }) => {
           <tbody>
             {members.map((member) => (
               <tr
-                key={member.membership_id}
+                key={member.membershipId}
                 className="border-b border-gray-200 hover:bg-gray-50 transition duration-300"
               >
                 <td className="p-3 text-gray-700" data-label="Name">

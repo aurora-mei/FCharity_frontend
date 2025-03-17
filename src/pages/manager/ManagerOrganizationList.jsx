@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import { setSelectedOrganization } from "../../redux/auth/authSlice";
-import { use } from "react";
 
 const ManagerOrganizationList = ({ managedOrganizations }) => {
   const dispatch = useDispatch();
@@ -94,13 +93,13 @@ const ManagerOrganizationList = ({ managedOrganizations }) => {
                         src={
                           org.pictures
                             ? `http://localhost:8080${org.pictures}`
-                            : "https://via.placeholder.com/600x200?text=No+Image"
+                            : "https://media.istockphoto.com/id/1317323736/photo/a-view-up-into-the-trees-direction-sky.jpg?s=612x612&w=0&k=20&c=i4HYO7xhao7CkGy7Zc_8XSNX_iqG0vAwNsrH1ERmw2Q="
                         }
                         alt={`${org.organizationName} cover`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.src =
-                            "https://via.placeholder.com/600x200?text=No+Image";
+                            "https://media.istockphoto.com/id/1317323736/photo/a-view-up-into-the-trees-direction-sky.jpg?s=612x612&w=0&k=20&c=i4HYO7xhao7CkGy7Zc_8XSNX_iqG0vAwNsrH1ERmw2Q=";
                         }}
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">

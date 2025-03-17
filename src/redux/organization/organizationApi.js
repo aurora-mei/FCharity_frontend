@@ -23,7 +23,16 @@ const organizationApi = {
     return api.put(`/join-requests`, inviteJoinRequest);
   },
   deleteJoinRequest: (requestId) => api.delete(`/join-requests/${requestId}`),
+
+  getOrganizationInviteRequests: (organizationId) =>
+    api.get(`/invite-requests/organizations/${organizationId}`),
+
   inviteMember: (invitationData) => api.post("/invitations", invitationData),
+  updateInviteRequest: (inviteRequest) => {
+    return api.put(`/invite-requests`, inviteRequest);
+  },
+  deleteInviteRequest: (requestId) =>
+    api.delete(`/invite-requests/${requestId}`),
 
   transferCEO: (organizationId, newCeoId) =>
     api.put(`/organizations/${organizationId}/transfer-ceo`, {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
-import apiService from "../../services/api";
+import { Navigate } from "react-router-dom";
 import OrganizationOverview from "../../components/OrganizationManagement/OrganizationOverview";
 import OrganizationMembers from "../../components/OrganizationManagement/OrganizationMembers";
 import JoinRequests from "../../components/OrganizationManagement/JoinRequests";
@@ -32,6 +31,7 @@ const ManagerOrganizationManagement = () => {
         return (
           <OrganizationMembers organizationId={organization?.organizationId} />
         );
+
       case "join-requests":
         return <JoinRequests organizationId={organization?.organizationId} />;
       case "invite-members":
@@ -73,6 +73,7 @@ const ManagerOrganizationManagement = () => {
           </nav>
 
           {/* Nội dung */}
+
           <div className="bg-white rounded-lg shadow-md p-6">
             {renderContent()}
           </div>

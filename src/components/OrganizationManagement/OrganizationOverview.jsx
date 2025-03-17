@@ -5,8 +5,9 @@ const OrganizationOverview = ({ organization }) => {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({ ...organization });
   const [previewImage, setPreviewImage] = useState(
-    organization.pictures ||
-      "https://www.ri.org//content/uploads/2019/08/timeline-relief-international-general-logo.jpg"
+    organization.pictures
+      ? "http://localhost:8080" + organization.pictures
+      : null
   ); // Ảnh preview
   const [isDragging, setIsDragging] = useState(false); // Trạng thái kéo thả
 
@@ -206,14 +207,17 @@ const OrganizationOverview = ({ organization }) => {
       ) : (
         <div className="space-y-6">
           {/* Hiển thị ảnh làm background hoặc hình minh họa */}
-          {organization.pictures && (
-            <div
-              className="w-full h-64 bg-cover bg-center rounded-lg shadow-md mb-6"
-              style={{
-                backgroundImage: `url('http://localhost:8080${organization.pictures}')`,
-              }}
-            />
-          )}
+
+          <div
+            className="w-full h-64 bg-cover bg-center rounded-lg shadow-md mb-6"
+            style={{
+              backgroundImage:
+                organization.pictures == null
+                  ? `url('http://localhost:8080${organization.pictures}')`
+                  : `url('https://www.aaronreedphotography.com/images/xl/Sweet-Dreams-2022.jpg')`,
+            }}
+          />
+
           <div className="space-y-4">
             <p className="text-gray-700">
               <strong className="text-gray-800">Name:</strong>{" "}

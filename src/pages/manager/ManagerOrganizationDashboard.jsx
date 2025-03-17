@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import apiService from "../../services/api";
+import React, { useEffect } from "react";
 import {
   PieChart,
   Pie,
@@ -18,80 +16,63 @@ import {
 } from "recharts";
 import Layout from "../../components/Layout/Layout";
 
+import {
+  getOrganizationMembers,
+  getOrganizationJoinRequests,
+  getOrganizationInviteRequests,
+} from "../../redux/organization/organizationSlice";
+import { useDispatch, useSelector } from "react-redux";
+
 const ManagerOrganizationDashboard = () => {
-  const { organizationId } = useParams();
-  const [data, setData] = useState({
-    members: [],
-    joinRequests: [],
-    inviteRequests: [],
-  });
+  const { selectedOrganization } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [membersRes, joinReqRes, inviteReqRes] = await Promise.all([
-          apiService.getOrganizationMembers(organizationId),
-          apiService.getJoinRequestsByOrganizationId(organizationId),
-          apiService.getInviteRequests(organizationId),
-        ]);
-        setData({
-          members: membersRes.data,
-          joinRequests: joinReqRes.data,
-          inviteRequests: inviteReqRes.data,
-        });
-      } catch (err) {
-        console.error("Failed to fetch organization data:", err);
-      }
-    };
-    fetchData();
-  }, [organizationId]);
+    dispatch(getOrganizationMembers(selectedOrganization?.organizationId));
+    // dispatch(getOrganizationJoinRequests(selectedOrganization?.organizationId));
+    // dispatch(
+    //   getOrganizationInviteRequests(selectedOrganization?.organizationId)
+    // );
+  }, [selectedOrganization, dispatch]);
 
-  // Dữ liệu cho biểu đồ trạng thái yêu cầu tham gia
-  // const joinRequestStatusData = [
-  //   {
-  //     name: "Pending",
-  //     value: data.joinRequests.filter((r) => r.status === "pending").length,
-  //   },
-  //   {
-  //     name: "Approved",
-  //     value: data.joinRequests.filter((r) => r.status === "approved").length,
-  //   },
-  //   {
-  //     name: "Rejected",
-  //     value: data.joinRequests.filter((r) => r.status === "rejected").length,
-  //   },
-  // ];
+  const { members, joinRequests, inviteRequests } = useSelector(
+    (state) => state.organizations
+  );
+
+  console.log("Members:", members);
 
   const joinRequestStatusData = [
-    { name: "Pending", value: 3 },
-    { name: "Approved", value: 5 },
-    { name: "Rejected", value: 2 },
+    {
+      name: "Pending",
+      value: joinRequests.filter((r) => r.status === "pending").length || 2,
+    },
+    {
+      name: "Approved",
+      value: joinRequests.filter((r) => r.status === "approved").length || 3,
+    },
+    {
+      name: "Rejected",
+      value: joinRequests.filter((r) => r.status === "rejected").length || 5,
+    },
   ];
 
-  // Dữ liệu cho biểu đồ trạng thái lời mời tham gia
-  // const inviteRequestStatusData = [
-  //   {
-  //     name: "Pending",
-  //     value: data.inviteRequests.filter((r) => r.status === "pending").length,
-  //   },
-  //   {
-  //     name: "Accepted",
-  //     value: data.inviteRequests.filter((r) => r.status === "accepted").length,
-  //   },
-  //   {
-  //     name: "Declined",
-  //     value: data.inviteRequests.filter((r) => r.status === "declined").length,
-  //   },
-  // ];
-
   const inviteRequestStatusData = [
-    { name: "Pending", value: 4 },
-    { name: "Accepted", value: 3 },
-    { name: "Declined", value: 2 },
+    {
+      name: "Pending",
+      value: inviteRequests.filter((r) => r.status === "pending").length || 21,
+    },
+    {
+      name: "Accepted",
+      value: inviteRequests.filter((r) => r.status === "accepted").length || 10,
+    },
+    {
+      name: "Declined",
+      value: inviteRequests.filter((r) => r.status === "declined").length || 5,
+    },
   ];
 
   // Dữ liệu cho biểu đồ số lượng thành viên theo thời gian
-  const memberTrendData = data.members.reduce((acc, member) => {
+  const memberTrendData = members.reduce((acc, member) => {
     const date = new Date(member.joinDate).toLocaleDateString();
     acc[date] = (acc[date] || 0) + 1;
     return acc;
@@ -114,26 +95,23 @@ const ManagerOrganizationDashboard = () => {
     { date: "04/01/2023", count: 3 },
   ];
 
-  // Màu sắc cho biểu đồ
   const COLORS = ["#f1c40f", "#2ecc71", "#e74c3c", "#3498db"];
 
   return (
     <Layout>
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Tiêu đề */}
           <h1 className="text-3xl font-semibold text-gray-800 text-center mb-8">
             Organization Dashboard
           </h1>
 
-          {/* Tổng quan số liệu */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
               <h3 className="text-lg font-medium text-gray-600 mb-2">
                 Total Members
               </h3>
               <p className="text-3xl font-semibold text-gray-800">
-                {data.members.length}
+                {members.length}
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
@@ -141,7 +119,7 @@ const ManagerOrganizationDashboard = () => {
                 Join Requests
               </h3>
               <p className="text-3xl font-semibold text-gray-800">
-                {data.joinRequests.length}
+                {joinRequests.length}
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
@@ -149,7 +127,7 @@ const ManagerOrganizationDashboard = () => {
                 Invite Requests
               </h3>
               <p className="text-3xl font-semibold text-gray-800">
-                {data.inviteRequests.length}
+                {inviteRequests.length}
               </p>
             </div>
           </div>
