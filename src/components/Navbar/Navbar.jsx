@@ -55,6 +55,14 @@ const Navbar = () => {
             ),
         },
         {
+            key: '2',
+            label: (
+                <a rel="noopener noreferrer" href="/user/manage-profile">
+                    Manage profile
+                </a>
+            ),
+        },
+        {
             key: '3',
             label: (
                 <a onClick={logout}>
@@ -83,8 +91,6 @@ const Navbar = () => {
                         >
                             Forum
                         </Button>
-
-
                     </Flex>
                 </Col>
                 <Col span={8}>
