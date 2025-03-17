@@ -32,6 +32,10 @@ const tagColors = {
 const Post = ({ currentPost }) => {
     const navigate = useNavigate();
 
+    // State cho việc chỉnh sửa comment
+    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [editingContent, setEditingContent] = useState("");
+
     useEffect(() => {
         console.log("Dữ liệu nhận được:", currentPost);
     }, [currentPost]);
@@ -84,13 +88,28 @@ const Post = ({ currentPost }) => {
         setCommentList(commentList.filter((comment) => comment.id !== id));
     };
 
+    // Bắt đầu chỉnh sửa bình luận
+    const handleEdit = (comment) => {
+        setEditingCommentId(comment.id);
+        setEditingContent(comment.content);
+    };
+
+    // Lưu nội dung chỉnh sửa
+    const handleSaveEdit = (id) => {
+        setCommentList(
+            commentList.map((comment) =>
+                comment.id === id ? { ...comment, content: editingContent } : comment
+            )
+        );
+        setEditingCommentId(null);
+        setEditingContent("");
+    };
+
     // Menu dropdown cho các hành động: Delete, Update, Report
     const menu = (comment) => (
         <Menu>
             <Menu.Item onClick={() => handleDelete(comment.id)}>Delete</Menu.Item>
-            <Menu.Item onClick={() => console.log("Update comment id:", comment.id)}>
-                Update
-            </Menu.Item>
+            <Menu.Item onClick={() => handleEdit(comment)}>Update</Menu.Item>
             <Menu.Item onClick={() => console.log("Report comment id:", comment.id)}>
                 Report
             </Menu.Item>
@@ -243,7 +262,38 @@ const Post = ({ currentPost }) => {
                                     </div>
                                 </div>
                             }
-                            description={<Paragraph style={{ marginBottom: 8 }}>{comment.content}</Paragraph>}
+                            description={
+                                editingCommentId === comment.id ? (
+                                    <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                                        <Input
+                                            value={editingContent}
+                                            onChange={(e) => setEditingContent(e.target.value)}
+                                            style={{ flex: 1 }}
+                                        />
+                                        <Button
+                                            type="primary"
+                                            onClick={() => handleSaveEdit(comment.id)}
+                                            style={{
+                                                backgroundColor: "#1890ff", // Màu nền xanh giống nút Send
+                                                borderColor: "#1890ff",
+                                            }}
+                                        >
+                                            Save
+                                        </Button>
+
+                                        <Button
+                                            onClick={() => {
+                                                setEditingCommentId(null);
+                                                setEditingContent("");
+                                            }}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Paragraph style={{ marginBottom: 8 }}>{comment.content}</Paragraph>
+                                )
+                            }
                         />
                         {/* Các hành động Like, Reply, More */}
                         <div style={{ display: "flex", gap: 12, fontSize: 14, color: "#6b7280" }}>
