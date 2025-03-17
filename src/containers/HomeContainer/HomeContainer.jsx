@@ -9,7 +9,9 @@ import NotingGreen from "../../components/NotingGreen/NotingGreen";
 import RequestListScreen from "../../screens/request/RequestListScreen";
 import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
 import { Flex } from 'antd';
+import { useTranslation, Trans } from 'react-i18next';
 const HomeContainer = () => {
+    const { t, i18n } = useTranslation();
     return (
         <div >
             <Flex vertical='true' className='home-upper'>
@@ -19,7 +21,7 @@ const HomeContainer = () => {
                     <RequestActiveCarousel />
                     <FundraiserBoard />
                     <EventBoard />
-                </Flex>                
+                </Flex>
                 <NotingGreen message={
                     <>
                         A forum dedicated to charity and kindness. <br />

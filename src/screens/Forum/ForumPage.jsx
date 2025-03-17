@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchPosts } from "../../redux/post/postSlice";
 import { Layout } from "antd";
 import PostList from "../../components/Post/PostList";
-import ForumHeader from "../../components/Sidebar/ForumHeader";
-import LeftSidebar from "../../components/Sidebar/LeftSidebar";
-import RightSidebar from "../../components/Sidebar/RightSidebar";
+import ForumHeader from "../../components/ForumSidebar/ForumHeader";
+import LeftSidebar from "../../components/ForumSidebar/LeftSidebar";
+import RightSidebar from "../../components/ForumSidebar/RightSidebar";
 
 const { Content } = Layout;
 

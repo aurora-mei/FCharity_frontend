@@ -6,6 +6,7 @@ const initialState = {
     requests: [],
     activeRequests: [],
     currentRequest: {},
+    requestsByUserId: [],
     error: null,
 };
 
@@ -33,6 +34,13 @@ export const deleteRequest = createAsyncThunk("requests/delete", async (id) => {
     await requestApi.deleteRequest(id);
     return id;
 });
+
+// Thunk mới để lấy requests theo userId
+export const fetchRequestsByUserIdThunk = createAsyncThunk(
+    "requests/fetchByUserId",
+    async (userId) => {
+        return await requestApi.fetchRequestsByUserId(userId);
+    });
 
 const requestSlice = createSlice({
     name: 'request',
@@ -79,6 +87,7 @@ const requestSlice = createSlice({
             .addCase(createRequest.fulfilled, (state, action) => {
                 state.loading = false;
                 state.requests.push(action.payload);
+                state.requestsByUserId.push(action.payload);
             })
             .addCase(createRequest.rejected, (state, action) => {
                 state.loading = false;
@@ -89,12 +98,14 @@ const requestSlice = createSlice({
             })
             .addCase(updateRequest.fulfilled, (state, action) => {
                 state.loading = false;
-                const index = state.requests.findIndex(request => request.request.id === action.payload.request.id);
-                if (index !== -1) {
-                    state.requests[index] = action.payload;
-                }
+
+                state.requestsByUserId = state.requestsByUserId.map(req =>
+                    req.request.id === action.payload.request.id ? action.payload : req
+                );
+
                 state.currentRequest = action.payload;
             })
+
             .addCase(updateRequest.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
@@ -109,6 +120,18 @@ const requestSlice = createSlice({
             .addCase(deleteRequest.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
+            })
+            // Xử lý thunk fetchRequestsByUserId
+            .addCase(fetchRequestsByUserIdThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchRequestsByUserIdThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.requestsByUserId = action.payload;
+            })
+            .addCase(fetchRequestsByUserIdThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error;
             });
     },
 });

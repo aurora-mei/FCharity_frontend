@@ -64,21 +64,22 @@ const SignupForm = () => {
                         <Form.Item
                             label="Password"
                             name="password"
-                            rules={[{ required: true, message: "Password is required" }
-                                // ,
-                                // { min: 8, message: "Password must be at least 8 characters" }, // Độ dài tối thiểu
-                                // {
-                                //     pattern: /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-                                //     message: "Must include uppercase, number & special character"
-                                // }
-                            ]}
-                        >
-                            <Input.Password
-                                iconRender={(visible) =>
-                                    visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
-                                }
-                            />
-                        </Form.Item>
+                    rules={[
+        { required: true, message: "Password is required" },
+        { min: 8, message: "Password must be at least 8 characters" },
+        {
+            pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+            message: "Password must include at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (@$!%*?&)"
+        }
+    ]}
+>
+    <Input.Password
+        iconRender={(visible) =>
+            visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+        }
+    />
+</Form.Item>
+
                         <PasswordRequirement />
                         <Form.Item>
                             <Checkbox>Receive tips and updates about fundraisers</Checkbox>

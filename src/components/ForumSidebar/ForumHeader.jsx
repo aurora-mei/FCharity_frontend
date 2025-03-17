@@ -24,12 +24,12 @@ const ForumHeader = ({ sortBy, setSortBy, viewMode, setViewMode }) => {
     );
 
     return (
-        <div style={{ 
-            display: "flex", 
-            justifyContent: "space-between", 
-            alignItems: "center", 
-            marginBottom: "20px", 
-            padding: "20px" 
+        <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
+            padding: "20px"
         }}>
             {/* Nhóm Sort & View gần nhau hơn */}
             <div style={{ display: "flex", gap: "10px" }}>
@@ -41,7 +41,7 @@ const ForumHeader = ({ sortBy, setSortBy, viewMode, setViewMode }) => {
                 </Dropdown>
             </div>
 
-            <Button type="primary" style={{ backgroundColor: "#000", color: "#fff" }} onClick={() => navigate("/create-post")}>
+            <Button type="primary" style={{ backgroundColor: "#000", color: "#fff" }} onClick={() => navigate("/posts/create-post")}>
                 Create Post
             </Button>
         </div>

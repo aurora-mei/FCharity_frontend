@@ -4,6 +4,7 @@ const { Footer } = Layout;
 const { Text, Title } = Typography;
 
 const AppFooter = () => {
+
     return (
         <Footer style={{ backgroundColor: "white", color: "black", border: '1px solid black', padding: '3rem 10rem' }}>
             <Row gutter={[16]} justify="center">

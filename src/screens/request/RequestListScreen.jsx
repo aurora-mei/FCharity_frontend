@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRequests } from "../../redux/request/requestSlice";
 import LoadingModal from "../../components/LoadingModal";
-import { List, Typography } from "antd";
+import { List, Typography, Empty } from "antd";
 import RequestCard from "../../components/RequestCard/RequestCard";
 
 const { Title } = Typography;
@@ -36,7 +36,7 @@ const RequestListScreen = () => {
                     )}
                 />
             ) : (
-                <p>No requests found.</p>
+                <Empty />
             )}
         </div>
     );
