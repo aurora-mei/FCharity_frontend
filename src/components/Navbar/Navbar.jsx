@@ -63,6 +63,7 @@ const Navbar = () => {
               Search
             </Button>
             <Button className="btn-custom" type="text">
+                    
               <Space>
                 Donate <CaretDownOutlined />
               </Space>
@@ -84,14 +85,14 @@ const Navbar = () => {
             </Button>
           </Flex>
         </Col>
-        {/* <Col span={8}>
+        <Col span={8}>
           <Flex justify="center" align="flex-start" style={{ height: "80px" }}>
             <a href="/">
               <img src={logo} alt="" style={{ height: "90px" }} />
             </a>
           </Flex>
-        </Col> */}
-        {/* <Col span={8}>
+        </Col>
+        <Col span={8}>
           <Flex justify="flex-end" align="center" gap="10px">
             <Button className="btn-custom" type="text">
               <Space>
@@ -131,7 +132,7 @@ const Navbar = () => {
               <b>Start a request</b>
             </Button>
           </Flex>
-        </Col> */}
+        </Col>
       </Row>
     </Affix>
   );
