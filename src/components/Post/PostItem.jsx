@@ -25,12 +25,12 @@ const PostItem = ({ postResponse }) => {
             onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f5f5")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
-            <Avatar 
-    shape="square" 
-    size={80} 
-    src={(postResponse?.attachments?.length > 0) 
-        ? postResponse.attachments[0] 
-        : "https://via.placeholder.com/100"} 
+            <Avatar
+    shape="square"
+    size={80}
+    src={(postResponse?.attachments?.length > 0)
+        ? postResponse.attachments[0]
+        : "https://via.placeholder.com/100"}
 />
 
 
@@ -40,8 +40,8 @@ const PostItem = ({ postResponse }) => {
                 <Text strong>{postResponse.post.user.fullName || "Unknown User"}</Text>
 
                 <Text type="secondary" style={{ marginLeft: 10 }}>
-    {postResponse.post.createdAt 
-        ? dayjs(postResponse.post.createdAt).format("YYYY-MM-DD HH:mm:ss") 
+    {postResponse.post.createdAt
+        ? dayjs(postResponse.post.createdAt).format("YYYY-MM-DD HH:mm:ss")
         : "Unknown Date"}
 </Text>
 
@@ -65,6 +65,7 @@ const PostItem = ({ postResponse }) => {
                 {/* Số lượng votes */}
                 <Text type="secondary">{postResponse.post.vote} votes</Text>
             </div>
+
         </List.Item>
     );
 };
