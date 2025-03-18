@@ -25,17 +25,17 @@ const Navbar = () => {
         currentUser = {};
     }
 
-    const dispatch = useDispatch();
-    useEffect(() => {
-        console.log("---Navbar---");
-        console.log("token: ", token);
-        console.log("currentUser:", currentUser);
-    }, [currentUser]);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    console.log("---Navbar---");
+    console.log("token: ", token);
+    console.log("currentUser:", currentUser);
+  }, [currentUser]);
 
-    const logout = async () => {
-        dispatch(logOut());
-        window.location.reload();
-    }
+  const logout = async () => {
+    dispatch(logOut());
+    window.location.reload();
+  };
 
     const items = [
         {
