@@ -60,10 +60,13 @@ const fetchRequestById = async (id) => {
     }
 }
 
-// Hàm API lấy request theo userId
-export const fetchRequestsByUserId = async (userId) => {
+// Hàm API lấy request theo userId với filter
+export const fetchRequestsByUserId = async (userId, filters = {}) => {
     try {
-        const response = await APIPrivate.get(`requests/user/${userId}`);
+        // Xây dựng query string từ filters
+        const queryParams = new URLSearchParams(filters).toString();
+        const url = queryParams ? `requests/user/${userId}?${queryParams}` : `requests/user/${userId}`;
+        const response = await APIPrivate.get(url);
         return response.data;
     } catch (error) {
         console.error("Error fetching requests by user id:", error);

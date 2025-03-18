@@ -55,7 +55,7 @@ const Navbar = () => {
             ),
         },
         {
-            key: '2',
+            key: '3',
             label: (
                 <a rel="noopener noreferrer" href="/user/manage-profile">
                     Manage profile
@@ -63,7 +63,7 @@ const Navbar = () => {
             ),
         },
         {
-            key: '3',
+            key: '4',
             label: (
                 <a onClick={logout}>
                     Sign out

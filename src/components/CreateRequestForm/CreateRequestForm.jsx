@@ -32,7 +32,6 @@ const CreateRequestForm = () => {
     const [communes, setCommunes] = useState([]);
     const [selectedProvince, setSelectedProvince] = useState(null);
     const [selectedDistrict, setSelectedDistrict] = useState(null);
-    const [addressData, setAddressData] = useState({});
 
     let currentUser = {};
     try {
@@ -45,7 +44,7 @@ const CreateRequestForm = () => {
     useEffect(() => {
         dispatch(fetchCategories());
         dispatch(fetchTags());
-        loadAddresses();
+        loadProvinces();
     }, [dispatch]);
 
     useEffect(() => {
@@ -55,20 +54,19 @@ const CreateRequestForm = () => {
         console.log("currentUser:", currentUser);
     }, [categories, tags]);
 
-    const loadAddresses = async () => {
+    const loadProvinces = async () => {
         try {
-            const response = await fetch('/src/components/CreateRequestForm/Location.json');
+            const response = await fetch('https://provinces.open-api.vn/api/p/');
             const data = await response.json();
-            setAddressData(data);
-            setProvinces(data.province);
+            setProvinces(data);
         } catch (error) {
-            console.error("Failed to load address data:", error);
+            console.error("Failed to load provinces:", error);
         }
     };
 
-    const handleProvinceChange = (value) => {
+    const handleProvinceChange = async (value) => {
         setSelectedProvince(value);
-        const selectedProvinceName = provinces.find(province => province.idProvince === value)?.name;
+        const selectedProvinceName = provinces.find(province => province.code === value)?.name;
         
         form.setFieldsValue({ 
             provinceName: selectedProvinceName, 
@@ -77,28 +75,38 @@ const CreateRequestForm = () => {
             commune: null,  // Reset commune khi chọn tỉnh mới
             communeName: "" 
         });
-    
-        const filteredDistricts = addressData.district.filter(district => district.idProvince === value);
-        setDistricts(filteredDistricts);
-        setCommunes([]);
+
+        try {
+            const response = await fetch(`https://provinces.open-api.vn/api/p/${value}?depth=2`);
+            const data = await response.json();
+            setDistricts(data.districts);
+            setCommunes([]);
+        } catch (error) {
+            console.error("Failed to load districts:", error);
+        }
     };
-    
-    const handleDistrictChange = (value) => {
+
+    const handleDistrictChange = async (value) => {
         setSelectedDistrict(value);
-        const selectedDistrictName = districts.find(district => district.idDistrict === value)?.name;
+        const selectedDistrictName = districts.find(district => district.code === value)?.name;
         
         form.setFieldsValue({ 
             districtName: selectedDistrictName, 
             commune: null,  // Reset commune khi chọn quận/huyện mới
             communeName: "" 
         });
-    
-        const filteredCommunes = addressData.commune.filter(commune => commune.idDistrict === value);
-        setCommunes(filteredCommunes);
-    };  
+
+        try {
+            const response = await fetch(`https://provinces.open-api.vn/api/d/${value}?depth=2`);
+            const data = await response.json();
+            setCommunes(data.wards);
+        } catch (error) {
+            console.error("Failed to load communes:", error);
+        }
+    };
 
     const handleCommuneChange = (value) => {
-        const selectedCommuneName = communes.find(commune => commune.idCommune === value)?.name;
+        const selectedCommuneName = communes.find(commune => commune.code === value)?.name;
         form.setFieldsValue({ communeName: selectedCommuneName });
     };
 
@@ -121,7 +129,6 @@ const CreateRequestForm = () => {
         await dispatch(createRequest(requestData)).unwrap();
         navigate('/requests/myrequests', { replace: true });
     };
-    
 
     const handleImageChange = async ({ fileList }) => {
         setUploading(true);
@@ -205,48 +212,48 @@ const CreateRequestForm = () => {
                         </Form.Item>
 
                         <Form.Item label="Province" name="province" rules={[{ required: true, message: "Province is required" }]}>
-    <Select placeholder="Select Province" onChange={handleProvinceChange}>
-        {provinces.map(province => (
-            <Option key={province.idProvince} value={province.idProvince}>
-                {province.name}
-            </Option>
-        ))}
-    </Select>
-</Form.Item>
+                            <Select placeholder="Select Province" onChange={handleProvinceChange}>
+                                {provinces.map(province => (
+                                    <Option key={province.code} value={province.code}>
+                                        {province.name}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
 
-<Form.Item label="District" name="district" rules={[{ required: true, message: "District is required" }]}>
-    <Select placeholder="Select District" onChange={handleDistrictChange} disabled={!selectedProvince}>
-        {districts.map(district => (
-            <Option key={district.idDistrict} value={district.idDistrict}>
-                {district.name}
-            </Option>
-        ))}
-    </Select>
-</Form.Item>
+                        <Form.Item label="District" name="district" rules={[{ required: true, message: "District is required" }]}>
+                            <Select placeholder="Select District" onChange={handleDistrictChange} disabled={!selectedProvince}>
+                                {districts.map(district => (
+                                    <Option key={district.code} value={district.code}>
+                                        {district.name}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
 
-<Form.Item label="Commune" name="commune" rules={[{ required: true, message: "Commune is required" }]}>
-    <Select placeholder="Select Commune" onChange={handleCommuneChange} disabled={!selectedDistrict}>
-        {communes.map(commune => (
-            <Option key={commune.idCommune} value={commune.idCommune}>
-                {commune.name}
-            </Option>
-        ))}
-    </Select>
-</Form.Item>
+                        <Form.Item label="Commune" name="commune" rules={[{ required: true, message: "Commune is required" }]}>
+                            <Select placeholder="Select Commune" onChange={handleCommuneChange} disabled={!selectedDistrict}>
+                                {communes.map(commune => (
+                                    <Option key={commune.code} value={commune.code}>
+                                        {commune.name}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
 
-<Form.Item label="Address" name="location" rules={[{ required: true, message: "Location is required" }]}>
-    <Input />
-</Form.Item>
+                        <Form.Item label="Address" name="location" rules={[{ required: true, message: "Location is required" }]}>
+                            <Input />
+                        </Form.Item>
 
-<Form.Item name="provinceName" hidden initialValue="">
-    <Input />
-</Form.Item>
-<Form.Item name="districtName" hidden initialValue="">
-    <Input />
-</Form.Item>
-<Form.Item name="communeName" hidden initialValue="">
-    <Input />
-</Form.Item>
+                        <Form.Item name="provinceName" hidden initialValue="">
+                            <Input />
+                        </Form.Item>
+                        <Form.Item name="districtName" hidden initialValue="">
+                            <Input />
+                        </Form.Item>
+                        <Form.Item name="communeName" hidden initialValue="">
+                            <Input />
+                        </Form.Item>
                         
                         <Form.Item label="Images" name="images" rules={[{ required: true, message: "At least one image is required" }]}>
                             <Upload
