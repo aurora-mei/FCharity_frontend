@@ -55,7 +55,7 @@ const Navbar = () => {
             ),
         },
         {
-            key: '2',
+            key: '3',
             label: (
                 <a rel="noopener noreferrer" href="/user/manage-profile">
                     Manage profile
@@ -63,7 +63,7 @@ const Navbar = () => {
             ),
         },
         {
-            key: '3',
+            key: '4',
             label: (
                 <a onClick={logout}>
                     Sign out
@@ -126,8 +126,9 @@ const Navbar = () => {
                         )}
                         <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/requests/create")}>
                             <b>Start a request</b>
+                            {t('startRequest', 'Start a request')}
                         </Button>
-                        {/* <Flex vertical>
+                        <Flex vertical>
                             {Object.keys(lngs).map((lng) => (
                                 <button key={lng} style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }} type="submit" onClick={() => {
                                     i18n.changeLanguage(lng);
@@ -136,7 +137,7 @@ const Navbar = () => {
                                     {lngs[lng].nativeName}
                                 </button>
                             ))}
-                        </Flex>  */}
+                        </Flex>
                     </Flex>
                 </Col>
             </Row>

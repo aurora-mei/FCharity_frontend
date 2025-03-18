@@ -70,7 +70,7 @@ const PostDetailPage = () => {
           {loadingUI || loading ? <LoadingModal /> : (
             <Card bordered={false}>
               <Flex style={{ marginBottom: "16px" }}>
-                <Avatar size={40} src={currentPost.post.user.avatar} />
+                <Avatar size={40} src={currentPost.post.user.avatar} />2
                 <div style={{ marginLeft: "8px" }}>
                   <div style={{ fontSize: "14px", fontWeight: "600" }}>r/post</div>
                   <div style={{ fontSize: "12px", color: "#6b7280" }}>{createdAt}ggg</div>
