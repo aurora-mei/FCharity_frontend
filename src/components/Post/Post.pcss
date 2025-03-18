@@ -1,0 +1,113 @@
+.request-detail-page {
+  padding:1rem 18rem;
+}
+.request-detail{
+  background-color: #fff;
+  border-radius: 1rem;
+  /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
+  margin-bottom: 24px;
+}
+.request-title {
+  text-align: left;
+  margin-bottom: 24px;
+
+}
+
+/* Carousel nằm ngay dưới title */
+.request-carousel {
+  width: 100%;
+  margin-bottom: 1rem;
+   max-width: 120vh;
+    overflow: hidden;
+}
+
+.media-slide img,
+.media-slide video {
+  border-radius: 0.8rem;
+  width: 100%;
+  height: 22rem;
+  object-fit: cover;
+  object-position: center;
+  display:flex;
+}
+
+/* Mũi tên slick */
+.slick-arrow {
+  font-size: 24px;
+  color: #333 !important;
+  z-index: 2;
+  position: absolute; 
+  top: 50%;
+  transform: translateY(-50%);
+  display: block !important; /* Ép hiển thị mũi tên */
+}
+
+/* Đẩy mũi tên ra ngoài ảnh */
+.slick-prev {
+  left: -40px; /* Thay đổi tuỳ ý, ví dụ -40px, -50px */
+}
+
+.slick-next {
+  right: -40px; /* Thay đổi tuỳ ý, ví dụ -40px, -50px */
+}
+
+/* Xoá icon mặc định của slick */
+.slick-prev::before,
+.slick-next::before {
+  content: '';
+}
+
+/* Thông tin tổ chức + donation tag */
+.organizer-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.organizer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.organizer-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.organizer-text {
+  font-size: 16px;
+}
+
+/* Nội dung chính */
+.request-main-content {
+  margin-bottom: 24px;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.request-tags {
+  margin-top: 12px;
+  display:flex;
+  gap: 8px;
+}
+
+/* Nút Donate */
+.donate-button-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.category-badge{
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #D8BFD8; 
+  color: #800080; 
+  padding: 3px 10px;
+  border-radius: 15px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}

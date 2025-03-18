@@ -25,17 +25,17 @@ const Navbar = () => {
         currentUser = {};
     }
 
-    const dispatch = useDispatch();
-    useEffect(() => {
-        console.log("---Navbar---");
-        console.log("token: ", token);
-        console.log("currentUser:", currentUser);
-    }, [currentUser]);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    console.log("---Navbar---");
+    console.log("token: ", token);
+    console.log("currentUser:", currentUser);
+  }, [currentUser]);
 
-    const logout = async () => {
-        dispatch(logOut());
-        window.location.reload();
-    }
+  const logout = async () => {
+    dispatch(logOut());
+    window.location.reload();
+  };
 
     const items = [
         {
@@ -51,6 +51,14 @@ const Navbar = () => {
             label: (
                 <a rel="noopener noreferrer" href="/requests/myrequests">
                     My Request
+                </a>
+            ),
+        },
+        {
+            key: '2',
+            label: (
+                <a rel="noopener noreferrer" href="/user/manage-profile">
+                    Manage profile
                 </a>
             ),
         },
@@ -83,8 +91,6 @@ const Navbar = () => {
                         >
                             Forum
                         </Button>
-
-
                     </Flex>
                 </Col>
                 <Col span={8}>
