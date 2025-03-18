@@ -6,35 +6,20 @@ import moment from "moment";
 
 const { Paragraph } = Typography;
 
-// Danh sách màu tag bạn cung cấp
-const tagColors = {
-    "Homeless Support": { color: "#0079d3", background: "#e6f4ff", border: "#91caff" },
-    "Community Crisis": { color: "#237804", background: "#f6ffed", border: "#b7eb8f" },
-    "Refugee Crisis": { color: "#ad6800", background: "#fffbe6", border: "#ffe58f" },
-    "Water Crisis": { color: "#a8071a", background: "#fff1f0", border: "#ffa39e" },
-    "Drought": { color: "#595959", background: "#f5f5f5", border: "#d9d9d9" },
-    "Food Shortage": { color: "#fa541c", background: "#fff2e8", border: "#ffbb96" },
-    "Medical Emergency": { color: "#13c2c2", background: "#e6fffb", border: "#87e8de" },
-    "Accident Relief": { color: "#eb2f96", background: "#fff0f6", border: "#ffadd2" },
-    "Wildfire": { color: "#fa8c16", background: "#fff7e6", border: "#ffd591" },
-    "Infrastructure Damage": { color: "#722ed1", background: "#f9f0ff", border: "#d3adf7" },
-    "Education Support": { color: "#1890ff", background: "#e6f7ff", border: "#91d5ff" },
-    "Earthquake": { color: "#cf1322", background: "#fff1f0", border: "#ffa39e" },
-    "Pandemic": { color: "#52c41a", background: "#f6ffed", border: "#b7eb8f" },
-    "Animal Rescue": { color: "#ff4d4f", background: "#fff1f0", border: "#ffa39e" },
-    "Hurricane": { color: "#722ed1", background: "#f9f0ff", border: "#d3adf7" },
-    "Environmental Disaster": { color: "#13c2c2", background: "#e6fffb", border: "#87e8de" },
-    "Tornado": { color: "#eb2f96", background: "#fff0f6", border: "#ffadd2" },
-    "Flood": { color: "#1890ff", background: "#e6f7ff", border: "#91d5ff" },
-    default: { color: "#595959", background: "#f5f5f5", border: "#d9d9d9" },
+const tagStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    border: "1px solid #065f46",
+    backgroundColor: "#d1fae5",
+    color: "#065f46",
+    padding: "2px 8px",
+    borderRadius: "999px",
+    fontWeight: 600,
+    fontSize: "0.6rem"
 };
 
 const Post = ({ currentPost }) => {
     const navigate = useNavigate();
-
-    // State cho việc chỉnh sửa comment
-    const [editingCommentId, setEditingCommentId] = useState(null);
-    const [editingContent, setEditingContent] = useState("");
 
     useEffect(() => {
         console.log("Dữ liệu nhận được:", currentPost);
@@ -44,14 +29,11 @@ const Post = ({ currentPost }) => {
         return <Card bordered={false}>Loading...</Card>;
     }
 
-    // Lấy dữ liệu bài post
-    const { title, createdAt, vote, content, tags } = currentPost.post;
-    // Giả sử thông tin người đăng nằm trong currentPost.post.user
+    const { title, createdAt, vote, content } = currentPost.post;
     const { user } = currentPost.post;
     const attachments = currentPost?.attachments || [];
     const initialComments = currentPost?.comments || [];
 
-    // State quản lý comment
     const [newComment, setNewComment] = useState("");
     const [commentList, setCommentList] = useState(initialComments);
 
@@ -69,60 +51,12 @@ const Post = ({ currentPost }) => {
         setNewComment("");
     };
 
-    // Xử lý like cho bình luận
-    const handleLike = (id) => {
-        setCommentList(
-            commentList.map((comment) =>
-                comment.id === id ? { ...comment, likes: comment.likes + 1 } : comment
-            )
-        );
-    };
-
-    // Xử lý reply cho bình luận (demo: console log)
-    const handleReply = (id) => {
-        console.log("Reply to comment id:", id);
-    };
-
-    // Xử lý xóa bình luận
-    const handleDelete = (id) => {
-        setCommentList(commentList.filter((comment) => comment.id !== id));
-    };
-
-    // Bắt đầu chỉnh sửa bình luận
-    const handleEdit = (comment) => {
-        setEditingCommentId(comment.id);
-        setEditingContent(comment.content);
-    };
-
-    // Lưu nội dung chỉnh sửa
-    const handleSaveEdit = (id) => {
-        setCommentList(
-            commentList.map((comment) =>
-                comment.id === id ? { ...comment, content: editingContent } : comment
-            )
-        );
-        setEditingCommentId(null);
-        setEditingContent("");
-    };
-
-    // Menu dropdown cho các hành động: Delete, Update, Report
-    const menu = (comment) => (
-        <Menu>
-            <Menu.Item onClick={() => handleDelete(comment.id)}>Delete</Menu.Item>
-            <Menu.Item onClick={() => handleEdit(comment)}>Update</Menu.Item>
-            <Menu.Item onClick={() => console.log("Report comment id:", comment.id)}>
-                Report
-            </Menu.Item>
-        </Menu>
-    );
+    const tagListData = currentPost?.taggables?.map(taggable => taggable.tag?.tagName) || [];
 
     // Tách ảnh & video từ attachments
-    const imageUrls =
-        attachments.filter((url) => url.match(/\.(jpeg|jpg|png|gif)$/i)) || [];
-    const videoUrls =
-        attachments.filter((url) => url.match(/\.(mp4|webm|ogg)$/i)) || [];
+    const imageUrls = attachments.filter(url => url.match(/\.(jpeg|jpg|png|gif)$/i)) || [];
+    const videoUrls = attachments.filter(url => url.match(/\.(mp4|webm|ogg)$/i)) || [];
 
-    // Cài đặt Carousel
     const carouselSettings = {
         arrows: true,
         infinite: true,
@@ -131,18 +65,8 @@ const Post = ({ currentPost }) => {
         slidesToScroll: 1,
     };
 
-    // Xử lý kiểu dữ liệu của tags: nếu là chuỗi, chuyển thành mảng; nếu là mảng, dùng luôn
-    let tagList = [];
-    if (typeof tags === "string") {
-        tagList = tags.split(",").map((tag) => tag.trim());
-    } else if (Array.isArray(tags)) {
-        tagList = tags;
-    }
-    console.log("Tags sau khi xử lý:", tagList);
-
     return (
         <Card bordered={false} style={{ maxWidth: 800, margin: "auto", marginTop: 20 }}>
-            {/* Header: Avatar, tên người đăng và ngày giờ */}
             <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
                 <Avatar
                     src={user && user.avatar ? user.avatar : "https://via.placeholder.com/40"}
@@ -158,33 +82,16 @@ const Post = ({ currentPost }) => {
                 </div>
             </div>
 
-            {/* Tiêu đề bài post */}
             <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</h2>
 
-            {/* Hiển thị Tags */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-                {tagList.map((tag, index) => {
-                    const styleTag = tagColors[tag] || tagColors.default;
-                    return (
-                        <Tag
-                            key={index}
-                            style={{
-                                color: styleTag.color,
-                                backgroundColor: styleTag.background,
-                                border: `1px solid ${styleTag.border}`,
-                                fontWeight: "bold",
-                            }}
-                        >
-                            {tag}
-                        </Tag>
-                    );
-                })}
+                {tagListData.map((tag, index) => (
+                    <Tag key={index} style={tagStyle}>#{tag}</Tag>
+                ))}
             </div>
 
-            {/* Nội dung bài post */}
             <Paragraph>{content}</Paragraph>
 
-            {/* Ảnh / Video nếu có */}
             {attachments.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                     <Carousel {...carouselSettings}>
@@ -202,30 +109,6 @@ const Post = ({ currentPost }) => {
                 </div>
             )}
 
-            {/* Like - Comment - Share */}
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 16,
-                    color: "#6b7280",
-                    fontSize: 14,
-                }}
-            >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <LikeOutlined style={{ cursor: "pointer" }} />
-                    <span>{vote}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <MessageOutlined style={{ cursor: "pointer" }} />
-                    <span>{commentList.length}</span>
-                    <ShareAltOutlined style={{ cursor: "pointer" }} />
-                    <span>Share</span>
-                </div>
-            </div>
-
-            {/* Form nhập comment */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
                 <Avatar src="https://via.placeholder.com/40" />
                 <Input
@@ -238,14 +121,10 @@ const Post = ({ currentPost }) => {
                     type="primary"
                     icon={<SendOutlined />}
                     onClick={handleCommentSubmit}
-                    style={{
-                        backgroundColor: "#1890ff",
-                        borderColor: "#1890ff",
-                    }}
+                    style={{ backgroundColor: "#1890ff", borderColor: "#1890ff" }}
                 />
             </div>
 
-            {/* Danh sách bình luận */}
             <List
                 itemLayout="vertical"
                 dataSource={commentList}
@@ -262,51 +141,8 @@ const Post = ({ currentPost }) => {
                                     </div>
                                 </div>
                             }
-                            description={
-                                editingCommentId === comment.id ? (
-                                    <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                                        <Input
-                                            value={editingContent}
-                                            onChange={(e) => setEditingContent(e.target.value)}
-                                            style={{ flex: 1 }}
-                                        />
-                                        <Button
-                                            type="primary"
-                                            onClick={() => handleSaveEdit(comment.id)}
-                                            style={{
-                                                backgroundColor: "#1890ff", // Màu nền xanh giống nút Send
-                                                borderColor: "#1890ff",
-                                            }}
-                                        >
-                                            Save
-                                        </Button>
-
-                                        <Button
-                                            onClick={() => {
-                                                setEditingCommentId(null);
-                                                setEditingContent("");
-                                            }}
-                                        >
-                                            Cancel
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <Paragraph style={{ marginBottom: 8 }}>{comment.content}</Paragraph>
-                                )
-                            }
+                            description={<Paragraph style={{ marginBottom: 8 }}>{comment.content}</Paragraph>}
                         />
-                        {/* Các hành động Like, Reply, More */}
-                        <div style={{ display: "flex", gap: 12, fontSize: 14, color: "#6b7280" }}>
-              <span onClick={() => handleLike(comment.id)} style={{ cursor: "pointer" }}>
-                <LikeOutlined /> {comment.likes}
-              </span>
-                            <span onClick={() => handleReply(comment.id)} style={{ cursor: "pointer" }}>
-                Reply
-              </span>
-                            <Dropdown overlay={menu(comment)} trigger={["click"]}>
-                                <MoreOutlined style={{ cursor: "pointer" }} />
-                            </Dropdown>
-                        </div>
                     </List.Item>
                 )}
             />

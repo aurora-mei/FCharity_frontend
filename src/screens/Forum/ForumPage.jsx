@@ -14,7 +14,7 @@ const ForumPage = () => {
     const posts = useSelector((state) => state.post.posts);
     const loading = useSelector((state) => state.post.loading);
 
-    const [selectedPost, setSelectedPost] = useState(null); // Trạng thái lưu bài viết được chọn
+    const [selectedPost, setSelectedPost] = useState(null);
     const [viewMode, setViewMode] = useState("compact");
     const [sortBy, setSortBy] = useState("Best");
 
@@ -27,11 +27,7 @@ const ForumPage = () => {
             <LeftSidebar />
             <Content style={{ background: "#fff", flex: 1, margin: "0 20px" }}>
                 <ForumHeader sortBy={sortBy} setSortBy={setSortBy} viewMode={viewMode} setViewMode={setViewMode} />
-                {selectedPost ? (
-                    <PostDetailCard post={selectedPost} onClose={() => setSelectedPost(null)} />
-                ) : (
-                    <PostList posts={posts} onSelectPost={setSelectedPost} />
-                )}
+                <PostList posts={posts} viewMode={viewMode} onSelectPost={setSelectedPost} />
             </Content>
             <RightSidebar />
         </Layout>
