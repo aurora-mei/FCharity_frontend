@@ -130,6 +130,20 @@ export const getOrganizationInviteRequests = createAsyncThunk(
   }
 );
 
+export const createMemberInviteRequest = createAsyncThunk(
+  "organizations/createMemberInviteRequest",
+  async (requestInfo, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.inviteMember(requestInfo);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error creating organization"
+      );
+    }
+  }
+);
+
 export const organizationSlice = createSlice({
   name: "organization",
   initialState,

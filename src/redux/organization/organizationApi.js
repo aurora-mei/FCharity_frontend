@@ -27,7 +27,7 @@ const organizationApi = {
   getOrganizationInviteRequests: (organizationId) =>
     api.get(`/invite-requests/organizations/${organizationId}`),
 
-  inviteMember: (invitationData) => api.post("/invitations", invitationData),
+  inviteMember: (requestInfo) => api.post("/invite-requests", requestInfo),
   updateInviteRequest: (inviteRequest) => {
     return api.put(`/invite-requests`, inviteRequest);
   },
