@@ -41,21 +41,13 @@ const Navbar = () => {
         {
             key: '1',
             label: (
-                <a target="_blank" rel="noopener noreferrer" href="https://www.antgroup.com">
-                    Profile
-                </a>
-            ),
-        },
-        {
-            key: '2',
-            label: (
-                <a rel="noopener noreferrer" href="/user/manage-profile">
+                <a rel="noopener noreferrer" href="/user/manage-profile/profile">
                     User Dashboard
                 </a>
             ),
         },
         {
-            key: '3',
+            key: '2',
             label: (
                 <a onClick={logout}>
                     Sign out

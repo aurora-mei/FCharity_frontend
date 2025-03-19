@@ -127,7 +127,7 @@ const CreateRequestForm = () => {
     
         console.log("Final Request Data:", requestData);
         await dispatch(createRequest(requestData)).unwrap();
-        navigate('/requests/myrequests', { replace: true });
+        navigate('/user/manage-profile/myrequests', { replace: true });
     };
 
     const handleImageChange = async ({ fileList }) => {

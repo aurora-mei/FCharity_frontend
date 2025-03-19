@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Carousel, Form, Input, Select } from "antd";
+import { Carousel, Form, Input, Select} from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import RequestCard from "../RequestCard/RequestCard";
@@ -162,8 +162,14 @@ const RequestActiveCarousel = () => {
 
       {/* Inline form filter */}
       <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
-        <Form.Item name="search" label="Search">
-          <Input placeholder="Search requests" allowClear />
+      <Form.Item name="search" label="Search">
+          <Input
+            placeholder="Search requests" 
+            allowClear 
+            size="small"
+            style={{ height: 31 }}
+            suffix={null} // Bỏ icon tìm kiếm
+          />
         </Form.Item>
         <Form.Item name="categoryId" label="Category">
           <Select placeholder="Select category" allowClear style={{ minWidth: 150 }}>

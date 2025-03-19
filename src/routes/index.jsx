@@ -46,7 +46,7 @@ const AppRoutes = () => {
                             <Route path="create-post" element={<CreatePostPage />} />
                         </Route>
                         <Route path="user">
-                            <Route path="manage-profile" element={<ManageProfileScreen />} />
+                            <Route path="manage-profile/:keyTab" element={<ManageProfileScreen />} />
                         </Route>
                     </Route>
                 </Route>

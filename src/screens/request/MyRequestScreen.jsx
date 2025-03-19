@@ -102,7 +102,8 @@ const MyRequestScreen = () => {
       data = data.filter(item => {
         const title = item.request.title.toLowerCase();
         const content = item.request.content.toLowerCase();
-        return title.includes(keyword) || content.includes(keyword);
+        const email = item.request.email.toLowerCase();
+        return title.includes(keyword) || content.includes(keyword) || email.includes(keyword);
       });
     }
 
@@ -167,8 +168,14 @@ const MyRequestScreen = () => {
 
       {/* Form filter */}
       <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
-        <Form.Item name="search" label="Search">
-          <Input placeholder="Search requests" allowClear />
+      <Form.Item name="search" label="Search">
+          <Input
+            placeholder="Search requests" 
+            allowClear 
+            size="small"
+            style={{ height: 31 }}
+            suffix={null} // Bỏ icon tìm kiếm
+          />
         </Form.Item>
         <Form.Item name="categoryId" label="Category">
           <Select placeholder="Select category" allowClear style={{ minWidth: 150 }}>
