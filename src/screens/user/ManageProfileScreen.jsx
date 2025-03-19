@@ -8,10 +8,14 @@ import {
     UploadOutlined,
     UserOutlined,
     VideoCameraOutlined,
-    MenuFoldOutlined, MenuUnfoldOutlined
+    MenuFoldOutlined, 
+    MenuUnfoldOutlined
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
+import MyRequestScreen from '../request/MyRequestScreen';
+
 const { Header, Sider, Content } = Layout;
+
 const siderStyle = {
     overflow: 'auto',
     height: '100vh',
@@ -23,31 +27,40 @@ const siderStyle = {
     scrollbarGutter: 'stable',
     borderRadius: "10px 0 10px 10px"
 };
+
+// Danh sách menu
 const items = [
-    UserOutlined,
-    VideoCameraOutlined,
-    UploadOutlined,
-    BarChartOutlined,
-    CloudOutlined,
-    AppstoreOutlined,
-    TeamOutlined,
-    ShopOutlined,
-].map((icon, index) => ({
-    key: String(index + 1),
-    icon: React.createElement(icon),
-    label: `nav ${index + 1}`,
-}));
+    { key: '1', icon: <UserOutlined />, label: 'Profile' },
+    { key: '2', icon: <VideoCameraOutlined />, label: 'My Requests' },
+    { key: '3', icon: <UploadOutlined />, label: 'Uploads' },
+    { key: '4', icon: <BarChartOutlined />, label: 'Analytics' },
+    { key: '5', icon: <CloudOutlined />, label: 'Cloud' },
+    { key: '6', icon: <AppstoreOutlined />, label: 'Apps' },
+    { key: '7', icon: <TeamOutlined />, label: 'Teams' },
+    { key: '8', icon: <ShopOutlined />, label: 'Shop' }
+];
+
 const ManageProfileScreen = () => {
     const [collapsed, setCollapsed] = useState(false);
-    const {
-        token: { colorBgContainer, borderRadiusLG },
-    } = theme.useToken();
+    const [activeTab, setActiveTab] = useState('2'); // Mặc định mở "My Requests"
+    
+    const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
+
     return (
         <Layout style={{ padding: "1rem 6rem", borderRadius: 10 }}>
+            {/* Sidebar */}
             <Sider theme="light" trigger={null} collapsible collapsed={collapsed} style={siderStyle}>
                 <div className="demo-logo-vertical" />
-                <Menu theme="light" mode="inline" defaultSelectedKeys={['4']} items={items} />
+                <Menu 
+                    theme="light" 
+                    mode="inline" 
+                    defaultSelectedKeys={['2']} // Mặc định chọn "My Requests"
+                    onClick={({ key }) => setActiveTab(key)} 
+                    items={items} 
+                />
             </Sider>
+
+            {/* Main Content */}
             <Layout>
                 <Header
                     style={{
@@ -72,35 +85,16 @@ const ManageProfileScreen = () => {
                     style={{
                         margin: '1rem 0 0 1rem',
                         overflow: 'initial',
+                        padding: 24,
+                        background: colorBgContainer,
+                        borderRadius: borderRadiusLG,
                     }}
                 >
-                    <div
-                        style={{
-                            padding: 24,
-                            textAlign: 'center',
-                            background: colorBgContainer,
-                            borderRadius: borderRadiusLG,
-                        }}
-                    >
-                        <p>long content</p>
-                        {
-                            // indicates very long content
-                            Array.from(
-                                {
-                                    length: 100,
-                                },
-                                (_, index) => (
-                                    <React.Fragment key={index}>
-                                        {index % 20 === 0 && index ? 'more' : '...'}
-                                        <br />
-                                    </React.Fragment>
-                                ),
-                            )
-                        }
-                    </div>
+                    {activeTab === '2' && <MyRequestScreen />}
                 </Content>
             </Layout>
         </Layout>
     );
 };
+
 export default ManageProfileScreen;

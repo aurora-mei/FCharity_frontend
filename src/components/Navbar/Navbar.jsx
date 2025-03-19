@@ -49,21 +49,13 @@ const Navbar = () => {
         {
             key: '2',
             label: (
-                <a rel="noopener noreferrer" href="/requests/myrequests">
-                    My Request
+                <a rel="noopener noreferrer" href="/user/manage-profile">
+                    User Dashboard
                 </a>
             ),
         },
         {
             key: '3',
-            label: (
-                <a rel="noopener noreferrer" href="/user/manage-profile">
-                    Manage profile
-                </a>
-            ),
-        },
-        {
-            key: '4',
             label: (
                 <a onClick={logout}>
                     Sign out

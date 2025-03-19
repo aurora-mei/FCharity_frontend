@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Empty, List, Typography, Form, Input, Select } from "antd";
+import { Empty, List, Typography, Form, Input, Select, Tabs } from "antd";
 import LoadingModal from "../../components/LoadingModal";
 import RequestCard from "../../components/RequestCard/RequestCard";
 import { fetchRequestsByUserIdThunk } from "../../redux/request/requestSlice";
@@ -9,11 +9,12 @@ import { fetchTags } from "../../redux/tag/tagSlice";
 
 const { Title } = Typography;
 const { Option } = Select;
+const { TabPane } = Tabs;
 
 /** 
  * Tách chuỗi location thành: detail, communeName, districtName, provinceName 
  */
-function parseLocationString(locationString = "") {
+const parseLocationString = (locationString = "") => {
   let detail = "";
   let communeName = "";
   let districtName = "";
@@ -28,19 +29,16 @@ function parseLocationString(locationString = "") {
                lower.includes("thành phố") || lower.includes("thị xã")) {
       districtName = part.replace(/(huyện|quận|thành phố|tp|thị xã)/i, "").trim();
     } else if (lower.includes("tỉnh")) {
-      // Bỏ chữ "Tỉnh"
       provinceName = part.replace(/tỉnh/i, "").trim();
     } else {
       detail = part.trim();
     }
   }
   return { detail, communeName, districtName, provinceName };
-}
+};
 
 /** Loại bỏ dấu và chuyển về chữ thường */
-function normalizeString(str = "") {
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-}
+const normalizeString = (str = "") => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const MyRequestScreen = () => {
   const dispatch = useDispatch();
@@ -61,6 +59,8 @@ const MyRequestScreen = () => {
   const [filters, setFilters] = useState({});
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [form] = Form.useForm();
+  const [activeTab, setActiveTab] = useState("all");
+  const [provinces, setProvinces] = useState([]);
 
   // Categories, tags từ Redux
   const categories = useSelector((state) => state.category.categories) || [];
@@ -73,7 +73,6 @@ const MyRequestScreen = () => {
   }, [dispatch, categories.length, tags.length]);
 
   // Lấy provinces từ open-api
-  const [provinces, setProvinces] = useState([]);
   useEffect(() => {
     fetch("https://provinces.open-api.vn/api/p/")
       .then((res) => res.json())
@@ -91,6 +90,11 @@ const MyRequestScreen = () => {
   // Mỗi khi requestsByUserId hoặc filters thay đổi -> filter cục bộ
   useEffect(() => {
     let data = [...requestsByUserId];
+
+    // Filter by status
+    if (activeTab !== "all") {
+      data = data.filter(item => item.request.status.toLowerCase() === activeTab);
+    }
 
     // Search (title, content)
     if (filters.search && filters.search.trim()) {
@@ -139,7 +143,7 @@ const MyRequestScreen = () => {
     }
 
     setFilteredRequests(data);
-  }, [requestsByUserId, filters, provinces]);
+  }, [requestsByUserId, filters, activeTab, provinces]);
 
   const onValuesChange = (changedValues, allValues) => {
     setFilters(allValues);
@@ -153,6 +157,13 @@ const MyRequestScreen = () => {
   return (
     <div style={{ padding: "2rem" }}>
       <Title level={2}>My Requests</Title>
+      <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        <TabPane tab="All" key="all" />
+        <TabPane tab="Pending" key="pending" />
+        <TabPane tab="Approved" key="approved" />
+        <TabPane tab="Rejected" key="rejected" />
+        <TabPane tab="Completed" key="completed" />
+      </Tabs>
 
       {/* Form filter */}
       <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
@@ -204,7 +215,7 @@ const MyRequestScreen = () => {
           )}
         />
       ) : (
-        <p>No request found.</p>
+        <Empty description="No request found" />
       )}
     </div>
   );
