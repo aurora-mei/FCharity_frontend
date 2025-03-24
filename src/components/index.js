@@ -14,10 +14,7 @@ export * from './ResetPwdForm'
 export * from './RequestCard'
 export * from './RequestActiveCarousel'
 export * from './CreateRequestForm'
-
-
-
-
+export * from './UpdateRequestModal'
 
 
 

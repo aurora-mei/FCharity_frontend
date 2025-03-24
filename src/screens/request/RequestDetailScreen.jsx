@@ -27,7 +27,14 @@ const RequestDetailScreen = () => {
   const requestData = useSelector((state) => state.request.currentRequest);
   const error = useSelector((state) => state.request.error);
   const [expanded, setExpanded] = useState(false);
+  const storedUser = localStorage.getItem("currentUser");
+    let currentUser = {};
 
+    try {
+        currentUser = storedUser ? JSON.parse(storedUser) : {};
+    } catch (error) {
+        console.error("Error parsing currentUser from localStorage:", error);
+    }
   useEffect(() => {
     dispatch(fetchRequestById(id));
   }, [dispatch, id]);
@@ -155,9 +162,11 @@ const RequestDetailScreen = () => {
 
           {/* Nút Donate & Share */}
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+          {currentUser.id !== requestData.request.user.id && (
             <Button type="default" block style={{ flex: 1 }}>
               Register
             </Button>
+          )}
             <Button type="default" block style={{ flex: 1 }}>
               Share
             </Button>
@@ -166,7 +175,7 @@ const RequestDetailScreen = () => {
         </Flex>
 
       </Flex>
-      <RequestActiveCarousel />
+      <RequestActiveCarousel search={false} map={false} />
     </Flex>
   );
 };

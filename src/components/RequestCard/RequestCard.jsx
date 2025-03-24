@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Typography, Form, Select, message, Flex, Badge } from "antd";
+import { Button, Typography, Form, Select, message, Flex, Badge, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { deleteRequest, updateRequest } from "../../redux/request/requestSlice";
@@ -33,14 +33,13 @@ const RequestCard = ({ requestData, showActions = true }) => {
         return null;
     }
 
-
     // Xử lý xóa
     const handleDelete = async (id) => {
         try {
             console.log("Deleting request with ID:", id);
             await dispatch(deleteRequest(id)).unwrap();
             message.success("Request deleted successfully");
-            window.location.reload(); // Tải lại trang (tuỳ cách bạn muốn xử lý)
+            window.location.reload();
         } catch (error) {
             console.error("Error deleting request:", error);
             message.error("Failed to delete request: " + (error.message || "Unknown error"));
@@ -52,12 +51,16 @@ const RequestCard = ({ requestData, showActions = true }) => {
         setCurrentRequestData(data);
         setIsModalVisible(true);
 
+        // Cập nhật các trường province/district/commune từ API (giả sử API trả về các mã này)
         const initialValues = {
             title: data.request.title,
             content: data.request.content,
             phone: data.request.phone,
             email: data.request.email,
             location: data.request.location,
+            province: data.request.provinceCode, // Mã tỉnh
+            district: data.request.districtCode, // Mã quận/huyện
+            commune: data.request.communeCode,   // Mã xã/phường
             categoryId: data.request.category.id,
             requestTags: data.requestTags?.map((taggable) => taggable.tag.id) || [],
             attachment: data.attachments || [],
@@ -75,12 +78,12 @@ const RequestCard = ({ requestData, showActions = true }) => {
         console.log("Initial form values:", initialValues);
         form.setFieldsValue(initialValues);
     };
+
     const handleCancel = () => {
         setIsModalVisible(false);
     };
 
-
-    // Cập nhật request
+    // Cập nhật request (bao gồm các trường province, district, commune)
     const handleUpdate = async (values) => {
         const updatedRequest = {
             id: currentRequestData.helpRequest.id,
@@ -90,6 +93,9 @@ const RequestCard = ({ requestData, showActions = true }) => {
             phone: values.phone,
             email: values.email,
             location: values.location,
+            province: values.province, // Mã tỉnh cập nhật
+            district: values.district, // Mã quận/huyện cập nhật
+            commune: values.commune,   // Mã xã/phường cập nhật
             imageUrls: attachments.images,
             videoUrls: attachments.videos,
             isEmergency: currentRequestData.helpRequest.isEmergency,
@@ -110,11 +116,10 @@ const RequestCard = ({ requestData, showActions = true }) => {
         }
     };
 
-
     return (
         <div>
             {/* Full Card */}
-            <Flex vertical gap={5} style={{ boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 8px 0px", borderRadius: "1rem" }} >
+            <Flex vertical gap={5} style={{ boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 8px 0px", borderRadius: "1rem" }}>
                 <div style={{ position: "relative" }}>
                     {requestData.attachments && requestData.attachments.length > 0 ? (
                         <img
@@ -122,7 +127,6 @@ const RequestCard = ({ requestData, showActions = true }) => {
                             alt="Request"
                             style={{ height: "11rem", width: "100%", borderTopLeftRadius: "1rem", borderTopRightRadius: "1rem" }}
                         />
-
                     ) : (
                         <img
                             src="https://via.placeholder.com/50"
@@ -154,12 +158,16 @@ const RequestCard = ({ requestData, showActions = true }) => {
                             </span>
                         ))}
                     </div>
-
                 </div>
-
-
             </Flex>
-            <UpdateRequestModal form={form} isOpen={isModalVisible} attachments={attachments} setAttachments={setAttachments} handleUpdate={handleUpdate} handleCancel={handleCancel} />
+            <UpdateRequestModal
+                form={form}
+                isOpen={isModalVisible}
+                attachments={attachments}
+                setAttachments={setAttachments}
+                handleUpdate={handleUpdate}
+                handleCancel={handleCancel}
+            />
         </div>
     );
 };
@@ -173,6 +181,9 @@ RequestCard.propTypes = {
             phone: PropTypes.string.isRequired,
             email: PropTypes.string.isRequired,
             location: PropTypes.string.isRequired,
+            provinceCode: PropTypes.string,  // Mã tỉnh (nếu có)
+            districtCode: PropTypes.string,  // Mã quận/huyện (nếu có)
+            communeCode: PropTypes.string,   // Mã xã/phường (nếu có)
             category: PropTypes.shape({
                 id: PropTypes.string.isRequired,
                 categoryName: PropTypes.string.isRequired,
@@ -189,8 +200,6 @@ RequestCard.propTypes = {
         ),
         attachments: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
-
-    // Thêm prop này để ẩn/hiện nút Edit, Delete
     showActions: PropTypes.bool,
 };
 

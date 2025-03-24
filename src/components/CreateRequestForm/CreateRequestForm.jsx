@@ -15,6 +15,7 @@ const { Title } = Typography;
 const { Option } = Select;
 
 const CreateRequestForm = () => {
+    const [form] = Form.useForm();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const loadingUI = useLoading();
@@ -26,6 +27,12 @@ const CreateRequestForm = () => {
     const [attachments, setAttachments] = useState({}); // Lưu danh sách file đã upload
     const [uploading, setUploading] = useState(false); // Trạng thái loading khi upload
 
+    const [provinces, setProvinces] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [communes, setCommunes] = useState([]);
+    const [selectedProvince, setSelectedProvince] = useState(null);
+    const [selectedDistrict, setSelectedDistrict] = useState(null);
+
     let currentUser = {};
     try {
         currentUser = storedUser ? JSON.parse(storedUser) : {};
@@ -35,12 +42,9 @@ const CreateRequestForm = () => {
     }
 
     useEffect(() => {
-        if (categories.length === 0) {
-            dispatch(fetchCategories());
-        }
-        if (tags.length === 0) {
-            dispatch(fetchTags());
-        }
+        dispatch(fetchCategories());
+        dispatch(fetchTags());
+        loadProvinces();
     }, [dispatch]);
 
     useEffect(() => {
@@ -50,19 +54,80 @@ const CreateRequestForm = () => {
         console.log("currentUser:", currentUser);
     }, [categories, tags]);
 
+    const loadProvinces = async () => {
+        try {
+            const response = await fetch('https://provinces.open-api.vn/api/p/');
+            const data = await response.json();
+            setProvinces(data);
+        } catch (error) {
+            console.error("Failed to load provinces:", error);
+        }
+    };
+
+    const handleProvinceChange = async (value) => {
+        setSelectedProvince(value);
+        const selectedProvinceName = provinces.find(province => province.code === value)?.name;
+        
+        form.setFieldsValue({ 
+            provinceName: selectedProvinceName, 
+            district: null,  // Reset district khi chọn tỉnh mới
+            districtName: "", 
+            commune: null,  // Reset commune khi chọn tỉnh mới
+            communeName: "" 
+        });
+
+        try {
+            const response = await fetch(`https://provinces.open-api.vn/api/p/${value}?depth=2`);
+            const data = await response.json();
+            setDistricts(data.districts);
+            setCommunes([]);
+        } catch (error) {
+            console.error("Failed to load districts:", error);
+        }
+    };
+
+    const handleDistrictChange = async (value) => {
+        setSelectedDistrict(value);
+        const selectedDistrictName = districts.find(district => district.code === value)?.name;
+        
+        form.setFieldsValue({ 
+            districtName: selectedDistrictName, 
+            commune: null,  // Reset commune khi chọn quận/huyện mới
+            communeName: "" 
+        });
+
+        try {
+            const response = await fetch(`https://provinces.open-api.vn/api/d/${value}?depth=2`);
+            const data = await response.json();
+            setCommunes(data.wards);
+        } catch (error) {
+            console.error("Failed to load communes:", error);
+        }
+    };
+
+    const handleCommuneChange = (value) => {
+        const selectedCommuneName = communes.find(commune => commune.code === value)?.name;
+        form.setFieldsValue({ communeName: selectedCommuneName });
+    };
+
     const onFinish = async (values) => {
         console.log("Form Values:", values);
-        console.log("Attachments:", attachments);
+        
+        const formData = form.getFieldsValue(); // Lấy toàn bộ dữ liệu từ form
+        const fullAddress = `${values.location}, ${formData.communeName}, ${formData.districtName}, ${formData.provinceName}`;
+    
         const requestData = {
             ...values,
             userId: currentUser.id,
             tagIds: values.tagIds,
             imageUrls: attachments.images,
-            videoUrls: attachments.videos// Gửi danh sách file đã upload
+            videoUrls: attachments.videos,
+            fullAddress
         };
+    
         console.log("Final Request Data:", requestData);
         await dispatch(createRequest(requestData)).unwrap();
-        navigate('/requests/myrequests', { replace: true });
+        navigate('/user/manage-profile/myrequests', { replace: true });
     };
 
     const handleImageChange = async ({ fileList }) => {
@@ -115,8 +180,6 @@ const CreateRequestForm = () => {
         setUploading(false);
     };
 
-
-
     if (loadingUI || loading) return <LoadingModal />;
 
     return (
@@ -131,7 +194,7 @@ const CreateRequestForm = () => {
                             Fill in the details to create a new request.
                         </p>
                     </div>
-                    <Form layout="vertical" onFinish={onFinish} >
+                    <Form form={form} layout="vertical" onFinish={onFinish} >
                         <Form.Item label="Title" name="title" rules={[{ required: true, message: "Title is required" }]}>
                             <Input />
                         </Form.Item>
@@ -148,11 +211,51 @@ const CreateRequestForm = () => {
                             <Input />
                         </Form.Item>
 
-                        <Form.Item label="Location" name="location" rules={[{ required: true, message: "Location is required" }]}>
+                        <Form.Item label="Province" name="province" rules={[{ required: true, message: "Province is required" }]}>
+                            <Select placeholder="Select Province" onChange={handleProvinceChange}>
+                                {provinces.map(province => (
+                                    <Option key={province.code} value={province.code}>
+                                        {province.name}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item label="District" name="district" rules={[{ required: true, message: "District is required" }]}>
+                            <Select placeholder="Select District" onChange={handleDistrictChange} disabled={!selectedProvince}>
+                                {districts.map(district => (
+                                    <Option key={district.code} value={district.code}>
+                                        {district.name}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item label="Commune" name="commune" rules={[{ required: true, message: "Commune is required" }]}>
+                            <Select placeholder="Select Commune" onChange={handleCommuneChange} disabled={!selectedDistrict}>
+                                {communes.map(commune => (
+                                    <Option key={commune.code} value={commune.code}>
+                                        {commune.name}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item label="Address" name="location" rules={[{ required: true, message: "Location is required" }]}>
                             <Input />
                         </Form.Item>
 
-                        <Form.Item label="Images" name="images">
+                        <Form.Item name="provinceName" hidden initialValue="">
+                            <Input />
+                        </Form.Item>
+                        <Form.Item name="districtName" hidden initialValue="">
+                            <Input />
+                        </Form.Item>
+                        <Form.Item name="communeName" hidden initialValue="">
+                            <Input />
+                        </Form.Item>
+                        
+                        <Form.Item label="Images" name="images" rules={[{ required: true, message: "At least one image is required" }]}>
                             <Upload
                                 multiple
                                 listType="picture"
@@ -185,7 +288,6 @@ const CreateRequestForm = () => {
                             </Select>
                         </Form.Item>
 
-
                         <Form.Item className="select-multiple" label="Tags" name="tagIds" rules={[{ required: true, message: "At least one tag is required" }]}>
                             <Select mode="multiple" placeholder="Select tags" allowClear>
                                 {Array.isArray(tags) && tags.map(tag => (
@@ -201,10 +303,16 @@ const CreateRequestForm = () => {
                         </Form.Item>
 
                         <Form.Item>
-                            <Button type="primary" htmlType="submit" block className="continue-button">
-                                Create Request
-                            </Button>
-                        </Form.Item>
+                        <Button 
+                            type="primary" 
+                            htmlType="submit" 
+                            block 
+                            className="continue-button" 
+                            disabled={uploading} // Vô hiệu hóa khi đang upload
+                        >
+                            {uploading ? "Uploading..." : "Create Request"}
+                        </Button>
+                    </Form.Item>
                     </Form>
                 </div>
             </div>

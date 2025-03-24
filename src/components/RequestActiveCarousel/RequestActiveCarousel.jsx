@@ -1,107 +1,315 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Carousel } from "antd";
+import React, { useEffect, useState } from "react";
+import { Carousel, Form, Input, Select } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { fetchActiveRequests } from "../../redux/request/requestSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import RequestCard from "../RequestCard/RequestCard";
+import { fetchActiveRequests } from "../../redux/request/requestSlice";
+import { fetchCategories } from "../../redux/category/categorySlice";
+import { fetchTags } from "../../redux/tag/tagSlice";
+import provinceCoordinates from "./provinceCoordinates";
+
+// Import React Leaflet cho map
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Hàm parse location
+function parseLocationString(locationString = "") {
+  let detail = "";
+  let communeName = "";
+  let districtName = "";
+  let provinceName = "";
+  // Tách theo dấu phẩy, bỏ khoảng trắng 2 bên
+  const parts = locationString.split(",").map(part => part.trim());
+  for (const part of parts) {
+    const lower = part.toLowerCase();
+    if (lower.includes("xã") || lower.includes("phường") || lower.includes("thị trấn")) {
+      communeName = part.replace(/(xã|phường|thị trấn)/i, "").trim();
+    } else if (lower.includes("huyện") || lower.includes("quận") || lower.includes("thị xã")) {
+      districtName = part.replace(/(huyện|quận|thị xã)/i, "").trim();
+    } else if (lower.includes("tỉnh") || lower.includes("thành phố") || lower.includes("tp")) {
+      provinceName = part.replace(/(tỉnh|thành phố|tp)/i, "").trim();
+    } else {
+      detail = part.trim();
+    }
+  }
+  return { detail, communeName, districtName, provinceName };
+}
 
 
-const RequestActiveCarousel = () => {
-    const dispatch = useDispatch();
-    const activeRequests = useSelector((state) => state.request.activeRequests);
-    const loading = useSelector((state) => state.request.loading);
-    const error = useSelector((state) => state.request.error);
+// Hàm normalize
+function normalizeString(str = "") {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
 
-    useEffect(() => {
-        if (activeRequests.length === 0) {
-            dispatch(fetchActiveRequests());
+const { Option } = Select;
+
+const RequestActiveCarousel = ({ search = true, map = true }) => {
+  const dispatch = useDispatch();
+  const activeRequests = useSelector((state) => state.request.activeRequests);
+  const loading = useSelector((state) => state.request.loading);
+  const error = useSelector((state) => state.request.error);
+
+  // Lấy categories, tags
+  const categories = useSelector((state) => state.category.categories) || [];
+  const tags = useSelector((state) => state.tag.tags) || [];
+  useEffect(() => {
+    if (!categories.length) dispatch(fetchCategories());
+    if (!tags.length) dispatch(fetchTags());
+  }, [dispatch, categories.length, tags.length]);
+
+  // Fetch provinces từ API (dùng để hiển thị tên cho filter)
+  const [provinces, setProvinces] = useState([]);
+  useEffect(() => {
+    fetch("https://provinces.open-api.vn/api/p/")
+      .then((res) => res.json())
+      .then((data) => setProvinces(data))
+      .catch((err) => console.error("Failed to load provinces:", err));
+  }, []);
+
+  // Gọi API lấy activeRequests (chỉ 1 lần)
+  useEffect(() => {
+    if (activeRequests.length === 0) {
+      dispatch(fetchActiveRequests());
+    }
+  }, [dispatch, activeRequests.length]);
+
+  // State filter cục bộ
+  const [filters, setFilters] = useState({});
+  const [form] = Form.useForm();
+
+  // State filteredRequests
+  const [filteredRequests, setFilteredRequests] = useState([]);
+
+  // Mỗi khi activeRequests hoặc filters thay đổi, ta lọc cục bộ
+  useEffect(() => {
+    let data = [...activeRequests];
+
+    // Lọc search
+    if (filters.search && filters.search.trim()) {
+      const keyword = filters.search.toLowerCase();
+      data = data.filter((item) => {
+        const title = item.request.title.toLowerCase();
+        const content = item.request.content.toLowerCase();
+        return title.includes(keyword) || content.includes(keyword);
+      });
+    }
+
+    // Lọc category
+    if (filters.categoryId) {
+      data = data.filter((item) => item.request.category.id === filters.categoryId);
+    }
+
+    // Lọc tags
+    if (filters.requestTags && filters.requestTags.length > 0) {
+      data = data.filter((item) => {
+        const requestTagIds = item.requestTags.map((t) => t.tag.id);
+        return filters.requestTags.some((filterTag) => requestTagIds.includes(filterTag));
+      });
+    }
+
+    // Lọc province (theo tên)
+    if (filters.province) {
+      const filterProvs = Array.isArray(filters.province)
+        ? filters.province.map(normalizeString)
+        : [normalizeString(filters.province)];
+      data = data.filter((item) => {
+        let requestProvName = "";
+        if (item.request.provinceCode) {
+          const provObj = provinces.find((p) => p.code === item.request.provinceCode);
+          if (provObj) {
+            const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+            requestProvName = normalizeString(noPrefix);
+          }
+        } else {
+          const { provinceName } = parseLocationString(item.request.location || "");
+          requestProvName = normalizeString(provinceName);
         }
-    }, [dispatch, activeRequests.length]);
+        return filterProvs.some((filterProv) => requestProvName.includes(filterProv));
+      });
+    }
 
-    const settings = {
-        dots: true,
-        infinite: true,
-        speed: 500,
-        slidesToShow: 4,
-        slidesToScroll: 1,
-        arrows: true, // Bật hiển thị mũi tên
-        prevArrow: <CustomPrevArrow />, // Mũi tên trước tùy chỉnh
-        nextArrow: <CustomNextArrow />, // Mũi tên sau tùy chỉnh
-        responsive: [
-            {
-                breakpoint: 1024,
-                settings: {
-                    slidesToShow: 2,
-                    slidesToScroll: 1,
-                    infinite: true,
-                    dots: true
-                }
-            },
-            {
-                breakpoint: 600,
-                settings: {
-                    slidesToShow: 1,
-                    slidesToScroll: 1,
-                    initialSlide: 1
-                }
-            }
-        ]
-    };
+    setFilteredRequests(data);
+  }, [activeRequests, filters, provinces]);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error.message}</div>;
+  const onValuesChange = (changedValues, allValues) => {
+    if (!allValues.province) {
+      delete allValues.province;
+    }
+    setFilters(allValues);
+  };
+  
 
-    return (
-        <div className="request-active-carousel">
-            <b style={{ fontSize: '1.4rem', marginBottom: '6rem' }}>Active requests</b>
-            {Array.isArray(activeRequests) && activeRequests.length > 0 ? (
-                <Carousel {...settings}>
-                    {activeRequests.map((request) => (
-                        <div key={request.id}>
-                            <RequestCard requestData={request} showActions={false} />
-                        </div>
-                    ))}
-                </Carousel>
-            ) : (
-                <p>No active requests found.</p>
-            )}
+  // Carousel settings
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 4,
+    slidesToScroll: 1,
+    arrows: true,
+    prevArrow: <CustomPrevArrow />,
+    nextArrow: <CustomNextArrow />,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: { slidesToShow: 2, slidesToScroll: 1, infinite: true, dots: true },
+      },
+      {
+        breakpoint: 600,
+        settings: { slidesToShow: 1, slidesToScroll: 1, initialSlide: 1 },
+      },
+    ],
+  };
+
+  // --- Xử lý dữ liệu cho Map ---
+  // Tạo object nhóm requests theo tên tỉnh (đã normalize)
+  const requestsByProvince = {};
+  filteredRequests.forEach((request) => {
+    let provinceName = "";
+    if (request.request.provinceCode) {
+      const provObj = provinces.find((p) => p.code === request.request.provinceCode);
+      if (provObj) {
+        const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+        provinceName = normalizeString(noPrefix);
+      }
+    } else {
+      const { provinceName: parsedProvince } = parseLocationString(request.request.location || "");
+      provinceName = normalizeString(parsedProvince);
+    }
+    if (provinceName) {
+      if (!requestsByProvince[provinceName]) {
+        requestsByProvince[provinceName] = [];
+      }
+      requestsByProvince[provinceName].push(request);
+    }
+  });
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div className="request-active-carousel" style={{ padding: "2rem" }}>
+      <h2 style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>Active requests</h2>
+
+      {/* Hiển thị search nếu search = true */}
+      {search && (
+        <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
+          <Form.Item name="search" label="Search">
+            <Input placeholder="Search requests" allowClear size="small" style={{ height: 31 }} suffix={null} />
+          </Form.Item>
+          <Form.Item name="categoryId" label="Category">
+            <Select placeholder="Select category" allowClear style={{ minWidth: 150 }}>
+              {categories.map((cat) => (
+                <Option key={cat.id} value={cat.id}>
+                  {cat.categoryName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="requestTags" label="Tags">
+            <Select mode="multiple" placeholder="Select tags" allowClear style={{ minWidth: 150 }}>
+              {tags.map((tag) => (
+                <Option key={tag.id} value={tag.id}>
+                  {tag.tagName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="province" label="Province">
+                    <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
+                      {provinces.map(prov => {
+                        // Bỏ tiền tố "Tỉnh " nếu có
+                        const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+                        return (
+                          <Option key={prov.code} value={noPrefix}>
+                            {prov.name} {/* hiển thị Tỉnh Hà Giang, value = Hà Giang */}
+                          </Option>
+                        );
+                      })}
+                    </Select>
+                  </Form.Item>
+        </Form>
+      )}
+
+      {Array.isArray(filteredRequests) && filteredRequests.length > 0 ? (
+        <Carousel {...settings}>
+          {filteredRequests.map((request) => (
+            <div key={request.id}>
+              <RequestCard requestData={request} showActions={false} />
+            </div>
+          ))}
+        </Carousel>
+      ) : (
+        <p>No active requests found.</p>
+      )}
+
+      {/* Hiển thị map nếu map = true */}
+      {map && (
+        <div style={{ marginTop: "2rem" }}>
+          <h2>Active Requests Map</h2>
+          <MapContainer center={[21.0285, 105.8542]} zoom={8} style={{ height: "500px", width: "100%" }}>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            {Object.keys(requestsByProvince).map((provKey) => {
+                const coord = provinceCoordinates[provKey];
+                if (!coord) return null;
+                const requests = requestsByProvince[provKey];
+                return (
+                  <Marker key={provKey} position={[coord.lat, coord.lng]}>
+                    <Popup>
+                      <h3>
+                        {coord.displayName} ({requests.length} request{requests.length > 1 ? "s" : ""})
+                      </h3>
+                      <ul>
+                        {requests.map((req) => (
+                          <li key={req.id}>
+                            <strong>
+                              <Link to={`/requests/${req.request.id}`}>{req.request.title}</Link>
+                            </strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+          </MapContainer>
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
-// Thành phần mũi tên trước tùy chỉnh
+// Mũi tên custom
 const CustomPrevArrow = ({ onClick }) => (
-    <LeftOutlined
-        style={{
-            position: "absolute",
-            left: "-40px", // Dịch sang trái để không che nội dung
-            top: "50%",
-            transform: "translateY(-50%)",
-            fontSize: "24px",
-            color: "#000",
-            zIndex: 10, // Đảm bảo hiển thị trên các phần khác
-            cursor: "pointer"
-        }}
-        onClick={onClick}
-    />
+  <LeftOutlined
+    style={{
+      position: "absolute",
+      left: "-40px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      fontSize: "24px",
+      color: "#000",
+      zIndex: 10,
+      cursor: "pointer",
+    }}
+    onClick={onClick}
+  />
 );
-
-// Thành phần mũi tên sau tùy chỉnh
 const CustomNextArrow = ({ onClick }) => (
-    <RightOutlined
-        style={{
-            position: "absolute",
-            right: "-40px", // Dịch sang phải để không che nội dung
-            top: "50%",
-            transform: "translateY(-50%)",
-            fontSize: "24px",
-            color: "#000",
-            zIndex: 10,
-            cursor: "pointer"
-        }}
-        onClick={onClick}
-    />
+  <RightOutlined
+    style={{
+      position: "absolute",
+      right: "-40px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      fontSize: "24px",
+      color: "#000",
+      zIndex: 10,
+      cursor: "pointer",
+    }}
+    onClick={onClick}
+  />
 );
-
 
 export default RequestActiveCarousel;
