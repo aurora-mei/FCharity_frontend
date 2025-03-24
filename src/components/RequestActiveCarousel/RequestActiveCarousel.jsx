@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Carousel, Form, Input, Select } from "antd";
+import { Carousel, Form, Input, Select,Flex } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -89,15 +89,15 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
     if (filters.search && filters.search.trim()) {
       const keyword = filters.search.toLowerCase();
       data = data.filter((item) => {
-        const title = item.request.title.toLowerCase();
-        const content = item.request.content.toLowerCase();
+        const title = item.helpRequest.title.toLowerCase();
+        const content = item.helpRequest.content.toLowerCase();
         return title.includes(keyword) || content.includes(keyword);
       });
     }
 
     // Lọc category
     if (filters.categoryId) {
-      data = data.filter((item) => item.request.category.id === filters.categoryId);
+      data = data.filter((item) => item.helpRequest.category.id === filters.categoryId);
     }
 
     // Lọc tags
@@ -115,14 +115,14 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
         : [normalizeString(filters.province)];
       data = data.filter((item) => {
         let requestProvName = "";
-        if (item.request.provinceCode) {
-          const provObj = provinces.find((p) => p.code === item.request.provinceCode);
+        if (item.helpRequest.provinceCode) {
+          const provObj = provinces.find((p) => p.code === item.helpRequest.provinceCode);
           if (provObj) {
             const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
             requestProvName = normalizeString(noPrefix);
           }
         } else {
-          const { provinceName } = parseLocationString(item.request.location || "");
+          const { provinceName } = parseLocationString(item.helpRequest.location || "");
           requestProvName = normalizeString(provinceName);
         }
         return filterProvs.some((filterProv) => requestProvName.includes(filterProv));
@@ -167,14 +167,14 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
   const requestsByProvince = {};
   filteredRequests.forEach((request) => {
     let provinceName = "";
-    if (request.request.provinceCode) {
-      const provObj = provinces.find((p) => p.code === request.request.provinceCode);
+    if (request.helpRequest.provinceCode) {
+      const provObj = provinces.find((p) => p.code === request.helpRequest.provinceCode);
       if (provObj) {
         const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
         provinceName = normalizeString(noPrefix);
       }
     } else {
-      const { provinceName: parsedProvince } = parseLocationString(request.request.location || "");
+      const { provinceName: parsedProvince } = parseLocationString(request.helpRequest.location || "");
       provinceName = normalizeString(parsedProvince);
     }
     if (provinceName) {
@@ -189,8 +189,11 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="request-active-carousel" style={{ padding: "2rem" }}>
-      <b style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>Active requests</b>
+    <div className="request-active-carousel">
+
+      <Flex vertical='true'>
+        <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Active requests</b>
+      </Flex>
 
       {/* Hiển thị search nếu search = true */}
       {search && (
@@ -247,7 +250,9 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
       {/* Hiển thị map nếu map = true */}
       {map && (
         <div style={{ marginTop: "2rem" }}>
-          <b style={{ fontSize: '1.4rem' }}>Active Request Map</b>
+           <Flex vertical='true'>
+        <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Active requests</b>
+      </Flex>
           <MapContainer center={[21.0285, 105.8542]} zoom={8} style={{ height: "500px", width: "100%" }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {Object.keys(requestsByProvince).map((provKey) => {
@@ -264,7 +269,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
                       {requests.map((req) => (
                         <li key={req.id}>
                           <strong>
-                            <Link to={`/requests/${req.request.id}`}>{req.request.title}</Link>
+                            <Link to={`/requests/${req.helpRequest.id}`}>{req.helpRequest.title}</Link>
                           </strong>
                         </li>
                       ))}

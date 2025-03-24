@@ -77,11 +77,11 @@ const MyRequestScreen = () => {
   useEffect(() => {
     const counts = {
       all: requestsByUserId.length,
-      pending: requestsByUserId.filter(req => req.request.status.toLowerCase() === "pending").length,
-      approved: requestsByUserId.filter(req => req.request.status.toLowerCase() === "approved").length,
-      rejected: requestsByUserId.filter(req => req.request.status.toLowerCase() === "rejected").length,
-      completed: requestsByUserId.filter(req => req.request.status.toLowerCase() === "completed").length,
-      hidden: requestsByUserId.filter(req => req.request.status.toLowerCase() === "hidden").length,
+      pending: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "pending").length,
+      approved: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "approved").length,
+      rejected: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "rejected").length,
+      completed: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "completed").length,
+      hidden: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "hidden").length,
     };
     setRequestCounts(counts);
   }, [requestsByUserId]);
@@ -113,23 +113,23 @@ const MyRequestScreen = () => {
 
     // Filter by status
     if (activeTab !== "all") {
-      data = data.filter(item => item.request.status.toLowerCase() === activeTab);
+      data = data.filter(item => item.helpRequest.status.toLowerCase() === activeTab);
     }
 
     // Search (title, content)
     if (filters.search && filters.search.trim()) {
       const keyword = filters.search.toLowerCase();
       data = data.filter(item => {
-        const title = item.request.title.toLowerCase();
-        const content = item.request.content.toLowerCase();
-        const email = item.request.email.toLowerCase();
+        const title = item.helpRequest.title.toLowerCase();
+        const content = item.helpRequest.content.toLowerCase();
+        const email = item.helpRequest.email.toLowerCase();
         return title.includes(keyword) || content.includes(keyword) || email.includes(keyword);
       });
     }
 
     // Category
     if (filters.categoryId) {
-      data = data.filter(item => item.request.category.id === filters.categoryId);
+      data = data.filter(item => item.helpRequest.category.id === filters.categoryId);
     }
 
     // Tags
@@ -147,7 +147,7 @@ const MyRequestScreen = () => {
         let requestProvName = "";
         if (item.request.provinceCode) {
           // Tìm object province trong list
-          const provObj = provinces.find(p => p.code === item.request.provinceCode);
+          const provObj = provinces.find(p => p.code === item.helpRequest.provinceCode);
           if (provObj) {
             // "Tỉnh Hà Giang" -> ta bỏ tiền tố "Tỉnh " (nếu có) => "Hà Giang"
             const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
@@ -155,7 +155,7 @@ const MyRequestScreen = () => {
           }
         } else {
           // parse location => "Hà Giang"
-          const { provinceName } = parseLocationString(item.request.location || "");
+          const { provinceName } = parseLocationString(item.helpRequest.location || "");
           requestProvName = normalizeString(provinceName);
         }
         // So sánh partial => "ha giang".includes("ha giang") => true
@@ -180,8 +180,8 @@ const MyRequestScreen = () => {
   }
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <Title level={2}>My Requests</Title>
+    <div style={{ padding: "0 2rem" }}>
+      {/* <Title level={5}>My Requests</Title> */}
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
       <TabPane tab={<Badge count={requestCounts.all} offset={[10, 0]} color="gray" >All</Badge>} key="all" />
       <TabPane tab={<Badge count={requestCounts.pending} offset={[10, 0]} color="gray" >Pending</Badge>} key="pending" />
