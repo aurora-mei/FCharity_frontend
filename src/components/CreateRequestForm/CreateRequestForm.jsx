@@ -303,10 +303,16 @@ const CreateRequestForm = () => {
                         </Form.Item>
 
                         <Form.Item>
-                            <Button type="primary" htmlType="submit" block className="continue-button">
-                                Create Request
-                            </Button>
-                        </Form.Item>
+                        <Button 
+                            type="primary" 
+                            htmlType="submit" 
+                            block 
+                            className="continue-button" 
+                            disabled={uploading} // Vô hiệu hóa khi đang upload
+                        >
+                            {uploading ? "Uploading..." : "Create Request"}
+                        </Button>
+                    </Form.Item>
                     </Form>
                 </div>
             </div>
