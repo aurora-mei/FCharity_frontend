@@ -14,28 +14,27 @@ const { TabPane } = Tabs;
 /** 
  * Tách chuỗi location thành: detail, communeName, districtName, provinceName 
  */
-const parseLocationString = (locationString = "") => {
+function parseLocationString(locationString = "") {
   let detail = "";
   let communeName = "";
   let districtName = "";
   let provinceName = "";
-
+  // Tách theo dấu phẩy, bỏ khoảng trắng 2 bên
   const parts = locationString.split(",").map(part => part.trim());
   for (const part of parts) {
     const lower = part.toLowerCase();
     if (lower.includes("xã") || lower.includes("phường") || lower.includes("thị trấn")) {
       communeName = part.replace(/(xã|phường|thị trấn)/i, "").trim();
-    } else if (lower.includes("huyện") || lower.includes("quận") || lower.includes("tp") ||
-               lower.includes("thành phố") || lower.includes("thị xã")) {
-      districtName = part.replace(/(huyện|quận|thành phố|tp|thị xã)/i, "").trim();
-    } else if (lower.includes("tỉnh")) {
-      provinceName = part.replace(/tỉnh/i, "").trim();
+    } else if (lower.includes("huyện") || lower.includes("quận") || lower.includes("thị xã")) {
+      districtName = part.replace(/(huyện|quận|thị xã)/i, "").trim();
+    } else if (lower.includes("tỉnh") || lower.includes("thành phố") || lower.includes("tp")) {
+      provinceName = part.replace(/(tỉnh|thành phố|tp)/i, "").trim();
     } else {
       detail = part.trim();
     }
   }
   return { detail, communeName, districtName, provinceName };
-};
+}
 
 /** Loại bỏ dấu và chuyển về chữ thường */
 const normalizeString = (str = "") => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -130,7 +129,7 @@ const MyRequestScreen = () => {
           const provObj = provinces.find(p => p.code === item.request.provinceCode);
           if (provObj) {
             // "Tỉnh Hà Giang" -> ta bỏ tiền tố "Tỉnh " (nếu có) => "Hà Giang"
-            const noPrefix = provObj.name.replace(/^Tỉnh\s+/i, "").trim();
+            const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
             requestProvName = normalizeString(noPrefix);
           }
         } else {
@@ -147,8 +146,12 @@ const MyRequestScreen = () => {
   }, [requestsByUserId, filters, activeTab, provinces]);
 
   const onValuesChange = (changedValues, allValues) => {
+    if (!allValues.province) {
+      delete allValues.province;
+    }
     setFilters(allValues);
   };
+  
 
   if (loading) return <LoadingModal />;
   if (error) {
@@ -200,7 +203,7 @@ const MyRequestScreen = () => {
           <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
             {provinces.map(prov => {
               // Bỏ tiền tố "Tỉnh " nếu có
-              const noPrefix = prov.name.replace(/^Tỉnh\s+/i, "").trim();
+              const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
               return (
                 <Option key={prov.code} value={noPrefix}>
                   {prov.name} {/* hiển thị Tỉnh Hà Giang, value = Hà Giang */}

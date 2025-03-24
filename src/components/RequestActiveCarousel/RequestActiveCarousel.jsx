@@ -118,7 +118,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
         if (item.request.provinceCode) {
           const provObj = provinces.find((p) => p.code === item.request.provinceCode);
           if (provObj) {
-            const noPrefix = provObj.name.replace(/^Tỉnh\s+/i, "").trim();
+            const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
             requestProvName = normalizeString(noPrefix);
           }
         } else {
@@ -132,10 +132,13 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
     setFilteredRequests(data);
   }, [activeRequests, filters, provinces]);
 
-  // Khi form thay đổi
   const onValuesChange = (changedValues, allValues) => {
+    if (!allValues.province) {
+      delete allValues.province;
+    }
     setFilters(allValues);
   };
+  
 
   // Carousel settings
   const settings = {
@@ -167,7 +170,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
     if (request.request.provinceCode) {
       const provObj = provinces.find((p) => p.code === request.request.provinceCode);
       if (provObj) {
-        const noPrefix = provObj.name.replace(/^Tỉnh\s+/i, "").trim();
+        const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
         provinceName = normalizeString(noPrefix);
       }
     } else {
@@ -214,17 +217,18 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
             </Select>
           </Form.Item>
           <Form.Item name="province" label="Province">
-            <Select mode="multiple" placeholder="Select province" allowClear style={{ minWidth: 150 }}>
-              {provinces.map((prov) => {
-                const noPrefix = prov.name.replace(/^Tỉnh\s+/i, "").trim();
-                return (
-                  <Option key={prov.code} value={noPrefix}>
-                    {prov.name}
-                  </Option>
-                );
-              })}
-            </Select>
-          </Form.Item>
+                    <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
+                      {provinces.map(prov => {
+                        // Bỏ tiền tố "Tỉnh " nếu có
+                        const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+                        return (
+                          <Option key={prov.code} value={noPrefix}>
+                            {prov.name} {/* hiển thị Tỉnh Hà Giang, value = Hà Giang */}
+                          </Option>
+                        );
+                      })}
+                    </Select>
+                  </Form.Item>
         </Form>
       )}
 

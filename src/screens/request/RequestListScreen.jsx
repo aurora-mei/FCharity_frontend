@@ -106,7 +106,7 @@ const RequestListScreen = () => {
         if (item.request.provinceCode) {
           const provObj = provinces.find(p => p.code === item.request.provinceCode);
           if (provObj) {
-            const noPrefix = provObj.name.replace(/^Tỉnh\s+/i, "").trim();
+            const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
             requestProvName = normalizeString(noPrefix);
           }
         } else {
@@ -120,10 +120,13 @@ const RequestListScreen = () => {
     setFilteredRequests(data);
   }, [requests, filters, provinces]);
 
-  // form onChange
   const onValuesChange = (changedValues, allValues) => {
+    if (!allValues.province) {
+      delete allValues.province;
+    }
     setFilters(allValues);
   };
+  
 
   if (loading) return <LoadingModal />;
   if (error) return <p style={{ color: "red" }}>Failed to load requests: {error}</p>;
@@ -164,7 +167,7 @@ const RequestListScreen = () => {
         <Form.Item name="province" label="Province">
           <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
             {provinces.map(prov => {
-              const noPrefix = prov.name.replace(/^Tỉnh\s+/i, "").trim();
+              const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
               return (
                 <Option key={prov.code} value={noPrefix}>
                   {prov.name}
