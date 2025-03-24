@@ -45,7 +45,7 @@ const MyRequestScreen = () => {
           grid={{ gutter: 16, column: 4 }}
           dataSource={requestsByUserId}
           renderItem={(request) => (
-            <List.Item key={request.request.id}>
+            <List.Item key={request.helpRequest.id}>
               <RequestCard requestData={request} />
             </List.Item>
           )}
