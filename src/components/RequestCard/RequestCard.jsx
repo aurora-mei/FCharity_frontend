@@ -53,15 +53,15 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
         // Cập nhật các trường province/district/commune từ API (giả sử API trả về các mã này)
         const initialValues = {
-            title: data.request.title,
-            content: data.request.content,
-            phone: data.request.phone,
-            email: data.request.email,
-            location: data.request.location,
-            province: data.request.provinceCode, // Mã tỉnh
-            district: data.request.districtCode, // Mã quận/huyện
-            commune: data.request.communeCode,   // Mã xã/phường
-            categoryId: data.request.category.id,
+            title: data.helpRequest.title,
+            content: data.helpRequest.content,
+            phone: data.helpRequest.phone,
+            email: data.helpRequest.email,
+            location: data.helpRequest.location,
+            province: data.helpRequest.provinceCode, // Mã tỉnh
+            district: data.helpRequest.districtCode, // Mã quận/huyện
+            commune: data.helpRequest.communeCode,   // Mã xã/phường
+            categoryId: data.helpRequest.category.id,
             requestTags: data.requestTags?.map((taggable) => taggable.tag.id) || [],
             attachment: data.attachments || [],
         };
@@ -85,6 +85,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
     // Cập nhật request (bao gồm các trường province, district, commune)
     const handleUpdate = async (values) => {
+        console.log("currentRequestData.helpRequest.id", currentRequestData.helpRequest.id);
         const updatedRequest = {
             id: currentRequestData.helpRequest.id,
             userId: currentRequestData.helpRequest.userId,

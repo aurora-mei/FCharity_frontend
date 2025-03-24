@@ -100,7 +100,7 @@ const requestSlice = createSlice({
                 state.loading = false;
 
                 state.requestsByUserId = state.requestsByUserId.map(req =>
-                    req.request.id === action.payload.request.id ? action.payload : req
+                    req.helpRequest.id === action.payload.helpRequest.id ? action.payload : req
                 );
 
                 state.currentRequest = action.payload;
