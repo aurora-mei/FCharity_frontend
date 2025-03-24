@@ -248,7 +248,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
       {map && (
         <div style={{ marginTop: "2rem" }}>
           <h2>Active Requests Map</h2>
-          <MapContainer center={[16.0, 106.0]} zoom={6} style={{ height: "500px", width: "100%" }}>
+          <MapContainer center={[21.0285, 105.8542]} zoom={8} style={{ height: "500px", width: "100%" }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {Object.keys(requestsByProvince).map((provKey) => {
                 const coord = provinceCoordinates[provKey];

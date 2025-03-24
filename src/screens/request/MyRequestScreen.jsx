@@ -178,7 +178,7 @@ const MyRequestScreen = () => {
             allowClear 
             size="small"
             style={{ height: 31 }}
-            suffix={null} // Bỏ icon tìm kiếm
+            suffix={null}
           />
         </Form.Item>
         <Form.Item name="categoryId" label="Category">
