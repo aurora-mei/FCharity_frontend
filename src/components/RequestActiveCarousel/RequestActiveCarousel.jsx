@@ -247,26 +247,28 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
           <MapContainer center={[16.0, 106.0]} zoom={6} style={{ height: "500px", width: "100%" }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {Object.keys(requestsByProvince).map((provKey) => {
-              const coord = provinceCoordinates[provKey];
-              if (!coord) return null;
-              const requests = requestsByProvince[provKey];
-              return (
-                <Marker key={provKey} position={[coord.lat, coord.lng]}>
-                  <Popup>
-                    <h3>{coord.displayName}</h3>
-                    <ul>
-                      {requests.map((req) => (
-                        <li key={req.id}>
-                          <strong>
-                            <Link to={`/requests/${req.request.id}`}>{req.request.title}</Link>
-                          </strong>
-                        </li>
-                      ))}
-                    </ul>
-                  </Popup>
-                </Marker>
-              );
-            })}
+                const coord = provinceCoordinates[provKey];
+                if (!coord) return null;
+                const requests = requestsByProvince[provKey];
+                return (
+                  <Marker key={provKey} position={[coord.lat, coord.lng]}>
+                    <Popup>
+                      <h3>
+                        {coord.displayName} ({requests.length} request{requests.length > 1 ? "s" : ""})
+                      </h3>
+                      <ul>
+                        {requests.map((req) => (
+                          <li key={req.id}>
+                            <strong>
+                              <Link to={`/requests/${req.request.id}`}>{req.request.title}</Link>
+                            </strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </Popup>
+                  </Marker>
+                );
+              })}
           </MapContainer>
         </div>
       )}
