@@ -167,6 +167,7 @@ const MyRequestScreen = () => {
         <TabPane tab="Approved" key="approved" />
         <TabPane tab="Rejected" key="rejected" />
         <TabPane tab="Completed" key="completed" />
+        <TabPane tab="Hidden" key="hidden" />
       </Tabs>
 
       {/* Form filter */}
