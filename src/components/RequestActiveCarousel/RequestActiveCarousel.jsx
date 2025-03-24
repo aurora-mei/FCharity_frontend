@@ -138,7 +138,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
     }
     setFilters(allValues);
   };
-  
+
 
   // Carousel settings
   const settings = {
@@ -190,8 +190,9 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
 
   return (
     <div className="request-active-carousel" style={{ padding: "2rem" }}>
-      <h2 style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>Active requests</h2>
-
+      <Flex vertical='true' gap='15px'>
+        <b style={{ fontSize: '1.4rem' }}>Active Request</b>
+      </Flex>
       {/* Hiển thị search nếu search = true */}
       {search && (
         <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
@@ -217,18 +218,18 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
             </Select>
           </Form.Item>
           <Form.Item name="province" label="Province">
-                    <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
-                      {provinces.map(prov => {
-                        // Bỏ tiền tố "Tỉnh " nếu có
-                        const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
-                        return (
-                          <Option key={prov.code} value={noPrefix}>
-                            {prov.name} {/* hiển thị Tỉnh Hà Giang, value = Hà Giang */}
-                          </Option>
-                        );
-                      })}
-                    </Select>
-                  </Form.Item>
+            <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
+              {provinces.map(prov => {
+                // Bỏ tiền tố "Tỉnh " nếu có
+                const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+                return (
+                  <Option key={prov.code} value={noPrefix}>
+                    {prov.name} {/* hiển thị Tỉnh Hà Giang, value = Hà Giang */}
+                  </Option>
+                );
+              })}
+            </Select>
+          </Form.Item>
         </Form>
       )}
 
@@ -251,28 +252,28 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
           <MapContainer center={[21.0285, 105.8542]} zoom={8} style={{ height: "500px", width: "100%" }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {Object.keys(requestsByProvince).map((provKey) => {
-                const coord = provinceCoordinates[provKey];
-                if (!coord) return null;
-                const requests = requestsByProvince[provKey];
-                return (
-                  <Marker key={provKey} position={[coord.lat, coord.lng]}>
-                    <Popup>
-                      <h3>
-                        {coord.displayName} ({requests.length} request{requests.length > 1 ? "s" : ""})
-                      </h3>
-                      <ul>
-                        {requests.map((req) => (
-                          <li key={req.id}>
-                            <strong>
-                              <Link to={`/requests/${req.request.id}`}>{req.request.title}</Link>
-                            </strong>
-                          </li>
-                        ))}
-                      </ul>
-                    </Popup>
-                  </Marker>
-                );
-              })}
+              const coord = provinceCoordinates[provKey];
+              if (!coord) return null;
+              const requests = requestsByProvince[provKey];
+              return (
+                <Marker key={provKey} position={[coord.lat, coord.lng]}>
+                  <Popup>
+                    <h3>
+                      {coord.displayName} ({requests.length} request{requests.length > 1 ? "s" : ""})
+                    </h3>
+                    <ul>
+                      {requests.map((req) => (
+                        <li key={req.id}>
+                          <strong>
+                            <Link to={`/requests/${req.request.id}`}>{req.request.title}</Link>
+                          </strong>
+                        </li>
+                      ))}
+                    </ul>
+                  </Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
         </div>
       )}
