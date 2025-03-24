@@ -190,7 +190,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
 
   return (
     <div className="request-active-carousel" style={{ padding: "2rem" }}>
-      <h2 style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>Active requests</h2>
+      <b style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>Active requests</b>
 
       {/* Hiển thị search nếu search = true */}
       {search && (
@@ -247,7 +247,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
       {/* Hiển thị map nếu map = true */}
       {map && (
         <div style={{ marginTop: "2rem" }}>
-          <h2>Active Requests Map</h2>
+          <b style={{ fontSize: '1.4rem' }}>Active Request Map</b>
           <MapContainer center={[21.0285, 105.8542]} zoom={8} style={{ height: "500px", width: "100%" }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {Object.keys(requestsByProvince).map((provKey) => {
