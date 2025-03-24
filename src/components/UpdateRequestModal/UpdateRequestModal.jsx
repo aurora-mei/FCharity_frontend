@@ -20,33 +20,23 @@ function parseLocationString(locationString = "") {
   let communeName = "";
   let districtName = "";
   let provinceName = "";
-
   // Tách theo dấu phẩy, bỏ khoảng trắng 2 bên
   const parts = locationString.split(",").map(part => part.trim());
   for (const part of parts) {
     const lower = part.toLowerCase();
-    if (
-      lower.includes("xã") ||
-      lower.includes("phường") ||
-      lower.includes("thị trấn")
-    ) {
+    if (lower.includes("xã") || lower.includes("phường") || lower.includes("thị trấn")) {
       communeName = part.replace(/(xã|phường|thị trấn)/i, "").trim();
-    } else if (
-      lower.includes("huyện") ||
-      lower.includes("quận") ||
-      lower.includes("tp") ||
-      lower.includes("thành phố") ||
-      lower.includes("thị xã")
-    ) {
-      districtName = part.replace(/(huyện|quận|thành phố|tp|thị xã)/i, "").trim();
-    } else if (lower.includes("tỉnh")) {
-      provinceName = part.replace(/tỉnh/i, "").trim();
+    } else if (lower.includes("huyện") || lower.includes("quận") || lower.includes("thị xã")) {
+      districtName = part.replace(/(huyện|quận|thị xã)/i, "").trim();
+    } else if (lower.includes("tỉnh") || lower.includes("thành phố") || lower.includes("tp")) {
+      provinceName = part.replace(/(tỉnh|thành phố|tp)/i, "").trim();
     } else {
       detail = part.trim();
     }
   }
   return { detail, communeName, districtName, provinceName };
 }
+
 
 /** Tìm province theo tên (so sánh đơn giản, toLowerCase + includes) */
 function findProvinceByName(provinces, name) {

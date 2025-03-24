@@ -175,7 +175,7 @@ const RequestDetailScreen = () => {
         </Flex>
 
       </Flex>
-      <RequestActiveCarousel />
+      <RequestActiveCarousel search={false} map={false} />
     </Flex>
   );
 };
