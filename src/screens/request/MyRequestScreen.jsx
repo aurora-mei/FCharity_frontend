@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Empty, List, Typography, Form, Input, Select, Tabs } from "antd";
+import { Empty, List, Typography, Form, Input, Select, Tabs, Badge } from "antd";
 import LoadingModal from "../../components/LoadingModal";
 import RequestCard from "../../components/RequestCard/RequestCard";
 import { fetchRequestsByUserIdThunk } from "../../redux/request/requestSlice";
@@ -40,6 +40,15 @@ function parseLocationString(locationString = "") {
 const normalizeString = (str = "") => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const MyRequestScreen = () => {
+  const [requestCounts, setRequestCounts] = useState({
+    all: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    completed: 0,
+    hidden: 0,
+  });
+
   const dispatch = useDispatch();
   const loading = useSelector((state) => state.request.loading);
   const requestsByUserId = useSelector((state) => state.request.requestsByUserId) || [];
@@ -64,6 +73,18 @@ const MyRequestScreen = () => {
   // Categories, tags từ Redux
   const categories = useSelector((state) => state.category.categories) || [];
   const tags = useSelector((state) => state.tag.tags) || [];
+
+  useEffect(() => {
+    const counts = {
+      all: requestsByUserId.length,
+      pending: requestsByUserId.filter(req => req.request.status.toLowerCase() === "pending").length,
+      approved: requestsByUserId.filter(req => req.request.status.toLowerCase() === "approved").length,
+      rejected: requestsByUserId.filter(req => req.request.status.toLowerCase() === "rejected").length,
+      completed: requestsByUserId.filter(req => req.request.status.toLowerCase() === "completed").length,
+      hidden: requestsByUserId.filter(req => req.request.status.toLowerCase() === "hidden").length,
+    };
+    setRequestCounts(counts);
+  }, [requestsByUserId]);
 
   // Nếu chưa có categories/tags thì load
   useEffect(() => {
@@ -162,13 +183,13 @@ const MyRequestScreen = () => {
     <div style={{ padding: "2rem" }}>
       <Title level={2}>My Requests</Title>
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab="All" key="all" />
-        <TabPane tab="Pending" key="pending" />
-        <TabPane tab="Approved" key="approved" />
-        <TabPane tab="Rejected" key="rejected" />
-        <TabPane tab="Completed" key="completed" />
-        <TabPane tab="Hidden" key="hidden" />
-      </Tabs>
+      <TabPane tab={<Badge count={requestCounts.all} offset={[10, 0]} color="gray" >All</Badge>} key="all" />
+      <TabPane tab={<Badge count={requestCounts.pending} offset={[10, 0]} color="gray" >Pending</Badge>} key="pending" />
+      <TabPane tab={<Badge count={requestCounts.approved} offset={[10, 0]}>Approved</Badge>} key="approved" />
+      <TabPane tab={<Badge count={requestCounts.rejected} offset={[10, 0]}>Rejected</Badge>} key="rejected" />
+      <TabPane tab={<Badge count={requestCounts.completed} offset={[10, 0]} color="gray" >Completed</Badge>} key="completed" />
+      <TabPane tab={<Badge count={requestCounts.hidden} offset={[10, 0]} color="gray" >Hidden</Badge>} key="hidden" />
+    </Tabs>
 
       {/* Form filter */}
       <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
