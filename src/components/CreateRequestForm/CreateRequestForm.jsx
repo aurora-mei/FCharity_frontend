@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Checkbox, Typography, Select, Upload, message } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Checkbox, Typography, Select, Upload, message, Spin } from "antd";
+import { UploadOutlined } from '@ant-design/icons';
 import "antd/dist/reset.css";
 import { useDispatch, useSelector } from 'react-redux';
 import { createRequest } from '../../redux/request/requestSlice';
 import { fetchCategories } from '../../redux/category/categorySlice';
-import { fetchTags } from '../../redux/tag/tagSlice';
 import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { fetchTags } from '../../redux/tag/tagSlice';
 import { useNavigate } from "react-router-dom";
 import LoadingModal from "../LoadingModal/index.jsx";
 import useLoading from "../../hooks/useLoading";
@@ -14,35 +14,52 @@ import useLoading from "../../hooks/useLoading";
 const { Title } = Typography;
 const { Option } = Select;
 
+/* ---------------------------------------------------------
+   1) HÀM HỖ TRỢ PARSE ĐỊA CHỈ VÀ TÌM TỈNH/QUẬN/PHƯỜNG THEO TÊN
+   --------------------------------------------------------- */
+
+// Tách địa chỉ thành 4 phần: detail, communeName, districtName, provinceName
 function parseLocationString(locationString = "") {
   const parts = locationString.split(",").map((p) => p.trim());
   const provinceName = parts[parts.length - 1] || "";
   const districtName = parts[parts.length - 2] || "";
   const communeName  = parts[parts.length - 3] || "";
-  const detail       = parts.slice(0, parts.length - 3).join(", ");
+  const detailParts  = parts.slice(0, parts.length - 3);
+  const detail       = detailParts.join(", ");
   return { detail, communeName, districtName, provinceName };
 }
 
-/** Tìm province theo tên (so sánh đơn giản, toLowerCase + includes) */
+// Tìm province theo tên (so sánh lowercase, bỏ dấu)
 function findProvinceByName(provinces, name) {
-  if (!name || !provinces) return null;
-  return provinces.find(p =>
-    p.name.toLowerCase().includes(name.toLowerCase())
+  if (!name) return null;
+  return provinces.find((p) =>
+    removeVietnameseTones(p.name).includes(removeVietnameseTones(name))
   );
 }
-/** Tìm district theo tên */
+
+// Tìm district theo tên
 function findDistrictByName(districts, name) {
-  if (!name || !districts) return null;
-  return districts.find(d =>
-    d.name.toLowerCase().includes(name.toLowerCase())
+  if (!name) return null;
+  return districts.find((d) =>
+    removeVietnameseTones(d.name).includes(removeVietnameseTones(name))
   );
 }
-/** Tìm commune theo tên */
+
+// Tìm commune theo tên
 function findCommuneByName(communes, name) {
-  if (!name || !communes) return null;
-  return communes.find(c =>
-    c.name.toLowerCase().includes(name.toLowerCase())
+  if (!name) return null;
+  return communes.find((c) =>
+    removeVietnameseTones(c.name).includes(removeVietnameseTones(name))
   );
+}
+
+// Hàm bỏ dấu tiếng Việt và chuyển về lowercase
+function removeVietnameseTones(str) {
+  if (!str) return "";
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // xóa dấu
+    .toLowerCase();
 }
 
 const CreateRequestForm = () => {
@@ -50,131 +67,157 @@ const CreateRequestForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const loadingUI = useLoading();
+
+  // State từ Redux
   const loading = useSelector((state) => state.request.loading);
   const categories = useSelector((state) => state.category.categories || []);
   const tags = useSelector((state) => state.tag.tags || []);
-  
-  const storedUser = localStorage.getItem("currentUser");
-  let currentUser = {};
-  try {
-    currentUser = storedUser ? JSON.parse(storedUser) : {};
-  } catch (error) {
-    console.error("Error parsing currentUser:", error);
-  }
 
-  const [attachments, setAttachments] = useState({ images: [], videos: [] });
+  // State upload file
+  const [attachments, setAttachments] = useState({});
   const [uploading, setUploading] = useState(false);
 
-  // For address dropdown
+  // State cho dropdown địa chỉ
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [communes, setCommunes] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
 
+  // Để hiển thị spinner khi chưa load xong tỉnh (vì cần load xong mới parse)
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  /* -----------------------------------------
+     2) LẤY CATEGORIES, TAGS, DANH SÁCH TỈNH
+     ----------------------------------------- */
   useEffect(() => {
-    // Fetch categories and tags
+    // Gọi API lấy categories, tags
     dispatch(fetchCategories());
     dispatch(fetchTags());
 
-    // Load provinces
+    // Gọi API lấy danh sách tỉnh
     loadProvinces();
   }, [dispatch]);
 
-  // Load list of provinces from open-api
+  // Hàm load danh sách tỉnh
   const loadProvinces = async () => {
     try {
       const response = await fetch('https://provinces.open-api.vn/api/p/');
       const data = await response.json();
       setProvinces(data);
-      return data;
     } catch (error) {
       console.error("Failed to load provinces:", error);
-      return [];
     }
   };
 
-  // Load list of districts from open-api
-  const loadDistricts = async (provinceCode) => {
-    try {
-      const response = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
-      const data = await response.json();
-      setDistricts(data.districts || []);
-      return data.districts || [];
-    } catch (error) {
-      console.error("Failed to load districts:", error);
-      return [];
-    }
-  };
-
-  // Load list of communes from open-api
-  const loadCommunes = async (districtCode) => {
-    try {
-      const response = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
-      const data = await response.json();
-      setCommunes(data.wards || []);
-      return data.wards || [];
-    } catch (error) {
-      console.error("Failed to load communes:", error);
-      return [];
-    }
-  };
-
-  // Pre-fill the form if currentUser has an address
+  /* ---------------------------------------------------------
+     3) PARSE ĐỊA CHỈ CỦA USER TỪ localStorage VÀ SET VÀO FORM
+     --------------------------------------------------------- */
   useEffect(() => {
-    if (currentUser.address) {
-      const { detail, communeName, districtName, provinceName } = parseLocationString(currentUser.address);
-      form.setFieldsValue({
-        phone: currentUser.phoneNumber || '',
-        email: currentUser.email || '',
-        location: detail,          // e.g. "123"
-        provinceName,              // hidden field
-        districtName,              // hidden field
-        communeName,               // hidden field
-      });
+    // Hàm async để load data, parse địa chỉ
+    const initFormData = async () => {
+      // Lấy user từ localStorage
+      const storedUser = localStorage.getItem("currentUser");
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
 
-      const loadData = async () => {
-        // Tải danh sách tỉnh
-        const provincesData = await loadProvinces();
+          // Parse address => detail, communeName, districtName, provinceName
+          const { detail, communeName, districtName, provinceName } = parseLocationString(
+            parsedUser.address || ""
+          );
 
-        // Tìm province code từ provincesData
-        const foundProvince = findProvinceByName(provincesData, provinceName);
-        if (foundProvince) {
-          form.setFieldsValue({ province: foundProvince.code });
-          setSelectedProvince(foundProvince.code);
+          // Gán email, phone, location (detail) vào form
+          form.setFieldsValue({
+            email: parsedUser.email || "",
+            phone: parsedUser.phoneNumber || "",
+            location: detail || "", // Số nhà, tên đường
+          });
 
-          // Tải danh sách district -> tìm district code
-          const districtsData = await loadDistricts(foundProvince.code);
-          const foundDistrict = findDistrictByName(districtsData, districtName);
-          if (foundDistrict) {
-            form.setFieldsValue({ district: foundDistrict.code });
-            setSelectedDistrict(foundDistrict.code);
+          // Nếu có provinces đã load xong => tìm province code => set form
+          if (provinces.length > 0) {
+            // Tìm province theo provinceName
+            const foundProv = findProvinceByName(provinces, provinceName);
+            if (foundProv) {
+              // Set form
+              form.setFieldsValue({ province: foundProv.code });
+              setSelectedProvince(foundProv.code);
 
-            // Tải danh sách commune -> tìm commune code
-            const communesData = await loadCommunes(foundDistrict.code);
-            const foundCommune = findCommuneByName(communesData, communeName);
-            if (foundCommune) {
-              form.setFieldsValue({ commune: foundCommune.code });
+              // Load districts
+              const distData = await loadDistricts(foundProv.code);
+
+              // Tìm district theo districtName
+              if (distData && distData.length > 0) {
+                const foundDist = findDistrictByName(distData, districtName);
+                if (foundDist) {
+                  form.setFieldsValue({ district: foundDist.code });
+                  setSelectedDistrict(foundDist.code);
+
+                  // Load communes
+                  const commData = await loadCommunes(foundDist.code);
+                  // Tìm commune
+                  if (commData && commData.length > 0) {
+                    const foundComm = findCommuneByName(commData, communeName);
+                    if (foundComm) {
+                      form.setFieldsValue({ commune: foundComm.code });
+                    }
+                  }
+                }
+              }
             }
           }
+        } catch (error) {
+          console.error("Error parsing currentUser:", error);
         }
-      };
-      loadData().catch(err => console.error("Error in loadData:", err));
-    } else {
-      // If user has no address in DB, just fill phone/email
-      form.setFieldsValue({
-        phone: currentUser.phoneNumber || '',
-        email: currentUser.email || '',
-        location: ''
-      });
-    }
-  }, [form, currentUser]);
+      }
+      setInitialLoading(false); // Kết thúc giai đoạn load dữ liệu ban đầu
+    };
 
+    // Gọi initFormData khi provinces đã có (load xong)
+    if (provinces.length > 0) {
+      initFormData();
+    }
+  }, [provinces, form]);
+
+  // Hàm load districts
+  const loadDistricts = async (provinceCode) => {
+    try {
+      const res = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
+      const data = await res.json();
+      const dist = data.districts || [];
+      setDistricts(dist);
+      return dist;
+    } catch (err) {
+      console.error("Failed to load districts:", err);
+      return [];
+    }
+  };
+
+  // Hàm load communes
+  const loadCommunes = async (districtCode) => {
+    try {
+      const res = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+      const data = await res.json();
+      const wards = data.wards || [];
+      setCommunes(wards);
+      return wards;
+    } catch (err) {
+      console.error("Failed to load communes:", err);
+      return [];
+    }
+  };
+
+  /* ------------------------------------------------------
+     4) XỬ LÝ THAY ĐỔI TRONG SELECT (PROVINCE, DISTRICT,...)
+     ------------------------------------------------------ */
   const handleProvinceChange = async (value) => {
     setSelectedProvince(value);
     form.setFieldsValue({ district: null, commune: null });
     setDistricts([]);
     setCommunes([]);
+    setSelectedDistrict(null);
+
+    // Load district theo province code
     await loadDistricts(value);
   };
 
@@ -182,6 +225,8 @@ const CreateRequestForm = () => {
     setSelectedDistrict(value);
     form.setFieldsValue({ commune: null });
     setCommunes([]);
+
+    // Load commune theo district code
     await loadCommunes(value);
   };
 
@@ -189,34 +234,13 @@ const CreateRequestForm = () => {
     form.setFieldsValue({ commune: value });
   };
 
-  const onFinish = async (values) => {
-    const { location, communeName, districtName, provinceName } = values;
-    // Combine them into a single address
-    const fullAddress = `${location}, ${communeName}, ${districtName}, ${provinceName}`;
-    const requestData = {
-      ...values,
-      userId: currentUser.id,
-      fullAddress,
-      tagIds: values.tagIds,
-      imageUrls: attachments.images,
-      videoUrls: attachments.videos
-    };
-    console.log("Final Request Data:", requestData);
-
-    try {
-      await dispatch(createRequest(requestData)).unwrap();
-      message.success("Request created successfully!");
-      navigate('/user/manage-profile/myrequests', { replace: true });
-    } catch (err) {
-      message.error(err.message || "Failed to create request");
-      console.error("Create request error:", err);
-    }
-  };
-
-  // Upload images
+  /* ----------------------------------
+     5) XỬ LÝ UPLOAD ẢNH & VIDEO
+     ---------------------------------- */
   const handleImageChange = async ({ fileList }) => {
     setUploading(true);
-    const uploadedFiles = [];
+    let uploadedFiles = [];
+
     for (const file of fileList) {
       try {
         const response = await dispatch(uploadFileHelper(file.originFileObj, "images")).unwrap();
@@ -227,17 +251,19 @@ const CreateRequestForm = () => {
         message.error(`Upload failed for ${file.name}`);
       }
     }
+
     setAttachments((prev) => ({
       ...prev,
-      images: [...(prev.images || []), ...uploadedFiles]
+      images: uploadedFiles,
+      videos: prev.videos || []
     }));
     setUploading(false);
   };
 
-  // Upload videos
   const handleVideoChange = async ({ fileList }) => {
     setUploading(true);
-    const uploadedFiles = [];
+    let uploadedFiles = [];
+
     for (const file of fileList) {
       try {
         const response = await dispatch(uploadFileHelper(file.originFileObj, "videos")).unwrap();
@@ -248,17 +274,76 @@ const CreateRequestForm = () => {
         message.error(`Upload failed for ${file.name}`);
       }
     }
+
     setAttachments((prev) => ({
       ...prev,
-      videos: [...(prev.videos || []), ...uploadedFiles]
+      videos: uploadedFiles,
+      images: prev.images || []
     }));
     setUploading(false);
   };
 
-  if (loadingUI || loading) {
+  /* -----------------------
+     6) XỬ LÝ SUBMIT FORM
+     ----------------------- */
+  const onFinish = async (values) => {
+    console.log("Form Values:", values);
+
+    // Lấy text hiển thị cho province, district, commune
+    const provinceObj = provinces.find((p) => p.code === values.province);
+    const districtObj = districts.find((d) => d.code === values.district);
+    const communeObj  = communes.find((c) => c.code === values.commune);
+
+    // Ghép fullAddress
+    const fullAddress = [
+      values.location || "", 
+      communeObj ? communeObj.name : "",
+      districtObj ? districtObj.name : "",
+      provinceObj ? provinceObj.name : ""
+    ].filter(Boolean).join(", ");
+
+    // Lấy userId
+    let currentUser = {};
+    const storedUser = localStorage.getItem("currentUser");
+    if (storedUser) {
+      try {
+        currentUser = JSON.parse(storedUser);
+      } catch (error) {
+        console.error("Error parsing currentUser:", error);
+      }
+    }
+
+    // Tạo object gửi lên API
+    const requestData = {
+      ...values,
+      userId: currentUser.id,
+      tagIds: values.tagIds,
+      imageUrls: attachments.images,
+      videoUrls: attachments.videos,
+      fullAddress
+    };
+
+    console.log("Final Request Data:", requestData);
+    try {
+      await dispatch(createRequest(requestData)).unwrap();
+      message.success("Create request successfully!");
+      navigate('/user/manage-profile/myrequests', { replace: true });
+    } catch (error) {
+      console.error("Error creating request:", error);
+      message.error("Failed to create request");
+    }
+  };
+
+  /* --------------------------------------
+     7) HIỂN THỊ SPINNER NẾU ĐANG INIT
+     -------------------------------------- */
+  if (loadingUI || loading || initialLoading) {
     return <LoadingModal />;
   }
 
+  /* ---------------
+     8) GIAO DIỆN UI
+     --------------- */
   return (
     <div className="upper-container-request">
       <div className="container-request">
@@ -273,115 +358,72 @@ const CreateRequestForm = () => {
           </div>
           <Form form={form} layout="vertical" onFinish={onFinish}>
             {/* Title */}
-            <Form.Item
-              label="Title"
-              name="title"
-              rules={[{ required: true, message: "Title is required" }]}
-            >
+            <Form.Item label="Title" name="title" rules={[{ required: true, message: "Title is required" }]}>
               <Input />
             </Form.Item>
 
             {/* Content */}
-            <Form.Item
-              label="Content"
-              name="content"
-              rules={[{ required: true, message: "Content is required" }]}
-            >
+            <Form.Item label="Content" name="content" rules={[{ required: true, message: "Content is required" }]}>
               <Input.TextArea />
             </Form.Item>
 
             {/* Phone */}
-            <Form.Item
-              label="Phone"
-              name="phone"
-              rules={[{ required: true, message: "Phone is required" }]}
-            >
+            <Form.Item label="Phone" name="phone" rules={[{ required: true, message: "Phone is required" }]}>
               <Input />
             </Form.Item>
 
             {/* Email */}
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[{ required: true, type: "email", message: "Please enter a valid email" }]}
-            >
+            <Form.Item label="Email" name="email" rules={[{ required: true, type: "email", message: "Please enter a valid email" }]}>
               <Input />
             </Form.Item>
 
             {/* Province */}
-            <Form.Item
-              label="Province"
-              name="province"
-              rules={[{ required: true, message: "Province is required" }]}
-            >
+            <Form.Item label="Province" name="province" rules={[{ required: true, message: "Province is required" }]}>
               <Select placeholder="Select Province" onChange={handleProvinceChange}>
-                {provinces.map((p) => (
-                  <Option key={p.code} value={p.code}>
-                    {p.name}
+                {provinces.map(province => (
+                  <Option key={province.code} value={province.code}>
+                    {province.name}
                   </Option>
                 ))}
               </Select>
             </Form.Item>
 
             {/* District */}
-            <Form.Item
-              label="District"
-              name="district"
-              rules={[{ required: true, message: "District is required" }]}
-            >
+            <Form.Item label="District" name="district" rules={[{ required: true, message: "District is required" }]}>
               <Select
                 placeholder="Select District"
                 onChange={handleDistrictChange}
                 disabled={!selectedProvince}
               >
-                {districts.map((d) => (
-                  <Option key={d.code} value={d.code}>
-                    {d.name}
+                {districts.map(district => (
+                  <Option key={district.code} value={district.code}>
+                    {district.name}
                   </Option>
                 ))}
               </Select>
             </Form.Item>
 
             {/* Commune */}
-            <Form.Item
-              label="Commune"
-              name="commune"
-              rules={[{ required: true, message: "Commune is required" }]}
-            >
+            <Form.Item label="Commune" name="commune" rules={[{ required: true, message: "Commune is required" }]}>
               <Select
                 placeholder="Select Commune"
                 onChange={handleCommuneChange}
                 disabled={!selectedDistrict}
               >
-                {communes.map((c) => (
-                  <Option key={c.code} value={c.code}>
-                    {c.name}
+                {communes.map(commune => (
+                  <Option key={commune.code} value={commune.code}>
+                    {commune.name}
                   </Option>
                 ))}
               </Select>
             </Form.Item>
 
-            {/* Street address detail */}
-            <Form.Item
-              label="Address"
-              name="location"
-              rules={[{ required: true, message: "Street address is required" }]}
-            >
-              <Input placeholder="e.g. 123, Phường..." />
-            </Form.Item>
-
-            {/* Hidden fields for storing parsed address parts (if needed) */}
-            <Form.Item name="provinceName" hidden>
-              <Input />
-            </Form.Item>
-            <Form.Item name="districtName" hidden>
-              <Input />
-            </Form.Item>
-            <Form.Item name="communeName" hidden>
+            {/* Địa chỉ chi tiết (số nhà, tên đường) */}
+            <Form.Item label="Address" name="location" rules={[{ required: true, message: "Location is required" }]}>
               <Input />
             </Form.Item>
 
-            {/* Images */}
+            {/* Upload Images */}
             <Form.Item
               label="Images"
               name="images"
@@ -400,7 +442,7 @@ const CreateRequestForm = () => {
               </Upload>
             </Form.Item>
 
-            {/* Videos */}
+            {/* Upload Videos */}
             <Form.Item label="Videos" name="videos">
               <Upload
                 multiple
@@ -422,9 +464,9 @@ const CreateRequestForm = () => {
               rules={[{ required: true, message: "Category is required" }]}
             >
               <Select placeholder="Select a category">
-                {categories.map((cat) => (
-                  <Option key={cat.id} value={cat.id}>
-                    {cat.categoryName}
+                {categories.map(category => (
+                  <Option key={category.id} value={category.id}>
+                    {category.categoryName}
                   </Option>
                 ))}
               </Select>
@@ -437,19 +479,21 @@ const CreateRequestForm = () => {
               rules={[{ required: true, message: "At least one tag is required" }]}
             >
               <Select mode="multiple" placeholder="Select tags" allowClear>
-                {tags.map((tag) => (
-                  <Option key={tag.id} value={tag.id}>
-                    {tag.tagName}
-                  </Option>
-                ))}
+                {Array.isArray(tags) &&
+                  tags.map(tag => (
+                    <Option key={tag.id} value={tag.id}>
+                      {tag.tagName}
+                    </Option>
+                  ))}
               </Select>
             </Form.Item>
 
-            {/* Is Emergency checkbox */}
+            {/* Checkbox Emergency */}
             <Form.Item name="isEmergency" valuePropName="checked">
               <Checkbox>Is Emergency</Checkbox>
             </Form.Item>
 
+            {/* Submit Button */}
             <Form.Item>
               <Button
                 type="primary"

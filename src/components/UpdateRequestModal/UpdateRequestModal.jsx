@@ -21,8 +21,6 @@ function parseLocationString(locationString = "") {
   return { detail, communeName, districtName, provinceName };
 }
 
-
-
 /** Tìm province theo tên (so sánh đơn giản, toLowerCase + includes) */
 function findProvinceByName(provinces, name) {
   if (!name) return null;
@@ -267,7 +265,7 @@ const UpdateRequestModal = ({
 
         {/* Location */}
         <Form.Item
-          label="Location"
+          label="Address"
           name="location"
           rules={[{ required: true, message: "Location is required" }]}
         >
