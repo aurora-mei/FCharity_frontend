@@ -78,7 +78,7 @@ const ManagerOrganizationList = ({ managedOrganizations }) => {
               <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                 {paginatedOrgs.map((org) => (
                   <div
-                    key={org.organizationId}
+                    key={org.id}
                     onClick={() => handleSelectOrganization(org)}
                     className={`bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer ${
                       selectedOrganization?.organizationId ===

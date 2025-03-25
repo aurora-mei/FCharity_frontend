@@ -212,7 +212,7 @@ const OrganizationOverview = ({ organization }) => {
             className="w-full h-64 bg-cover bg-center rounded-lg shadow-md mb-6"
             style={{
               backgroundImage:
-                organization.pictures == null
+                organization.pictures != undefined
                   ? `url('http://localhost:8080${organization.pictures}')`
                   : `url('https://www.aaronreedphotography.com/images/xl/Sweet-Dreams-2022.jpg')`,
             }}
