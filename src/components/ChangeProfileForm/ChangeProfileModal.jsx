@@ -289,6 +289,16 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
         </Form.Item>
 
         <Form.Item
+          label="Address"
+          name="address"
+          rules={[{ required: true, message: "Address is required" },
+          { pattern: /^[^,]*$/, message: "Address should not contain comma" }
+          ]}          
+        >
+          <Input placeholder="Enter street address" />
+        </Form.Item>
+
+        <Form.Item
           label="Province"
           name="province"
           rules={[{ required: true, message: "Province is required" }]}
@@ -336,16 +346,6 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
               </Option>
             ))}
           </Select>
-        </Form.Item>
-
-        <Form.Item
-          label="Address"
-          name="address"
-          rules={[{ required: true, message: "Address is required" },
-          { pattern: /^[^,]*$/, message: "Address should not contain comma" }
-          ]}          
-        >
-          <Input placeholder="Enter street address" />
         </Form.Item>
 
         <Form.Item label="Avatar URL" name="avatar">
