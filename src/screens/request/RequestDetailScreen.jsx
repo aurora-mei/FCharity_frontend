@@ -35,9 +35,14 @@ const RequestDetailScreen = () => {
     } catch (error) {
         console.error("Error parsing currentUser from localStorage:", error);
     }
+    
   useEffect(() => {
     dispatch(fetchRequestById(id));
   }, [dispatch, id]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (loading) return <LoadingModal />;
 
@@ -84,7 +89,7 @@ const RequestDetailScreen = () => {
           items={items} />
         <Flex vertical gap={10} className="request-detail">
           {/* Tiêu đề */}
-          <Title level={3} className="request-title">Churchtown Playground {helpRequest.title}</Title>
+          <Title level={3} className="request-title">{helpRequest.title}</Title>
 
           {/* Carousel ảnh/video ngay dưới tiêu đề */}
           {(imageUrls.length > 0 || videoUrls.length > 0) && (

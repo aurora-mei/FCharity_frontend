@@ -8,34 +8,19 @@ import { uploadFileHelper } from "../../redux/helper/helperSlice";
 
 const { Option } = Select;
 
-/**
- * Hàm tách (parse) chuỗi location thành 4 phần:
- * - detail: số nhà hoặc mô tả chi tiết (nếu có)
- * - communeName: tên xã/phường
- * - districtName: tên quận/huyện
- * - provinceName: tên tỉnh/thành
- */
 function parseLocationString(locationString = "") {
-  let detail = "";
-  let communeName = "";
-  let districtName = "";
-  let provinceName = "";
-  // Tách theo dấu phẩy, bỏ khoảng trắng 2 bên
-  const parts = locationString.split(",").map(part => part.trim());
-  for (const part of parts) {
-    const lower = part.toLowerCase();
-    if (lower.includes("xã") || lower.includes("phường") || lower.includes("thị trấn")) {
-      communeName = part.replace(/(xã|phường|thị trấn)/i, "").trim();
-    } else if (lower.includes("huyện") || lower.includes("quận") || lower.includes("thị xã")) {
-      districtName = part.replace(/(huyện|quận|thị xã)/i, "").trim();
-    } else if (lower.includes("tỉnh") || lower.includes("thành phố") || lower.includes("tp")) {
-      provinceName = part.replace(/(tỉnh|thành phố|tp)/i, "").trim();
-    } else {
-      detail = part.trim();
-    }
-  }
+  const parts = locationString.split(",").map(p => p.trim());
+  // Lấy ra từ phải sang trái
+  const provinceName = parts[parts.length - 1] || "";
+  const districtName = parts[parts.length - 2] || "";
+  const communeName  = parts[parts.length - 3] || "";
+  // Còn lại (các phần đầu) ghép lại thành detail
+  const detailParts  = parts.slice(0, parts.length - 3);
+  const detail       = detailParts.join(", ");
+
   return { detail, communeName, districtName, provinceName };
 }
+
 
 
 /** Tìm province theo tên (so sánh đơn giản, toLowerCase + includes) */

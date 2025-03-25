@@ -16,6 +16,8 @@ import EditRequestScreen from "../screens/request/EditRequestScreen";
 import Layout from "./Layout";
 import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
 import ManageProfileScreen from "../screens/user/ManageProfileScreen.jsx";
+import ChangeProfileModal from "../components/ChangeProfileForm/ChangeProfileModal.jsx";
+import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
 
 <Route path="/create-post" element={<CreatePostPage />} />
 
@@ -47,6 +49,8 @@ const AppRoutes = () => {
                         </Route>
                         <Route path="user">
                             <Route path="manage-profile/:keyTab" element={<ManageProfileScreen />} />
+                            <Route path="change-profile" element={<ChangeProfileModal />} />
+                            <Route path="change-password" element={<ChangePasswordModal />} />
                         </Route>
                     </Route>
                 </Route>

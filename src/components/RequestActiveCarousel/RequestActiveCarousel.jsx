@@ -13,28 +13,19 @@ import provinceCoordinates from "./provinceCoordinates";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Hàm parse location
 function parseLocationString(locationString = "") {
-  let detail = "";
-  let communeName = "";
-  let districtName = "";
-  let provinceName = "";
-  // Tách theo dấu phẩy, bỏ khoảng trắng 2 bên
-  const parts = locationString.split(",").map(part => part.trim());
-  for (const part of parts) {
-    const lower = part.toLowerCase();
-    if (lower.includes("xã") || lower.includes("phường") || lower.includes("thị trấn")) {
-      communeName = part.replace(/(xã|phường|thị trấn)/i, "").trim();
-    } else if (lower.includes("huyện") || lower.includes("quận") || lower.includes("thị xã")) {
-      districtName = part.replace(/(huyện|quận|thị xã)/i, "").trim();
-    } else if (lower.includes("tỉnh") || lower.includes("thành phố") || lower.includes("tp")) {
-      provinceName = part.replace(/(tỉnh|thành phố|tp)/i, "").trim();
-    } else {
-      detail = part.trim();
-    }
-  }
+  const parts = locationString.split(",").map(p => p.trim());
+  // Lấy ra từ phải sang trái
+  const provinceName = parts[parts.length - 1] || "";
+  const districtName = parts[parts.length - 2] || "";
+  const communeName  = parts[parts.length - 3] || "";
+  // Còn lại (các phần đầu) ghép lại thành detail
+  const detailParts  = parts.slice(0, parts.length - 3);
+  const detail       = detailParts.join(", ");
+
   return { detail, communeName, districtName, provinceName };
 }
+
 
 
 // Hàm normalize
@@ -253,7 +244,13 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
            <Flex vertical='true'>
         <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Active requests</b>
       </Flex>
-          <MapContainer center={[21.0285, 105.8542]} zoom={8} style={{ height: "500px", width: "100%" }}>
+          <MapContainer 
+              center={[16.0471, 108.2062]} // Trung tâm VN (Đà Nẵng)
+              zoom={6} 
+              style={{ height: "500px", width: "100%" }}
+              maxBounds={[[8.0, 102.0], [23.5, 110.5]]} // Giới hạn phạm vi VN
+              maxBoundsViscosity={1.0} // Ngăn kéo bản đồ ra khỏi VN
+            > 
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {Object.keys(requestsByProvince).map((provKey) => {
               const coord = provinceCoordinates[provKey];
