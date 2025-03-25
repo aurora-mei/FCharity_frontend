@@ -98,14 +98,11 @@ const requestSlice = createSlice({
             })
             .addCase(updateRequest.fulfilled, (state, action) => {
                 state.loading = false;
-
                 state.requestsByUserId = state.requestsByUserId.map(req =>
-                    req.request.id === action.payload.request.id ? action.payload : req
+                    req.helpRequest.id === action.payload.helpRequest.id ? action.payload : req
                 );
-
                 state.currentRequest = action.payload;
             })
-
             .addCase(updateRequest.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
@@ -115,7 +112,7 @@ const requestSlice = createSlice({
             })
             .addCase(deleteRequest.fulfilled, (state, action) => {
                 state.loading = false;
-                state.requests = state.requests.filter(request => request.id !== action.payload);
+                state.requests = state.requests.filter(helpRequest => helpRequest.id !== action.payload);
             })
             .addCase(deleteRequest.rejected, (state, action) => {
                 state.loading = false;

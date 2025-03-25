@@ -27,10 +27,22 @@ const RequestDetailScreen = () => {
   const requestData = useSelector((state) => state.request.currentRequest);
   const error = useSelector((state) => state.request.error);
   const [expanded, setExpanded] = useState(false);
+  const storedUser = localStorage.getItem("currentUser");
+    let currentUser = {};
 
+    try {
+        currentUser = storedUser ? JSON.parse(storedUser) : {};
+    } catch (error) {
+        console.error("Error parsing currentUser from localStorage:", error);
+    }
+    
   useEffect(() => {
     dispatch(fetchRequestById(id));
   }, [dispatch, id]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (loading) return <LoadingModal />;
 
@@ -42,7 +54,7 @@ const RequestDetailScreen = () => {
     );
   }
 
-  if (!requestData || !requestData.request) {
+  if (!requestData || !requestData.helpRequest) {
     return (
       <div className="request-detail-page">
         <Alert message="Error" description="Request not found" type="error" showIcon />
@@ -51,8 +63,8 @@ const RequestDetailScreen = () => {
   }
 
   // Lấy data
-  const { request, requestTags } = requestData;
-  const { user } = request || {};
+  const { helpRequest, requestTags } = requestData;
+  const { user } = helpRequest || {};
 
   // Lọc ảnh/video (nếu backend trả về attachments)
   const imageUrls = requestData.attachments?.filter((url) =>
@@ -77,7 +89,7 @@ const RequestDetailScreen = () => {
           items={items} />
         <Flex vertical gap={10} className="request-detail">
           {/* Tiêu đề */}
-          <Title level={3} className="request-title">Churchtown Playground {request.title}</Title>
+          <Title level={3} className="request-title">{helpRequest.title}</Title>
 
           {/* Carousel ảnh/video ngay dưới tiêu đề */}
           {(imageUrls.length > 0 || videoUrls.length > 0) && (
@@ -95,7 +107,7 @@ const RequestDetailScreen = () => {
                 ))}
               </Carousel>
               <span className="category-badge">
-                {request.category.categoryName}
+                {helpRequest.category.categoryName}
               </span>
             </div>
           )}
@@ -104,11 +116,11 @@ const RequestDetailScreen = () => {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <UserOutlined style={{ fontSize: 24 }} />
             <div>
-              <strong>{request.user.fullName}</strong> <br />
+              <strong>{helpRequest.user.fullName}</strong> <br />
               <div style={{ fontSize: 10, marginTop: 5 }}>
-                <strong>Phone:</strong> {request.phone} <br />
-                <strong>Email:</strong> {request.email} <br />
-                <strong>Location:</strong> {request.location}
+                <strong>Phone:</strong> {helpRequest.phone} <br />
+                <strong>Email:</strong> {helpRequest.email} <br />
+                <strong>Location:</strong> {helpRequest.location}
               </div>
 
               {/* <p style={{ margin: 0, color: "#666" }}>Churchtown Primary School and David Clayton are organizing this fundraiser.</p> */}
@@ -134,7 +146,7 @@ const RequestDetailScreen = () => {
 
           {/* Nội dung gây quỹ */}
           {/* <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "Read more" }}>{request.content}</Paragraph> */}
-          {expanded ? <Paragraph>{`${request.content}`} </Paragraph> : <Paragraph>{`${request.content.substring(0, 800)}...`}</Paragraph>}
+          {expanded ? <Paragraph>{`${helpRequest.content}`} </Paragraph> : <Paragraph>{`${helpRequest.content.substring(0, 800)}...`}</Paragraph>}
           <a style={{ fontSize: "0.9rem", color: "gray" }} onClick={() => setExpanded(!expanded)}>
             {expanded ? "Read Less" : "Read More"}
           </a>
@@ -155,9 +167,11 @@ const RequestDetailScreen = () => {
 
           {/* Nút Donate & Share */}
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+          {currentUser.id !== requestData.helpRequest.user.id && (
             <Button type="default" block style={{ flex: 1 }}>
               Register
             </Button>
+          )}
             <Button type="default" block style={{ flex: 1 }}>
               Share
             </Button>
@@ -166,7 +180,7 @@ const RequestDetailScreen = () => {
         </Flex>
 
       </Flex>
-      <RequestActiveCarousel />
+      <RequestActiveCarousel search={false} map={false} />
     </Flex>
   );
 };

@@ -5,6 +5,7 @@ import categoryReducer from './category/categorySlice';
 import tagReducer from './tag/tagSlice';
 import helperReducer from './helper/helperSlice';
 import postReducer from './post/postSlice';
+import userReducer from './user/userSlice';
 
 const reducer = combineReducers({
     auth: authReducer,
@@ -13,6 +14,7 @@ const reducer = combineReducers({
     tag: tagReducer,
     helper: helperReducer,
     post: postReducer,
+    user: userReducer
 });
 
 export const store = configureStore({

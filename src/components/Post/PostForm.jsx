@@ -128,16 +128,31 @@ const onFinish = async (values) => {
             >
                 <Input.TextArea rows={4} placeholder="Enter post content" />
             </Form.Item>
+            <Form.Item 
+    className="select-multiple" 
+    label="Tags" 
+    name="tagIds" 
+    rules={[{ required: true, message: "At least one tag is required" }]}
+>
+    <Select
+        mode="multiple"
+        placeholder="Select tags"
+        allowClear
+        onChange={(selectedTags) => {
+            if (selectedTags.length > 5) {
+                message.warning("You can select up to 5 tags only.");
+                form.setFieldsValue({ tagIds: selectedTags.slice(0, 5) });
+            }
+        }}
+    >
+        {Array.isArray(tags) && tags.map(tag => (
+            <Option key={tag.id} value={tag.id}>
+                {tag.tagName}
+            </Option>
+        ))}
+    </Select>
+</Form.Item>
 
-            <Form.Item className="select-multiple" label="Tags" name="tagIds" rules={[{ required: true, message: "At least one tag is required" }]}>
-                                        <Select mode="multiple" placeholder="Select tags" allowClear>
-                                            {Array.isArray(tags) && tags.map(tag => (
-                                                <Option key={tag.id} value={tag.id}>
-                                                    {tag.tagName}
-                                                </Option>
-                                            ))}
-                                        </Select>
-                                    </Form.Item>
 
              <Form.Item label="Images" name="images">
                                         <Upload

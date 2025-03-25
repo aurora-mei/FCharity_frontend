@@ -25,37 +25,29 @@ const Navbar = () => {
         currentUser = {};
     }
 
-    const dispatch = useDispatch();
-    useEffect(() => {
-        console.log("---Navbar---");
-        console.log("token: ", token);
-        console.log("currentUser:", currentUser);
-    }, [currentUser]);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    console.log("---Navbar---");
+    console.log("token: ", token);
+    console.log("currentUser:", currentUser);
+  }, [currentUser]);
 
-    const logout = async () => {
-        dispatch(logOut());
-        window.location.reload();
-    }
+  const logout = async () => {
+    dispatch(logOut());
+    window.location.reload();
+  };
 
     const items = [
         {
             key: '1',
             label: (
-                <a target="_blank" rel="noopener noreferrer" href="https://www.antgroup.com">
-                    Profile
+                <a rel="noopener noreferrer" href="/user/manage-profile/profile">
+                    User Dashboard
                 </a>
             ),
         },
         {
             key: '2',
-            label: (
-                <a rel="noopener noreferrer" href="/requests/myrequests">
-                    My Request
-                </a>
-            ),
-        },
-        {
-            key: '3',
             label: (
                 <a onClick={logout}>
                     Sign out
@@ -83,8 +75,6 @@ const Navbar = () => {
                         >
                             Forum
                         </Button>
-
-
                     </Flex>
                 </Col>
                 <Col span={8}>
@@ -120,8 +110,9 @@ const Navbar = () => {
                         )}
                         <Button type="primary" shape="round" className='request-btn' onClick={() => navigate("/requests/create")}>
                             <b>Start a request</b>
+                            {t('startRequest', 'Start a request')}
                         </Button>
-                        {/* <Flex vertical>
+                        <Flex vertical>
                             {Object.keys(lngs).map((lng) => (
                                 <button key={lng} style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }} type="submit" onClick={() => {
                                     i18n.changeLanguage(lng);
@@ -130,7 +121,7 @@ const Navbar = () => {
                                     {lngs[lng].nativeName}
                                 </button>
                             ))}
-                        </Flex>  */}
+                        </Flex>
                     </Flex>
                 </Col>
             </Row>
