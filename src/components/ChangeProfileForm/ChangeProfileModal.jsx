@@ -341,7 +341,9 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
         <Form.Item
           label="Address"
           name="address"
-          rules={[{ required: true, message: "Address is required" }]}
+          rules={[{ required: true, message: "Address is required" },
+          { pattern: /^[^,]*$/, message: "Address should not contain comma" }
+          ]}          
         >
           <Input placeholder="Enter street address" />
         </Form.Item>

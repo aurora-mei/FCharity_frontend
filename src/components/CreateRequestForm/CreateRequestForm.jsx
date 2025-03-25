@@ -419,9 +419,17 @@ const CreateRequestForm = () => {
             </Form.Item>
 
             {/* Địa chỉ chi tiết (số nhà, tên đường) */}
-            <Form.Item label="Address" name="location" rules={[{ required: true, message: "Location is required" }]}>
+            <Form.Item 
+              label="Address" 
+              name="location" 
+              rules={[
+                { required: true, message: "Address is required" },
+                { pattern: /^[^,]*$/, message: "Address should not contain commas" }
+              ]}
+            >
               <Input />
             </Form.Item>
+
 
             {/* Upload Images */}
             <Form.Item
