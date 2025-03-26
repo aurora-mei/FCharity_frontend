@@ -42,20 +42,6 @@ export const getCurrentUser = createAsyncThunk(
   }
 );
 
-export const getManagedOrganizations = createAsyncThunk(
-  "auth/getManagedOrganizations",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getManagedOrganizations();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Failed to fetch managed organizations"
-      );
-    }
-  }
-);
-
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -108,18 +94,6 @@ export const authSlice = createSlice({
       .addCase(logOut.fulfilled, (state) => {
         state.token = "";
         state.currentUser = {};
-      })
-      .addCase(getManagedOrganizations.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getManagedOrganizations.fulfilled, (state, action) => {
-        state.loading = false;
-        state.managedOrganizations = action.payload;
-      })
-      .addCase(getManagedOrganizations.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
       });
   },
 });
