@@ -6,7 +6,7 @@ import AppFooter from "../components/AppFooter/AppFooter";
 const Layout = () => {
     return (
         <div>
-            <Navbar />
+            <Navbar/>
             <main>
                 <Outlet />
             </main>

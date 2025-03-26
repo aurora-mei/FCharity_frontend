@@ -6,20 +6,13 @@ import moment from "moment";
 
 const { Paragraph } = Typography;
 
-const tagStyle = {
-    display: "inline-flex",
-    alignItems: "center",
-    border: "1px solid #065f46",
-    backgroundColor: "#d1fae5",
-    color: "#065f46",
-    padding: "2px 8px",
-    borderRadius: "999px",
-    fontWeight: 600,
-    fontSize: "0.6rem"
-};
 
 const Post = ({ currentPost }) => {
     const navigate = useNavigate();
+
+    // State cho việc chỉnh sửa comment
+    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [editingContent, setEditingContent] = useState("");
 
     useEffect(() => {
         console.log("Dữ liệu nhận được:", currentPost);
@@ -29,11 +22,14 @@ const Post = ({ currentPost }) => {
         return <Card bordered={false}>Loading...</Card>;
     }
 
-    const { title, createdAt, vote, content } = currentPost.post;
+    // Lấy dữ liệu bài post
+    const { title, createdAt, vote, content, tags } = currentPost.post;
+    // Giả sử thông tin người đăng nằm trong currentPost.post.user
     const { user } = currentPost.post;
     const attachments = currentPost?.attachments || [];
     const initialComments = currentPost?.comments || [];
 
+    // State quản lý comment
     const [newComment, setNewComment] = useState("");
     const [commentList, setCommentList] = useState(initialComments);
 
@@ -51,12 +47,60 @@ const Post = ({ currentPost }) => {
         setNewComment("");
     };
 
-    const tagListData = currentPost?.taggables?.map(taggable => taggable.tag?.tagName) || [];
+    // Xử lý like cho bình luận
+    const handleLike = (id) => {
+        setCommentList(
+            commentList.map((comment) =>
+                comment.id === id ? { ...comment, likes: comment.likes + 1 } : comment
+            )
+        );
+    };
+
+    // Xử lý reply cho bình luận (demo: console log)
+    const handleReply = (id) => {
+        console.log("Reply to comment id:", id);
+    };
+
+    // Xử lý xóa bình luận
+    const handleDelete = (id) => {
+        setCommentList(commentList.filter((comment) => comment.id !== id));
+    };
+
+    // Bắt đầu chỉnh sửa bình luận
+    const handleEdit = (comment) => {
+        setEditingCommentId(comment.id);
+        setEditingContent(comment.content);
+    };
+
+    // Lưu nội dung chỉnh sửa
+    const handleSaveEdit = (id) => {
+        setCommentList(
+            commentList.map((comment) =>
+                comment.id === id ? { ...comment, content: editingContent } : comment
+            )
+        );
+        setEditingCommentId(null);
+        setEditingContent("");
+    };
+
+    // Menu dropdown cho các hành động: Delete, Update, Report
+    const menu = (comment) => (
+        <Menu>
+            <Menu.Item onClick={() => handleDelete(comment.id)}>Delete</Menu.Item>
+            <Menu.Item onClick={() => handleEdit(comment)}>Update</Menu.Item>
+            <Menu.Item onClick={() => console.log("Report comment id:", comment.id)}>
+                Report
+            </Menu.Item>
+        </Menu>
+    );
 
     // Tách ảnh & video từ attachments
-    const imageUrls = attachments.filter(url => url.match(/\.(jpeg|jpg|png|gif)$/i)) || [];
-    const videoUrls = attachments.filter(url => url.match(/\.(mp4|webm|ogg)$/i)) || [];
+    const imageUrls =
+        attachments.filter((url) => url.match(/\.(jpeg|jpg|png|gif)$/i)) || [];
+    const videoUrls =
+        attachments.filter((url) => url.match(/\.(mp4|webm|ogg)$/i)) || [];
 
+    // Cài đặt Carousel
     const carouselSettings = {
         arrows: true,
         infinite: true,
@@ -65,8 +109,18 @@ const Post = ({ currentPost }) => {
         slidesToScroll: 1,
     };
 
+    // Xử lý kiểu dữ liệu của tags: nếu là chuỗi, chuyển thành mảng; nếu là mảng, dùng luôn
+    let tagList = [];
+    if (typeof tags === "string") {
+        tagList = tags.split(",").map((tag) => tag.trim());
+    } else if (Array.isArray(tags)) {
+        tagList = tags;
+    }
+    console.log("Tags sau khi xử lý:", tagList);
+
     return (
         <Card bordered={false} style={{ maxWidth: 800, margin: "auto", marginTop: 20 }}>
+            {/* Header: Avatar, tên người đăng và ngày giờ */}
             <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
                 <Avatar
                     src={user && user.avatar ? user.avatar : "https://via.placeholder.com/40"}
@@ -82,16 +136,24 @@ const Post = ({ currentPost }) => {
                 </div>
             </div>
 
+            {/* Tiêu đề bài post */}
             <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</h2>
 
+            {/* Hiển thị Tags */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-                {tagListData.map((tag, index) => (
-                    <Tag key={index} style={tagStyle}>#{tag}</Tag>
+                {tagList.map((tag, index) => (
+                            <span key={tag.id}>
+                                <div className="donation-badge">
+                                    {tag.tag.tagName}
+                                </div>
+                            </span>
                 ))}
             </div>
 
+            {/* Nội dung bài post */}
             <Paragraph>{content}</Paragraph>
 
+            {/* Ảnh / Video nếu có */}
             {attachments.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                     <Carousel {...carouselSettings}>
@@ -109,6 +171,30 @@ const Post = ({ currentPost }) => {
                 </div>
             )}
 
+            {/* Like - Comment - Share */}
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 16,
+                    color: "#6b7280",
+                    fontSize: 14,
+                }}
+            >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <LikeOutlined style={{ cursor: "pointer" }} />
+                    <span>{vote}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <MessageOutlined style={{ cursor: "pointer" }} />
+                    <span>{commentList.length}</span>
+                    <ShareAltOutlined style={{ cursor: "pointer" }} />
+                    <span>Share</span>
+                </div>
+            </div>
+
+            {/* Form nhập comment */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
                 <Avatar src="https://via.placeholder.com/40" />
                 <Input
@@ -121,10 +207,14 @@ const Post = ({ currentPost }) => {
                     type="primary"
                     icon={<SendOutlined />}
                     onClick={handleCommentSubmit}
-                    style={{ backgroundColor: "#1890ff", borderColor: "#1890ff" }}
+                    style={{
+                        backgroundColor: "#1890ff",
+                        borderColor: "#1890ff",
+                    }}
                 />
             </div>
 
+            {/* Danh sách bình luận */}
             <List
                 itemLayout="vertical"
                 dataSource={commentList}
@@ -141,8 +231,51 @@ const Post = ({ currentPost }) => {
                                     </div>
                                 </div>
                             }
-                            description={<Paragraph style={{ marginBottom: 8 }}>{comment.content}</Paragraph>}
+                            description={
+                                editingCommentId === comment.id ? (
+                                    <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                                        <Input
+                                            value={editingContent}
+                                            onChange={(e) => setEditingContent(e.target.value)}
+                                            style={{ flex: 1 }}
+                                        />
+                                        <Button
+                                            type="primary"
+                                            onClick={() => handleSaveEdit(comment.id)}
+                                            style={{
+                                                backgroundColor: "#1890ff", // Màu nền xanh giống nút Send
+                                                borderColor: "#1890ff",
+                                            }}
+                                        >
+                                            Save
+                                        </Button>
+
+                                        <Button
+                                            onClick={() => {
+                                                setEditingCommentId(null);
+                                                setEditingContent("");
+                                            }}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Paragraph style={{ marginBottom: 8 }}>{comment.content}</Paragraph>
+                                )
+                            }
                         />
+                        {/* Các hành động Like, Reply, More */}
+                        <div style={{ display: "flex", gap: 12, fontSize: 14, color: "#6b7280" }}>
+              <span onClick={() => handleLike(comment.id)} style={{ cursor: "pointer" }}>
+                <LikeOutlined /> {comment.likes}
+              </span>
+                            <span onClick={() => handleReply(comment.id)} style={{ cursor: "pointer" }}>
+                Reply
+              </span>
+                            <Dropdown overlay={menu(comment)} trigger={["click"]}>
+                                <MoreOutlined style={{ cursor: "pointer" }} />
+                            </Dropdown>
+                        </div>
                     </List.Item>
                 )}
             />
