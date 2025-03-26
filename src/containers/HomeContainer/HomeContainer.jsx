@@ -1,22 +1,25 @@
 import React from 'react';
 import './HomeContainer.pcss';
 import Banner from "../../components/Banner/Banner";
-import Navbar from "../../components/Navbar/Navbar";
 import Noting from "../../components/Noting/Noting";
 import FundraiserBoard from "../FundraiserBoard/FundraiserBoard";
-import AppFooter from "../../components/AppFooter/AppFooter";
 import EventBoard from "../EventBoard/EventBoard";
 import ForumBoard from "../ForumBoard/ForumBoard";
 import NotingGreen from "../../components/NotingGreen/NotingGreen";
+import RequestListScreen from "../../screens/request/RequestListScreen";
+import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
 import { Flex } from 'antd';
+import { useTranslation, Trans } from 'react-i18next';
+
 const HomeContainer = () => {
+    const { t, i18n } = useTranslation();
     return (
         <div >
             <Flex vertical='true' className='home-upper'>
-                <Navbar />
                 <Banner />
                 <Noting />
                 <Flex vertical='true' gap='4rem' style={{ margin: '4rem 10rem' }}>
+                    <RequestActiveCarousel />
                     <FundraiserBoard />
                     <EventBoard />
                 </Flex>
@@ -30,7 +33,6 @@ const HomeContainer = () => {
                     <ForumBoard />
                 </Flex>
                 <NotingGreen message='FCharity – Connecting Hearts, Changing Lives' bgColor='#012D19' style={{ color: 'white', padding: '10rem 0', fontSize: '2rem', fontWeight: 'bold', fontStyle: 'italic' }} />
-                <AppFooter />
             </Flex>
         </div>
     )

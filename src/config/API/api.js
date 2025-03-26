@@ -18,10 +18,6 @@ export const APIPrivate = axios.create({
 // ✅ Get state dynamically inside interceptor
 APIPrivate.interceptors.request.use(
   async (config) => {
-    // const storeModule = await import("../../redux/store"); // ✅ Dùng dynamic import
-    // const store = storeModule.default;
-    // const token = store.getState().auth.token;
-
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -36,10 +32,16 @@ APIPrivate.interceptors.request.use(
 
 APIPrivate.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/auth/login";
+  async (error) => {
+    if (error.response?.status === 403) {
+      const refreshToken = localStorage.getItem("refreshToken");
+      const response = await API.post("auth/refresh", { refreshToken });
+      console.log("Refresh token response: ", response);
+      if (response.status === 200) {
+        localStorage.setItem("token", response.data.token);
+        error.config.headers["Authorization"] = `Bearer ${response.data.token}`;
+        return APIPrivate.request(error.config);
+      }
     }
     return Promise.reject(error);
   }

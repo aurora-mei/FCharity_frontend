@@ -3,15 +3,12 @@ import { Form, Input, Button, Checkbox, Typography, Flex } from "antd";
 import { EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
-import "./SignupForm.pcss";
-import LoadingModal from "../LoadingModal/LoadingModal"; // Import LoadingScreen
+import LoadingModal from "../LoadingModal"; // Import LoadingScreen
 import useLoading from "../../hooks/useLoading"; // Import useLoading hook
 import PasswordRequirement from "../PasswordRequirement/PasswordRequirement";
 import { useSelector, useDispatch } from 'react-redux'
 import { signUp } from '../../redux/auth/authSlice';
 import { useNavigate } from "react-router-dom";
-// import { useState } from 'react';
-
 const { Title, Text } = Typography;
 
 const SignupForm = () => {
@@ -20,9 +17,14 @@ const SignupForm = () => {
     const loadingUI = useLoading(); // Gọi hook kiểm soát trạng thái loading
     const loading = useSelector((state) => state.auth.loading);
     const onFinish = async (values) => {
-        console.log("Form Values:", values);
-        await dispatch(signUp(values)).unwrap(); // unwrap() để xử lý Promise từ createAsyncThunk
-        navigate('/auth/otp-verification', { replace: true });
+        try {
+            console.log("Form Values:", values);
+            await dispatch(signUp(values)).unwrap(); // unwrap() để xử lý Promise từ createAsyncThunk
+            navigate('/auth/otp-verification', { replace: true });
+        } catch (error) {
+            console.error("Sigup error:", error);
+            alert(error.message);
+        }
     };
 
     if (loadingUI || loading) return <LoadingModal />;
@@ -55,7 +57,6 @@ const SignupForm = () => {
                             label="Email Address"
                             name="email"
                             rules={[{ required: true, type: "email", message: "Please enter a valid email" }]}
-                            initialValue="huyenhyomin@gmail.com"
                         >
                             <Input />
                         </Form.Item>
@@ -63,21 +64,22 @@ const SignupForm = () => {
                         <Form.Item
                             label="Password"
                             name="password"
-                            rules={[{ required: true, message: "Password is required" }
-                                // ,
-                                // { min: 8, message: "Password must be at least 8 characters" }, // Độ dài tối thiểu
-                                // {
-                                //     pattern: /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-                                //     message: "Must include uppercase, number & special character"
-                                // }
-                            ]}
-                        >
-                            <Input.Password
-                                iconRender={(visible) =>
-                                    visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
-                                }
-                            />
-                        </Form.Item>
+                    rules={[
+        { required: true, message: "Password is required" },
+        { min: 8, message: "Password must be at least 8 characters" },
+        {
+            pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+            message: "Password must include at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (@$!%*?&)"
+        }
+    ]}
+>
+    <Input.Password
+        iconRender={(visible) =>
+            visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+        }
+    />
+</Form.Item>
+
                         <PasswordRequirement />
                         <Form.Item>
                             <Checkbox>Receive tips and updates about fundraisers</Checkbox>

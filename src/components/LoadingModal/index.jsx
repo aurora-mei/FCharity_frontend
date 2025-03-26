@@ -1,5 +1,4 @@
 import { Flex, Spin } from "antd";
-import "./LoadingModal.pcss";
 const LoadingModal = () => {
     return (
         <Flex justify="center" align="center" style={{ minHeight: "100vh" }}>

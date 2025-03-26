@@ -3,6 +3,8 @@ import organizationApi from "./organizationApi.js";
 
 const initialState = {
   organizations: [],
+  managedOrganizations: [],
+  selectedOrganization: null,
   requests: [],
   currentOrganization: null,
   members: [],
@@ -320,7 +322,11 @@ export const donate = createAsyncThunk(
 export const organizationSlice = createSlice({
   name: "organization",
   initialState,
-  reducers: {},
+  reducers: {
+    setSelectedOrganization: (state, action) => {
+      state.selectedOrganization = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getAllOrganizations.pending, (state) => {
@@ -516,4 +522,5 @@ export const organizationSlice = createSlice({
   },
 });
 
+export const { setSelectedOrganization } = organizationSlice.actions;
 export default organizationSlice.reducer;

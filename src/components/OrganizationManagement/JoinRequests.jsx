@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import {
   getAllJoinRequestByOrganizationId,
   updateJoinRequest,
-} from "../../redux/request/requestSlice";
+} from "../../redux/organization/organizationSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 const JoinRequests = ({ organizationId }) => {

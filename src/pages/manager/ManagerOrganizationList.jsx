@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
-import { setSelectedOrganization } from "../../redux/auth/authSlice";
+import { setSelectedOrganization } from "../../redux/organization/organizationSlice";
 
 const ManagerOrganizationList = ({ managedOrganizations }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { selectedOrganization } = useSelector((state) => state.auth);
+  const { selectedOrganization } = useSelector((state) => state.organization);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");

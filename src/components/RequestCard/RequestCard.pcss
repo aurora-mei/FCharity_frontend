@@ -1,0 +1,91 @@
+
+.request-card {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    /* Thêm các dòng dưới để cố định chiều cao */
+    min-height: 300px; /* hoặc giá trị tuỳ ý, ví dụ 400px */
+    display: flex;
+    flex-direction: column; /* chia card thành header/body/footer theo chiều dọc */
+    justify-content: space-between; /* footer (nút) đẩy xuống dưới */
+}
+
+
+.request-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.request-card-title {
+    margin: 0;
+}
+
+.request-card-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.request-card-actions .edit-button,
+.request-card-actions .delete-button {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.request-card-actions .edit-button {
+    color: black;
+    border-color: black;
+}
+
+.request-card-actions .delete-button {
+    color: red;
+    border-color: red;
+}
+
+.request-btn {
+    font-size: 1.1rem;
+    border: 1px solid black;
+    color: black;
+    background-color: transparent;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+.donation-badge {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #065f46; /* Viền xanh đậm */
+    background-color: #d1fae5; /* Nền xanh nhạt */
+    color: #065f46; /* Chữ xanh đậm */
+    padding: 2px 8px;
+    border-radius: 999px; /* Bo tròn */
+    font-weight: 600;
+    font-size: 0.6rem;
+  }
+  .tags{
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+  }
+  .category-badge{
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: #D8BFD8; 
+        color: #800080; 
+        padding: 3px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: bold;
+  }
+  .menu-badge{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #d8bfd817; 
+    color: black; 
+  }

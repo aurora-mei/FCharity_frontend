@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { logOut } from "../../redux/auth/authSlice";
 
-import { getManagedOrganizations } from "../../redux/auth/authSlice";
+import { getManagedOrganizations } from "../../redux/organization/organizationSlice";
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

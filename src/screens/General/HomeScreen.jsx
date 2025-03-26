@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+
 import HomeContainer from "../../containers/HomeContainer/HomeContainer";
 const HomeScreen = () => {
   return (

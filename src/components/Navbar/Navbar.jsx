@@ -1,24 +1,27 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchOutlined, CaretDownOutlined } from "@ant-design/icons";
-import { Affix, Button, Splitter, Flex, Space, Row, Col, Dropdown } from "antd";
+import { Affix, Button, Flex, Space, Row, Col, Dropdown } from "antd";
 import avatar from "../../assets/download (11).jpg";
 import { logOut } from "../../redux/auth/authSlice";
-import { useSelector, useDispatch } from "react-redux";
-import "./Navbar.pcss";
+import { useDispatch, useSelector } from "react-redux";
+import { useTranslation, Trans } from "react-i18next";
 
+const lngs = {
+  en: { nativeName: "English" },
+  ja: { nativeName: "Japan" },
+};
+import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 const Navbar = () => {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
   const currentUser = useSelector((state) => state.auth.currentUser);
   const dispatch = useDispatch();
-
   useEffect(() => {
-    // console.log("---Navbar---");
-    // console.log("token: ", token);
-    // console.log("currentUser:", currentUser);
+    console.log("---Navbar---");
+    console.log("token: ", token);
+    console.log("currentUser:", currentUser);
   }, [currentUser]);
-
   const logout = async () => {
     dispatch(logOut());
     window.location.reload();
