@@ -377,6 +377,18 @@ const CreateRequestForm = () => {
               <Input />
             </Form.Item>
 
+            {/* Địa chỉ chi tiết (số nhà, tên đường) */}
+            <Form.Item 
+              label="Address" 
+              name="location" 
+              rules={[
+                { required: true, message: "Address is required" },
+                { pattern: /^[^,]*$/, message: "Address should not contain commas" }
+              ]}
+            >
+              <Input />
+            </Form.Item>
+
             {/* Province */}
             <Form.Item label="Province" name="province" rules={[{ required: true, message: "Province is required" }]}>
               <Select placeholder="Select Province" onChange={handleProvinceChange}>
@@ -416,11 +428,6 @@ const CreateRequestForm = () => {
                   </Option>
                 ))}
               </Select>
-            </Form.Item>
-
-            {/* Địa chỉ chi tiết (số nhà, tên đường) */}
-            <Form.Item label="Address" name="location" rules={[{ required: true, message: "Location is required" }]}>
-              <Input />
             </Form.Item>
 
             {/* Upload Images */}

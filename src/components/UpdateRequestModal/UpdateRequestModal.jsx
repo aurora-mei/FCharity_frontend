@@ -267,7 +267,9 @@ const UpdateRequestModal = ({
         <Form.Item
           label="Address"
           name="location"
-          rules={[{ required: true, message: "Location is required" }]}
+          rules={[{ required: true, message: "Address is required" },
+          { pattern: /^[^,]*$/, message: "Address should not contain comma" }
+          ]}
         >
           <Input />
         </Form.Item>
