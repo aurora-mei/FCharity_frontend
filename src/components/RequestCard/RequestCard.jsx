@@ -35,6 +35,10 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
     // Xử lý xóa
     const handleDelete = async (id) => {
+        if (requestData.helpRequest.status !== "pending") {
+            message.warning("Only Pending requests can be deleted.");
+            return;
+        }
         try {
             console.log("Deleting request with ID:", id);
             await dispatch(deleteRequest(id)).unwrap();
@@ -45,9 +49,14 @@ const RequestCard = ({ requestData, showActions = true }) => {
             message.error("Failed to delete request: " + (error.message || "Unknown error"));
         }
     };
+    
 
     // Mở modal Edit
     const handleEdit = (data) => {
+        if (data.helpRequest.status !== "pending") {
+            message.warning("Only Pending requests can be edited.");
+            return;
+        }
         setCurrentRequestData(data);
         setIsModalVisible(true);
 

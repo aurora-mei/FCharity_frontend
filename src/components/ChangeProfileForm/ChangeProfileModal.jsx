@@ -347,37 +347,6 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
             ))}
           </Select>
         </Form.Item>
-
-        <Form.Item label="Avatar URL" name="avatar">
-          <Input placeholder="Avatar URL" disabled />
-        </Form.Item>
-
-        <Form.Item>
-          <Upload
-            multiple={false}
-            listType="picture"
-            beforeUpload={() => false}
-            accept="image/*"
-            onChange={handleAvatarChange}
-            defaultFileList={
-              avatarUrl
-                ? [
-                    {
-                      uid: "-1",
-                      name: "avatar.png",
-                      status: "done",
-                      url: avatarUrl,
-                    },
-                  ]
-                : []
-            }
-          >
-            <Button icon={<UploadOutlined />} loading={uploading}>
-              Upload Avatar
-            </Button>
-          </Upload>
-        </Form.Item>
-
         <Form.Item>
           <Button
             type="primary"

@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Modal, Form, Input, Button, message } from "antd";
 import { useDispatch } from "react-redux";
-import { changePassword } from "../../redux/auth/authSlice";
+import { changePassword, logOut } from "../../redux/auth/authSlice"; // import logOut action if available
+import { useNavigate } from "react-router-dom";
 
-const ChangePasswordModal = ({ visible, onCancel }) => {
+const ChangePasswordModal = ({ visible, onCancel, userHasPassword }) => {
   const [form] = Form.useForm();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
@@ -16,15 +18,21 @@ const ChangePasswordModal = ({ visible, onCancel }) => {
         message.error("User email not found, please login again.");
         return;
       }
-  
+
       const payload = {
-        email: storedUser.email, // Gửi email
-        oldPassword: values.oldPassword,
+        email: storedUser.email,
+        oldPassword: userHasPassword ? values.oldPassword : null, // Set to null if no existing password
         newPassword: values.newPassword,
       };
-  
+
       await dispatch(changePassword(payload)).unwrap();
-      message.success("✅ Password changed successfully!");
+      message.success("✅ Password changed successfully! Please login again.");
+
+      // Log out the user and redirect to login page
+      dispatch(logOut());
+      navigate("/auth/login", { replace: true });
+      
+      // Optionally, you can also call onCancel() if you want to close the modal before redirecting.
       onCancel();
     } catch (error) {
       message.error(error.response?.data?.message || "❌ Change password failed!");
@@ -32,41 +40,30 @@ const ChangePasswordModal = ({ visible, onCancel }) => {
       setLoading(false);
     }
   };
-  
 
   return (
     <Modal
-      title="Change Password"
+      title={userHasPassword ? "Change Password" : "Set Password"}
       visible={visible}
       onCancel={onCancel}
       footer={null}
       destroyOnClose
     >
       <Form form={form} onFinish={onFinish} layout="vertical">
-        <Form.Item
-          label="Old Password"
-          name="oldPassword"
-          rules={[{ required: true, message: "Please enter your old password" }]}
-        >
-          <Input.Password placeholder="Enter old password" />
-        </Form.Item>
+        {userHasPassword && (
+          <Form.Item
+            label="Old Password"
+            name="oldPassword"
+            rules={[{ required: true, message: "Please enter your old password" }]}
+          >
+            <Input.Password placeholder="Enter old password" />
+          </Form.Item>
+        )}
 
         <Form.Item
           label="New Password"
           name="newPassword"
-          rules={[
-            { required: true, message: "Please enter your new password" },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue("oldPassword") !== value) {
-                  return Promise.resolve();
-                }
-                return Promise.reject(
-                  new Error("New password must be different from old password")
-                );
-              },
-            }),
-          ]}
+          rules={[{ required: true, message: "Please enter your new password" }]}
         >
           <Input.Password placeholder="Enter new password" />
         </Form.Item>
@@ -91,14 +88,8 @@ const ChangePasswordModal = ({ visible, onCancel }) => {
         </Form.Item>
 
         <Form.Item>
-          <Button
-            className="continue-button"
-            type="primary"
-            htmlType="submit"
-            block
-            loading={loading}
-          >
-            Change Password
+          <Button className="continue-button" type="primary" htmlType="submit" block loading={loading}>
+            {userHasPassword ? "Change Password" : "Set Password"}
           </Button>
         </Form.Item>
       </Form>

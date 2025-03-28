@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { Layout, Card, Avatar, Button, Spin, Typography, Tabs, Space } from "antd";
+import React, { useEffect, useRef, useState } from "react";
+import { Layout, Card, Avatar, Button, Spin, Typography, Tabs, Space, Alert, message } from "antd";
 import { UserOutlined, EditOutlined } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
-import { getCurrentUser } from "../../redux/user/userSlice";
+import { getCurrentUser, updateProfile } from "../../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
 import ChangeProfileModal from "../../components/ChangeProfileForm/ChangeProfileModal";
 import ChangePasswordModal from "./ChangePasswordModal";
+import { uploadFileHelper } from "../../redux/helper/helperSlice";
 
 const { Content, Header } = Layout;
 const { Title, Text } = Typography;
@@ -14,10 +15,12 @@ const { TabPane } = Tabs;
 const MyProfileScreen = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [modalVisible, setModalVisible] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [pwdModalVisible, setPwdModalVisible] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
 
   // Get user from localStorage and backend
   useEffect(() => {
@@ -45,6 +48,45 @@ const MyProfileScreen = () => {
       setLoading(false);
     }
   }, [dispatch]);
+
+  const handleAvatarButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleAvatarFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await dispatch(uploadFileHelper(file, "images")).unwrap();
+      const newAvatarUrl = result.url || result;
+  
+      console.log("Sending update profile request with:", { ...currentUser, avatar: newAvatarUrl });
+  
+      await dispatch(updateProfile({ ...currentUser, avatar: newAvatarUrl })).unwrap();
+  
+      message.success("Avatar updated successfully!");
+  
+      // ✅ Cập nhật localStorage
+      const updatedUser = { ...currentUser, avatar: newAvatarUrl };
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+  
+      // 🔄 **Refresh lại trang**
+      setTimeout(() => {
+        window.location.reload();
+      }, 100); 
+  
+    } catch (error) {
+      console.error("Error updating avatar:", error);
+      message.error("Failed to update avatar");
+    } finally {
+      setUploading(false);
+    }
+  };
+  
+  
 
   if (loading || !currentUser) {
     return (
@@ -83,11 +125,10 @@ const MyProfileScreen = () => {
               <Button
                 type="primary"
                 className="continue-button"
-                onClick={() => setModalVisible(true)}
+                onClick={() => setProfileModalVisible(true)}
               >
                 <EditOutlined /> Edit Profile
-              </Button>
-              
+              </Button>,
               {currentUser.password !== null && (
                 <Button
                   className="continue-button"
@@ -96,8 +137,7 @@ const MyProfileScreen = () => {
                   Change Password
                 </Button>
               )}
-            </Space>
-            ,
+            </Space>,
           ]}
         >
           {/* Avatar and Basic Info */}
@@ -111,12 +151,30 @@ const MyProfileScreen = () => {
             <Title level={4} style={{ marginBottom: 0 }}>
               {currentUser.fullName}
             </Title>
+            <Button type="link" onClick={handleAvatarButtonClick} loading={uploading}>
+              {uploading ? "Uploading..." : "Change Avatar"}
+            </Button>
+            {/* Hidden file input for avatar upload */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              accept="image/*"
+              onChange={handleAvatarFileChange}
+            />
           </div>
           {/* Tabs for additional details */}
           <div style={{ flex: 1 }}>
             <Tabs defaultActiveKey="details">
               <TabPane tab="Personal details" key="details">
                 <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                  {currentUser.password === null && (
+                    <Alert
+                      message="You haven't set your password."
+                      type="error"
+                      showIcon
+                    />
+                  )}
                   <div>
                     <Text strong>Email:</Text> {currentUser.email}
                   </div>
@@ -138,14 +196,15 @@ const MyProfileScreen = () => {
 
       {/* Change Profile Modal */}
       <ChangeProfileModal
-        visible={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        visible={profileModalVisible}
+        onCancel={() => setProfileModalVisible(false)}
       />
 
       {/* Change Password Modal */}
       <ChangePasswordModal
         visible={pwdModalVisible}
         onCancel={() => setPwdModalVisible(false)}
+        userHasPassword={currentUser.password !== null}
       />
     </Layout>
   );
