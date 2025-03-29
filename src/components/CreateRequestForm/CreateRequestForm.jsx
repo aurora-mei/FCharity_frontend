@@ -18,14 +18,28 @@ const { Option } = Select;
    1) HÀM HỖ TRỢ PARSE ĐỊA CHỈ VÀ TÌM TỈNH/QUẬN/PHƯỜNG THEO TÊN
    --------------------------------------------------------- */
 
-// Tách địa chỉ thành 4 phần: detail, communeName, districtName, provinceName
+// Hàm parse location
 function parseLocationString(locationString = "") {
-  const parts = locationString.split(",").map((p) => p.trim());
-  const provinceName = parts[parts.length - 1] || "";
-  const districtName = parts[parts.length - 2] || "";
-  const communeName  = parts[parts.length - 3] || "";
+  const parts = locationString.split(",").map(p => p.trim());
+  
+  // If there are less than 3 parts, return what we can.
+  if(parts.length < 3) {
+    return { detail: locationString, communeName: "", districtName: "", provinceName: "" };
+  }
+  
+  const provincePart = parts[parts.length - 1];
+  const districtPart = parts[parts.length - 2];
+  const communePart  = parts[parts.length - 3];
   const detailParts  = parts.slice(0, parts.length - 3);
-  const detail       = detailParts.join(", ");
+  
+  const detail = detailParts.join(", ");
+  // For province, remove common prefixes (tỉnh, thành phố, tp)
+  const provinceName = provincePart.replace(/^(tỉnh|thành phố|tp)\s*/i, "").trim();
+  // For district, even if it contains "thành phố" keyword, treat it as district
+  const districtName = districtPart.replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "").trim();
+  // For commune, remove the commune keywords
+  const communeName  = communePart.replace(/^(xã|phường|thị trấn)\s*/i, "").trim();
+  
   return { detail, communeName, districtName, provinceName };
 }
 
@@ -426,6 +440,18 @@ const CreateRequestForm = () => {
               <Input />
             </Form.Item>
 
+            {/* Địa chỉ chi tiết (số nhà, tên đường) */}
+            <Form.Item 
+              label="Address" 
+              name="location" 
+              rules={[
+                { required: true, message: "Address is required" },
+                { pattern: /^[^,]*$/, message: "Address should not contain commas" }
+              ]}
+            >
+              <Input />
+            </Form.Item>
+
             {/* Province */}
             <Form.Item label="Province" name="province" rules={[{ required: true, message: "Province is required" }]}>
               <Select placeholder="Select Province" onChange={handleProvinceChange}>
@@ -465,11 +491,6 @@ const CreateRequestForm = () => {
                   </Option>
                 ))}
               </Select>
-            </Form.Item>
-
-            {/* Địa chỉ chi tiết (số nhà, tên đường) */}
-            <Form.Item label="Address" name="location" rules={[{ required: true, message: "Location is required" }]}>
-              <Input />
             </Form.Item>
 
             {/* Upload Images */}

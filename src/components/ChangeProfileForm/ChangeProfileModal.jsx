@@ -289,6 +289,16 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
         </Form.Item>
 
         <Form.Item
+          label="Address"
+          name="address"
+          rules={[{ required: true, message: "Address is required" },
+          { pattern: /^[^,]*$/, message: "Address should not contain comma" }
+          ]}          
+        >
+          <Input placeholder="Enter street address" />
+        </Form.Item>
+
+        <Form.Item
           label="Province"
           name="province"
           rules={[{ required: true, message: "Province is required" }]}
@@ -337,45 +347,6 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
             ))}
           </Select>
         </Form.Item>
-
-        <Form.Item
-          label="Address"
-          name="address"
-          rules={[{ required: true, message: "Address is required" }]}
-        >
-          <Input placeholder="Enter street address" />
-        </Form.Item>
-
-        <Form.Item label="Avatar URL" name="avatar">
-          <Input placeholder="Avatar URL" disabled />
-        </Form.Item>
-
-        <Form.Item>
-          <Upload
-            multiple={false}
-            listType="picture"
-            beforeUpload={() => false}
-            accept="image/*"
-            onChange={handleAvatarChange}
-            defaultFileList={
-              avatarUrl
-                ? [
-                    {
-                      uid: "-1",
-                      name: "avatar.png",
-                      status: "done",
-                      url: avatarUrl,
-                    },
-                  ]
-                : []
-            }
-          >
-            <Button icon={<UploadOutlined />} loading={uploading}>
-              Upload Avatar
-            </Button>
-          </Upload>
-        </Form.Item>
-
         <Form.Item>
           <Button
             type="primary"
