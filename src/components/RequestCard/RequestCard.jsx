@@ -85,6 +85,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
     // Cập nhật request (bao gồm các trường province, district, commune)
     const handleUpdate = async (values) => {
+        console.log("currentRequestData.helpRequest.id", currentRequestData.helpRequest.id);
         const updatedRequest = {
             id: currentRequestData.helpRequest.id,
             userId: currentRequestData.helpRequest.userId,
