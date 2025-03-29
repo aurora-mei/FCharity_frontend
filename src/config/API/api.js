@@ -1,3 +1,4 @@
+import { ConsoleSqlOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 export const API = axios.create({
@@ -27,7 +28,12 @@ APIPrivate.interceptors.request.use(
 APIPrivate.interceptors.response.use(
     (response) => response,
     async (error) => {
-        if (error.response.status === 403) {
+        console.log("Error response: ", error.response);
+        if ((
+            error.response.status === 403 
+            || error.response.data.message.includes("Token expired")
+        )
+            && error.config && !error.config.url.includes("cloudinary") ) {
             const refreshToken = localStorage.getItem("refreshToken");
             const response = await API.post("auth/refresh", { refreshToken });
             console.log("Refresh token response: ", response);
