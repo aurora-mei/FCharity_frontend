@@ -35,7 +35,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
     // Xử lý xóa
     const handleDelete = async (id) => {
-        if (requestData.helpRequest.status !== "pending") {
+        if (requestData.helpRequest.status !== "PENDING" && requestData.helpRequest.status !== "APPROVED") {
             message.warning("Only Pending requests can be deleted.");
             return;
         }
@@ -53,7 +53,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
     // Mở modal Edit
     const handleEdit = (data) => {
-        if (data.helpRequest.status !== "pending") {
+        if (requestData.helpRequest.status !== "PENDING" && requestData.helpRequest.status !== "APPROVED") {
             message.warning("Only Pending requests can be edited.");
             return;
         }
