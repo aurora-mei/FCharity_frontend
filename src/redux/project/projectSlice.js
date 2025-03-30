@@ -18,6 +18,9 @@ export const fetchMyOwnerProject = createAsyncThunk("project/my-owner-project", 
 export const createProjectThunk = createAsyncThunk("project/create", async (projectData) => {
     return await projectApi.createProject(projectData);
 });
+export const fetchProjectMembers = createAsyncThunk("project/members", async (projectId) => {
+    return await projectApi.fetchProjectMembers(projectId);
+});
 const projectSlice = createSlice({
     name: 'Project',
     initialState,
@@ -45,7 +48,19 @@ const projectSlice = createSlice({
             .addCase(fetchMyOwnerProject.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
-            });
+            })
+            .addCase(fetchProjectMembers.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchProjectMembers.fulfilled, (state, action) => {
+                state.loading = false;
+                state.myProjectMembers = action.payload;
+            })
+            .addCase(fetchProjectMembers.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            ;
         
     },
 });

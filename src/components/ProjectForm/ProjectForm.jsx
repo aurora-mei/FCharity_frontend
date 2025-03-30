@@ -64,7 +64,6 @@ const ProjectForm = ({requestId}) => {
         console.error("Error parsing currentUser:", error);
       }
     }
-
     dispatch(fetchMyOrganization(currentUser.id));
     dispatch(fetchRequestById(requestId));
     dispatch(fetchCategories());

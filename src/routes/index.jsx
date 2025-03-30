@@ -21,6 +21,7 @@ import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
 import ManageProfileScreen from "../screens/user/ManageProfileScreen.jsx";
 import ChangeProfileModal from "../components/ChangeProfileForm/ChangeProfileModal.jsx";
 import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
+import CreateProjectScreen from "../screens/project/CreateProjectScreen.jsx";
 
 import MyOrganization from "../pages/manage/MyOrganization.jsx";
 import OrganizationDashboard from "../pages/manage/OrganizationDashboard.jsx";
@@ -61,7 +62,7 @@ const AppRoutes = () => {
               <Route path="change-profile" element={<ChangeProfileModal />} />
               <Route path="change-password" element={<ChangePasswordModal />} />
             </Route>
-            <Route path="/manage-organization">
+            <Route path="manage-organization">
               <Route index element={<MyOrganization />} />
               <Route path="dashboard" element={<OrganizationDashboard />} />
               <Route path="users" element={<OrganizationMember />} />

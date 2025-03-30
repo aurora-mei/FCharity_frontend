@@ -41,6 +41,16 @@ const fetchMyOwnerProject = async (userId) => {
         throw err.response.data;
     }
 }
+const fetchProjectMembers = async (projectId) => {
+    try {
+        const response = await APIPrivate.get(`projects/members/${projectId}`);
+        console.log("Project members:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get project members:", err);
+        throw err.response.data;
+    }
+}
 
-const projectApi = { fetchProjects, createProject, fetchProjectById};
+const projectApi = { fetchProjects, createProject, fetchProjectById, fetchProjectMembers};
 export default projectApi;

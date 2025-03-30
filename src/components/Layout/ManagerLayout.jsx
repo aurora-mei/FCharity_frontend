@@ -6,8 +6,6 @@ import { ToastContainer } from "react-toastify";
 
 const ManagerLayout = ({ children }) => {
   return (
-    <div>
-      <Navbar />
       <div className="relative">
         <Sidebar />
         <main className="flex-1 ml-64 pt-6">
@@ -24,7 +22,6 @@ const ManagerLayout = ({ children }) => {
             style={{ background: "white" }}
           />
         </main>
-      </div>
     </div>
   );
 };

@@ -24,12 +24,12 @@ import {
 const MyOrganization = () => {
   const dispatch = useDispatch();
 
-  const { selectedOrganization, managedOrganizations } = useSelector(
+  const { myOrganization } = useSelector(
     (state) => state.organization
   );
-  const currentOrganization = managedOrganizations[selectedOrganization];
+  const currentOrganization =myOrganization;
 
-  console.log("managedOrganizations: ", managedOrganizations);
+  console.log("managedOrganizations: ", myOrganization);
 
   const [orgInfo, setOrgInfo] = useState({
     id: "",

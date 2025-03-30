@@ -6,7 +6,7 @@ import avatar from "../../assets/download (11).jpg";
 import { logOut } from "../../redux/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation, Trans } from "react-i18next";
-import { getManagedOrganizations } from "../../redux/organization/organizationSlice";
+import { getManagedOrganizations, fetchMyOrganization } from "../../redux/organization/organizationSlice";
 
 const lngs = {
   en: { nativeName: "English" },
@@ -17,6 +17,8 @@ import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 const Navbar = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const myOrganization = useSelector((state) => state.organization.myOrganization);
+
   const token = useSelector((state) => state.auth.token);
   const storedUser = localStorage.getItem("currentUser");
 
@@ -37,8 +39,9 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    dispatch(getManagedOrganizations());
-  }, []);
+    dispatch(fetchMyOrganization(currentUser.id));
+    // dispatch(getManagedOrganizations());
+  }, [myOrganization.organizationId]);
 
   const { managedOrganizations } = useSelector((state) => state.organization);
 
@@ -54,7 +57,7 @@ const Navbar = () => {
     {
       key: "2",
       label:
-        managedOrganizations?.length > 0 ? (
+      myOrganization ? (
           <Link rel="noopener noreferrer" to="/manage-organization">
             My Organizations
           </Link>
