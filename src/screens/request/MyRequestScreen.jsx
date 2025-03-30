@@ -155,10 +155,10 @@ const MyRequestScreen = () => {
 
   // Fetch user's requests on mount
   useEffect(() => {
-    if (currentUser.id) {
-      dispatch(fetchRequestsByUserIdThunk(currentUser.id));
+    if (currentUser.userId) {
+      dispatch(fetchRequestsByUserIdThunk(currentUser.userId));
     }
-  }, [dispatch, currentUser.id]);
+  }, [dispatch, currentUser.userId]);
 
   // Filter requests whenever requests, filters, activeTab, or provinces change
   useEffect(() => {

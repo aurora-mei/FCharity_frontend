@@ -379,7 +379,7 @@ const CreateRequestForm = () => {
     // Tạo object gửi lên API
     const requestData = {
       ...values,
-      userId: currentUser.id,
+      userId: currentUser.userId,
       tagIds: values.tagIds,
       imageUrls: attachments.images,
       videoUrls: attachments.videos,
