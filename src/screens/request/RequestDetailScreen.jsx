@@ -167,7 +167,7 @@ const RequestDetailScreen = () => {
 
           {/* Nút Donate & Share */}
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-          {currentUser.id !== requestData.helpRequest.user.id && (
+          {currentUser.userId !== requestData.helpRequest.user.id && (
             <Button type="default" block style={{ flex: 1 }}>
               Register
             </Button>
