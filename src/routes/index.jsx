@@ -19,54 +19,19 @@ import EditRequestScreen from "../screens/request/EditRequestScreen";
 import Layout from "./Layout";
 import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
 import ManageProfileScreen from "../screens/user/ManageProfileScreen.jsx";
+import ChangeProfileModal from "../components/ChangeProfileForm/ChangeProfileModal.jsx";
+import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
 
-import PrivateManagerRoute from "./PrivateManagerRoute";
-import Donate from "../../src/components/Donation/Donate";
-
-import ManagerOrganizationManagement from "../pages/manager/ManagerOrganizationManagement.jsx";
-import ManagerProjectManagement from "../pages/manager/ManagerProjectManagement.jsx";
-import ManagerRequestManagement from "../pages/manager/ManagerRequestManagement.jsx";
-import ManagerOrganizationDashboard from "../pages/manager/ManagerOrganizationDashboard.jsx";
-import { useDispatch, useSelector } from "react-redux";
-import { getManagedOrganizations } from "../redux/organization/organizationSlice.js";
-import { getCurrentUser } from "../redux/auth/authSlice.js";
-import ManagerOrganizationList from "../pages/manager/ManagerOrganizationList.jsx";
+import MyOrganization from "../pages/manage/MyOrganization.jsx";
+import OrganizationDashboard from "../pages/manage/OrganizationDashboard.jsx";
+import CreateOrganization from "../pages/manage/CreateOrganization.jsx";
+import OrganizationProject from "../pages/manage/OrganizationProject.jsx";
+import OrganizationMember from "../pages/manage/OrganizationMember.jsx";
+import OrganizationRequest from "../pages/manage/OrganizationRequest.jsx";
 
 <Route path="/create-post" element={<CreatePostPage />} />;
 
 const AppRoutes = () => {
-  const dispatch = useDispatch();
-  const { currentUser, loading, error } = useSelector((state) => state.auth);
-
-  const {
-    managedOrganizations,
-    loading: orgLoading,
-    error: orgError,
-  } = useSelector((state) => state.organization);
-
-  useEffect(() => {
-    dispatch(getCurrentUser());
-    dispatch(getManagedOrganizations());
-  }, [dispatch]);
-
-  console.log("🤖🤖🤖 managedOrganizations", managedOrganizations);
-
-  const RedirectBasedOnRole = () => {
-    if (loading) {
-      return <div>Loading...</div>;
-    }
-
-    if (error || !currentUser) {
-      return <Navigate to="/auth/login" replace />;
-    }
-
-    if (currentUser.userRole === "Manager" && managedOrganizations.length > 0) {
-      return <Navigate to="/manager" replace />;
-    }
-
-    return <Navigate to="/" replace />;
-  };
-
   return (
     <Router>
       <Routes>
@@ -81,7 +46,6 @@ const AppRoutes = () => {
           <Route path="/forum" element={<ForumPage />} />
           <Route path="/posts/:id" element={<PostDetailPage />} />
           <Route path="/requests/:id" element={<RequestDetailScreen />} />
-
           <Route element={<PrivateRoute />}>
             <Route path="donate" element={<LoadingModal />} />
             <Route path="requests">
@@ -98,26 +62,21 @@ const AppRoutes = () => {
                 path="manage-profile/:keyTab"
                 element={<ManageProfileScreen />}
               />
+              <Route path="change-profile" element={<ChangeProfileModal />} />
+              <Route path="change-password" element={<ChangePasswordModal />} />
             </Route>
           </Route>
         </Route>
         {/* <Route element={<PrivateManagerRoute requiredRole="Manager" />}> */}
-        <Route path="/manager">
-          <Route
-            index
-            element={
-              <ManagerOrganizationList
-                managedOrganizations={managedOrganizations}
-              />
-            }
-          />
-          <Route path="dashboard" element={<ManagerOrganizationDashboard />} />
-          <Route
-            path="organizations"
-            element={<ManagerOrganizationManagement />}
-          />
-          <Route path="projects" element={<ManagerProjectManagement />} />
-          <Route path="requests" element={<ManagerRequestManagement />} />
+        <Route path="/manage-organization">
+          <Route index element={<MyOrganization />} />
+          <Route path="dashboard" element={<OrganizationDashboard />} />
+          <Route path="users" element={<OrganizationMember />} />
+          <Route path="projects" element={<OrganizationProject />} />
+          <Route path="requests" element={<OrganizationRequest />} />
+        </Route>
+        <Route path="/organizations">
+          <Route path="create" element={<CreateOrganization />} />
         </Route>
         {/* </Route> */}
       </Routes>

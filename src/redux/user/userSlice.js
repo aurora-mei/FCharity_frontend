@@ -3,34 +3,30 @@ import userApi from "./userApi";
 
 const initialState = {
   loading: false,
+  error: null,
   currentUser: {},
   users: [],
-  usersOutside: [],
 };
+export const getCurrentUser = createAsyncThunk("users/my-profile", async () => {
+  return await userApi.getCurrentUser();
+});
+
+export const updateProfile = createAsyncThunk(
+  "users/update-profile",
+  async (profileData) => {
+    return await userApi.updateProfile(profileData);
+  }
+);
 
 export const getAllUsers = createAsyncThunk(
-  "users/getAll",
+  "users/all",
   async (_, { rejectWithValue }) => {
     try {
       const response = await userApi.getAllUsers();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Error fetching users");
-    }
-  }
-);
-
-export const getAllUsersNotInOrganization = createAsyncThunk(
-  "users/getAllUserNotInOrganization",
-  async (organizationId, { rejectWithValue }) => {
-    try {
-      const response = await userApi.getAllUsersNotInOrganization(
-        organizationId
-      );
-      return response.data;
-    } catch (error) {
       return rejectWithValue(
-        error.response?.data || "Error fetching users not in an organization"
+        error.response?.data || "Error get users outside an organization"
       );
     }
   }
@@ -42,18 +38,30 @@ export const userSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // .addCase(getCurrentUser.pending, (state) => {
-      //   state.loading = true;
-      // })
-      // .addCase(getCurrentUser.rejected, (state, action) => {
-      //   state.loading = false;
-      //   console.error("Error fetching current user:", action.error);
-      // })
-      // .addCase(getCurrentUser.fulfilled, (state, action) => {
-      //   state.loading = false;
-      //   localStorage.setItem("currentUser", action.payload);
-      //   console.log("currentUser: ", state.currentUser);
-      // })
+      .addCase(getCurrentUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getCurrentUser.rejected, (state, action) => {
+        state.loading = false;
+        console.error("Error fetching current user:", action.error);
+      })
+      .addCase(getCurrentUser.fulfilled, (state, action) => {
+        state.loading = false;
+        localStorage.setItem("currentUser", action.payload);
+        console.log("currentUser: ", state.currentUser);
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentUser = action.payload;
+        localStorage.setItem("currentUser", JSON.stringify(action.payload));
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
       .addCase(getAllUsers.fulfilled, (state, action) => {
         state.loading = false;
         state.users = action.payload;
@@ -65,18 +73,6 @@ export const userSlice = createSlice({
       .addCase(getAllUsers.pending, (state, action) => {
         state.loading = true;
         state.users = [];
-      })
-      .addCase(getAllUsersNotInOrganization.fulfilled, (state, action) => {
-        state.loading = false;
-        state.usersOutside = action.payload;
-      })
-      .addCase(getAllUsersNotInOrganization.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(getAllUsersNotInOrganization.pending, (state, action) => {
-        state.loading = true;
-        state.usersOutside = [];
       });
   },
 });

@@ -47,7 +47,7 @@ const logout = async () => {
 const getCurrentUser = async () => {
   try {
     console.log("Gửi request lấy current user...");
-    const response = await APIPrivate.get(`users/current-user`);
+    const response = await APIPrivate.get(`users/my-profile`);
     console.log("response get current user: ", response?.data);
     return response?.data;
   } catch (err) {
@@ -63,38 +63,66 @@ const getCurrentUser = async () => {
 };
 
 const googleLogin = async (token) => {
-    try {
-        const response = await API.post(`auth/google-login`, { token });
-        return response.data;
-    } catch (err) {
-        throw err.response.data;
-    }
+  try {
+    const response = await API.post(`auth/google-login`, { token });
+    return response.data;
+  } catch (err) {
+    throw err.response.data;
+  }
 };
 
 const sendResetPasswordOTP = async (sendOTPModel) => {
-    try {
-        const response = await API.post(`auth/reset-password-otp`, sendOTPModel);
-        return response.data;
-    } catch (err) {
-        throw err.response.data;
-    }
+  try {
+    const response = await API.post(`auth/reset-password-otp`, sendOTPModel);
+    return response.data;
+  } catch (err) {
+    throw err.response.data;
+  }
 };
 const verifyResetPasswordOTP = async (verifyRequestModel) => {
-    try {
-        const response = await API.post(`auth/verify-reset-password-otp`, verifyRequestModel);
-        return response.data;
-    } catch (err) {
-        throw err.response.data;
-    }
+  try {
+    const response = await API.post(
+      `auth/verify-reset-password-otp`,
+      verifyRequestModel
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response.data;
+  }
 };
 
 const resetPassword = async (resetRequestModel) => {
-    try {
-        const response = await API.post(`auth/reset-password`, resetRequestModel);
-        return response.data;
-    } catch (err) {
-        throw err.response.data;
-    }
+  try {
+    const response = await API.post(`auth/reset-password`, resetRequestModel);
+    return response.data;
+  } catch (err) {
+    throw err.response.data;
+  }
 };
-const authApi = { signup, verify, sendOTP, login, getCurrentUser, googleLogin, sendResetPasswordOTP, verifyResetPasswordOTP, resetPassword };
+
+const changePassword = async (changePasswordData) => {
+  try {
+    const response = await APIPrivate.post(
+      "users/change-password",
+      changePasswordData
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error changing password:", err);
+    throw err.response ? err.response.data : err;
+  }
+};
+
+const authApi = {
+  signup,
+  verify,
+  sendOTP,
+  login,
+  getCurrentUser,
+  googleLogin,
+  sendResetPasswordOTP,
+  verifyResetPasswordOTP,
+  resetPassword,
+  changePassword,
+};
 export default authApi;

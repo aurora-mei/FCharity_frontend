@@ -28,7 +28,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
     } catch (error) {
         console.error("Error parsing currentUser from localStorage:", error);
     }
-    if (!requestData || !requestData.request?.id) {
+    if (!requestData || !requestData.helpRequest?.id) {
         console.warn("Invalid requestData:", requestData);
         return null;
     }
@@ -53,15 +53,15 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
         // Cập nhật các trường province/district/commune từ API (giả sử API trả về các mã này)
         const initialValues = {
-            title: data.request.title,
-            content: data.request.content,
-            phone: data.request.phone,
-            email: data.request.email,
-            location: data.request.location,
-            province: data.request.provinceCode, // Mã tỉnh
-            district: data.request.districtCode, // Mã quận/huyện
-            commune: data.request.communeCode,   // Mã xã/phường
-            categoryId: data.request.category.id,
+            title: data.helpRequest.title,
+            content: data.helpRequest.content,
+            phone: data.helpRequest.phone,
+            email: data.helpRequest.email,
+            location: data.helpRequest.location,
+            province: data.helpRequest.provinceCode, // Mã tỉnh
+            district: data.helpRequest.districtCode, // Mã quận/huyện
+            commune: data.helpRequest.communeCode,   // Mã xã/phường
+            categoryId: data.helpRequest.category.id,
             requestTags: data.requestTags?.map((taggable) => taggable.tag.id) || [],
             attachment: data.attachments || [],
         };
@@ -86,8 +86,8 @@ const RequestCard = ({ requestData, showActions = true }) => {
     // Cập nhật request (bao gồm các trường province, district, commune)
     const handleUpdate = async (values) => {
         const updatedRequest = {
-            id: currentRequestData.request.id,
-            userId: currentRequestData.request.userId,
+            id: currentRequestData.helpRequest.id,
+            userId: currentRequestData.helpRequest.userId,
             title: values.title,
             content: values.content,
             phone: values.phone,
@@ -98,15 +98,15 @@ const RequestCard = ({ requestData, showActions = true }) => {
             commune: values.commune,   // Mã xã/phường cập nhật
             imageUrls: attachments.images,
             videoUrls: attachments.videos,
-            isEmergency: currentRequestData.request.isEmergency,
+            isEmergency: currentRequestData.helpRequest.isEmergency,
             categoryId: values.categoryId,
             tagIds: values.requestTags,
-            status: currentRequestData.request.status,
+            status: currentRequestData.helpRequest.status,
         };
 
         try {
             console.log("Updating request:", updatedRequest);
-            await dispatch(updateRequest({ id: currentRequestData.request.id, requestData: updatedRequest })).unwrap();
+            await dispatch(updateRequest({ id: currentRequestData.helpRequest.id, requestData: updatedRequest })).unwrap();
             message.success("Request updated successfully");
             setIsModalVisible(false);
             setCurrentRequestData(null);
@@ -135,25 +135,20 @@ const RequestCard = ({ requestData, showActions = true }) => {
                         />
                     )}
                     <div className="category-badge">
-                        {requestData.request.category.categoryName}
+                        {requestData.helpRequest.category.categoryName}
                     </div>
-                    {currentUser.id === requestData.request.user.id && (
+                    {currentUser.id === requestData.helpRequest.user.id && (
                         <div className="menu-badge">
-                            <MoreOptions onEdit={() => handleEdit(requestData)} onDelete={() => handleDelete(requestData.request.id)} />
-                        </div>
-                    )}
+                            <MoreOptions onEdit={() => handleEdit(requestData)} onDelete={() => handleDelete(requestData.helpRequest.id)} />
+                        </div>)}
                 </div>
                 {/* Nội dung */}
-                <div style={{ padding: "1rem" }}>
-                    <a style={{ fontWeight: "bold", color: "black" }} href={`/requests/${requestData.request.id}`}>
-                        {requestData.request.title}
-                    </a>
-                    <p style={{ height: "3rem" }}>
-                        <Paragraph ellipsis={{ tooltip: requestData.request.content, rows: 2, expandable: false }}>
-                            {requestData.request.content}
-                        </Paragraph>
-                    </p>
-                    <p className="text-gray-600 text-sm">Contact: {requestData.request.email}</p>
+                {/* onClick={() => navigate(`/requests/${requestData.request.id}`)} */}
+                <div style={{ padding: "1rem" }} >
+                    <a style={{ fontWeight: "bold", color: "black" }} href={`/requests/${requestData.helpRequest.id}`} >{requestData.helpRequest.title}</a>
+                    <p style={{ height: "3rem" }}><Paragraph ellipsis={{ tooltip: requestData.helpRequest.content, rows: 2, expandable: false }}>{requestData.helpRequest.content}</Paragraph ></p>
+                    <p className="text-gray-600 text-sm">Contact: {requestData.helpRequest.email}</p>
+
                     <div className="tags">
                         {requestData.requestTags.map((tag) => (
                             <span key={tag.id}>
@@ -179,7 +174,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
 RequestCard.propTypes = {
     requestData: PropTypes.shape({
-        request: PropTypes.shape({
+        helpRequest: PropTypes.shape({
             id: PropTypes.string,
             title: PropTypes.string.isRequired,
             content: PropTypes.string.isRequired,

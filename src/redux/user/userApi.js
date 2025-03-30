@@ -1,6 +1,5 @@
 import { API } from "../../config/API/api";
 import api from "../../services/api";
-
 const getCurrentUser = async () => {
   try {
     console.log("Gửi request lấy current user...");
@@ -21,8 +20,5 @@ const getCurrentUser = async () => {
 
 const getAllUsers = () => api.get("/users");
 
-const getAllUsersNotInOrganization = (organizationId) =>
-  api.get(`/users/${organizationId}`);
-
-const userApi = { getCurrentUser, getAllUsers, getAllUsersNotInOrganization };
+const userApi = { getCurrentUser, getAllUsers };
 export default userApi;

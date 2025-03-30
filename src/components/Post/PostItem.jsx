@@ -41,7 +41,7 @@ const PostItem = ({ postResponse }) => {
 
                 <Text type="secondary" style={{ marginLeft: 10 }}>
     {postResponse.post.createdAt 
-        ? dayjs(postResponse.post.createdAt).format("YYYY-MM-DD HH:mm:ss") 
+        ? dayjs(postResponse.post.createdAt).format("YYYY-MM-DD HH:mm") 
         : "Unknown Date"}
 </Text>
 

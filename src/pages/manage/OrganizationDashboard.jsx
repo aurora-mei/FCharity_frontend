@@ -14,7 +14,7 @@ import {
   Line,
   ResponsiveContainer,
 } from "recharts";
-import Layout from "../../components/Layout/Layout";
+import ManagerLayout from "../../components/Layout/ManagerLayout";
 
 import {
   getOrganizationMembers,
@@ -22,8 +22,10 @@ import {
   getOrganizationInviteRequests,
 } from "../../redux/organization/organizationSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { FaLink } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
-const ManagerOrganizationDashboard = () => {
+const OrganizationDashboard = () => {
   const { selectedOrganization } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
@@ -36,7 +38,7 @@ const ManagerOrganizationDashboard = () => {
   }, [selectedOrganization, dispatch]);
 
   const { members, joinRequests, inviteRequests } = useSelector(
-    (state) => state.organizations
+    (state) => state.organization
   );
 
   console.log("Members:", members);
@@ -98,8 +100,24 @@ const ManagerOrganizationDashboard = () => {
   const COLORS = ["#f1c40f", "#2ecc71", "#e74c3c", "#3498db"];
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-100 p-6">
+    <ManagerLayout>
+      <div className="pl-2">
+        <div className="inline-flex gap-2 items-baseline">
+          <FaLink />
+          <Link to={"/"} className="hover:underline">
+            Home
+          </Link>
+        </div>
+        <span> / </span>
+        <Link to={"/manage-organization"} className="hover:underline">
+          my-organization
+        </Link>
+        <span> / </span>
+        <Link to={"/manage-organization/dashboard"} className="hover:underline">
+          dashboard
+        </Link>
+      </div>
+      <div className="min-h-screen bg-gray-100 p-6 m-10">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-semibold text-gray-800 text-center mb-8">
             Organization Dashboard
@@ -251,8 +269,8 @@ const ManagerOrganizationDashboard = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </ManagerLayout>
   );
 };
 
-export default ManagerOrganizationDashboard;
+export default OrganizationDashboard;

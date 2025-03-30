@@ -12,7 +12,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const ManagerProjectManagement = () => {
+import ManagerLayout from "../../components/Layout/ManagerLayout";
+import { FaLink } from "react-icons/fa";
+import { Link } from "react-router-dom";
+
+const OrganizationProject = () => {
   const { organizationId } = useParams();
   const [activeTab, setActiveTab] = useState("overview");
   const [projects, setProjects] = useState([]);
@@ -178,8 +182,24 @@ const ManagerProjectManagement = () => {
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-100 p-6">
+    <ManagerLayout>
+      <div className="pl-2">
+        <div className="inline-flex gap-2 items-baseline">
+          <FaLink />
+          <Link to={"/"} className="hover:underline">
+            Home
+          </Link>
+        </div>
+        <span> / </span>
+        <Link to={"/manage-organization"} className="hover:underline">
+          my-organization
+        </Link>
+        <span> / </span>
+        <Link to={"/manage-organization/projects"} className="hover:underline">
+          projects
+        </Link>
+      </div>
+      <div className="min-h-screen bg-gray-100 p-6 m-10">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-semibold text-gray-800 mb-6">
             Project Management
@@ -206,8 +226,8 @@ const ManagerProjectManagement = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </ManagerLayout>
   );
 };
 
-export default ManagerProjectManagement;
+export default OrganizationProject;

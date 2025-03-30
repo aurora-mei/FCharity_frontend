@@ -4,7 +4,8 @@ import organizationApi from "./organizationApi.js";
 const initialState = {
   organizations: [],
   managedOrganizations: [],
-  selectedOrganization: null,
+  selectedOrganization: 0,
+  usersOutside: [],
   requests: [],
   currentOrganization: null,
   members: [],
@@ -45,6 +46,20 @@ export const createOrganization = createAsyncThunk(
   }
 );
 
+export const updateOrganization = createAsyncThunk(
+  "organizations/update",
+  async (orgData, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.updateOrganization(orgData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error updating organization"
+      );
+    }
+  }
+);
+
 export const getOrganization = createAsyncThunk(
   "organizations/getOne",
   async (organizationId, { rejectWithValue }) => {
@@ -80,6 +95,7 @@ export const getOrganizationMembers = createAsyncThunk(
       const response = await organizationApi.getOrganizationMembers(
         organizationId
       );
+      console.log("members: ", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -149,8 +165,22 @@ export const createMemberInviteRequest = createAsyncThunk(
   }
 );
 
+export const deleteInviteRequest = createAsyncThunk(
+  "organizations/deleteInviteRequest",
+  async (requestId, { rejectWithValue }) => {
+    try {
+      await organizationApi.deleteInviteRequest(requestId);
+      return requestId; // Trả về ID để xóa trong state
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error deleting invite request"
+      );
+    }
+  }
+);
+
 export const getManagedOrganizations = createAsyncThunk(
-  "auth/getManagedOrganizations",
+  "organizations/getManagedOrganizations",
   async (_, { rejectWithValue }) => {
     try {
       const response = await organizationApi.getManagedOrganizations();
@@ -166,7 +196,7 @@ export const getManagedOrganizations = createAsyncThunk(
 // Organization Requests
 
 export const getAllJoinRequestByOrganizationId = createAsyncThunk(
-  "requests/getAllJoinRequestByOrganizationId",
+  "organizationRequests/getAllJoinRequestByOrganizationId",
   async (organizationId, { rejectWithValue }) => {
     try {
       const response = await requestApi.getAllJoinRequestByOrganizationId(
@@ -182,7 +212,7 @@ export const getAllJoinRequestByOrganizationId = createAsyncThunk(
 );
 
 export const getJoinRequestById = createAsyncThunk(
-  "requests/getJoinRequestById",
+  "organizationRequests/getJoinRequestById",
   async (joinRequestId, { rejectWithValue }) => {
     try {
       const response = await requestApi.getJoinRequestById(joinRequestId);
@@ -196,7 +226,7 @@ export const getJoinRequestById = createAsyncThunk(
 );
 
 export const getJoinRequestByUserId = createAsyncThunk(
-  "requests/getJoinRequestByUserId",
+  "organizationRequests/getJoinRequestByUserId",
   async (userId, { rejectWithValue }) => {
     try {
       const response = await requestApi.getJoinRequestByUserId(userId);
@@ -210,7 +240,7 @@ export const getJoinRequestByUserId = createAsyncThunk(
 );
 
 export const createJoinRequest = createAsyncThunk(
-  "requests/createJoinRequest",
+  "organizationRequests/createJoinRequest",
   async (joinRequestData, { rejectWithValue }) => {
     try {
       const response = await requestApi.createJoinRequest(joinRequestData);
@@ -224,7 +254,7 @@ export const createJoinRequest = createAsyncThunk(
 );
 
 export const updateJoinRequest = createAsyncThunk(
-  "requests/updateJoinRequest",
+  "organizationRequests/updateJoinRequest",
   async (joinRequestData, { rejectWithValue }) => {
     try {
       const response = await requestApi.updateJoinRequest(joinRequestData);
@@ -238,7 +268,7 @@ export const updateJoinRequest = createAsyncThunk(
 );
 
 export const deleteJoinRequest = createAsyncThunk(
-  "requests/deleteJoinRequest",
+  "organizationRequests/deleteJoinRequest",
   async (joinRequestId, { rejectWithValue }) => {
     try {
       await requestApi.deleteJoinRequest(joinRequestId);
@@ -252,7 +282,7 @@ export const deleteJoinRequest = createAsyncThunk(
 );
 
 export const getAllRequests = createAsyncThunk(
-  "requests/getAll",
+  "organizationRequests/getAll",
   async (_, { rejectWithValue }) => {
     try {
       const response = await requestApi.getAllRequests();
@@ -264,7 +294,7 @@ export const getAllRequests = createAsyncThunk(
 );
 
 export const getAllRequestsByOrganization = createAsyncThunk(
-  "requests/getAllByOrg",
+  "organizationRequests/getAllByOrg",
   async (organizationId, { rejectWithValue }) => {
     try {
       const response = await requestApi.getAllRequestsByOrganization(
@@ -280,7 +310,7 @@ export const getAllRequestsByOrganization = createAsyncThunk(
 );
 
 export const getAllReports = createAsyncThunk(
-  "requests/getAllReports",
+  "organizationReports/getAllReports",
   async (_, { rejectWithValue }) => {
     try {
       const response = await requestApi.getAllReports();
@@ -292,7 +322,7 @@ export const getAllReports = createAsyncThunk(
 );
 
 export const getAllReportsByOrganization = createAsyncThunk(
-  "requests/getAllReportsByOrg",
+  "organizationReports/getAllReportsByOrg",
   async (organizationId, { rejectWithValue }) => {
     try {
       const response = await requestApi.getAllReportsByOrganization(
@@ -315,6 +345,22 @@ export const donate = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Error donating");
+    }
+  }
+);
+
+export const getAllUsersNotInOrganization = createAsyncThunk(
+  "organizations/outsideOrganization",
+  async (organizationId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getAllUsersNotInOrganization(
+        organizationId
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error get users outside an organization"
+      );
     }
   }
 );
@@ -344,6 +390,31 @@ export const organizationSlice = createSlice({
       .addCase(createOrganization.fulfilled, (state, action) => {
         state.loading = false;
         state.organizations.push(action.payload);
+      })
+      .addCase(createOrganization.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createOrganization.pending, (state, action) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateOrganization.fulfilled, (state, action) => {
+        state.loading = false;
+        state.organizations = state.organizations.map((org) => {
+          if (org.id === action.payload.id) {
+            return action.payload;
+          }
+          return org;
+        });
+      })
+      .addCase(updateOrganization.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateOrganization.pending, (state, action) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(getOrganization.fulfilled, (state, action) => {
         state.loading = false;
@@ -518,6 +589,18 @@ export const organizationSlice = createSlice({
       .addCase(getManagedOrganizations.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(getAllUsersNotInOrganization.fulfilled, (state, action) => {
+        state.loading = false;
+        state.usersOutside = action.payload;
+      })
+      .addCase(getAllUsersNotInOrganization.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getAllUsersNotInOrganization.pending, (state, action) => {
+        state.loading = true;
+        state.usersOutside = [];
       });
   },
 });

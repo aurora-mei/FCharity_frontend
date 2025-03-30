@@ -24,7 +24,7 @@ const InviteMembers = ({ organizationId }) => {
     handleSearch();
   }, [searchTerm]);
 
-  const { inviteRequests } = useSelector((state) => state.organizations);
+  const { inviteRequests } = useSelector((state) => state.organization);
   const { usersOutside } = useSelector((state) => state.user);
 
   console.log("User Outside:", usersOutside);

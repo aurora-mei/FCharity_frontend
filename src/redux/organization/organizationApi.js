@@ -7,8 +7,7 @@ const organizationApi = {
     api.delete(`/organizations/${organizationId}`),
   getOrganization: (organizationId) =>
     api.get(`/organizations/${organizationId}`),
-  updateOrganization: (organizationId, orgData) =>
-    api.put(`/organizations/${organizationId}`, orgData),
+  updateOrganization: (orgData) => api.put(`/organizations`, orgData),
 
   getOrganizationMembers: (organizationId) =>
     api.get(`/organization-members/${organizationId}`),
@@ -27,6 +26,8 @@ const organizationApi = {
     api.get(`/invite-requests/organizations/${organizationId}`),
 
   inviteMember: (requestInfo) => api.post("/invite-requests", requestInfo),
+  getInviteRequestId: (organizationId, userId) =>
+    api.get(`/invite-requests/request-id/${organizationId}/${userId}`),
   updateInviteRequest: (inviteRequest) => {
     return api.put(`/invite-requests`, inviteRequest);
   },
@@ -39,6 +40,9 @@ const organizationApi = {
     }),
 
   getManagedOrganizations: () => api.get("/organizations/managed"),
+
+  getAllUsersNotInOrganization: (organizationId) =>
+    api.get(`/users/outside/${organizationId}`),
 
   //   getCurrentUser: () => api.get("/users/me"),
 

@@ -12,7 +12,7 @@ const JoinRequests = ({ organizationId }) => {
     dispatch(getAllJoinRequestByOrganizationId(organizationId));
   }, [dispatch, organizationId]);
 
-  const { JoinRequests } = useSelector((state) => state.requests);
+  const { JoinRequests } = useSelector((state) => state.organization);
 
   const handleUpdateRequest = async (joinRequest, status) => {
     if (window.confirm("Are you sure you want to remove this member?")) {

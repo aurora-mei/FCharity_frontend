@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Carousel, Form, Input, Select } from "antd";
+import { Carousel, Form, Input, Select,Flex } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -13,28 +13,19 @@ import provinceCoordinates from "./provinceCoordinates";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Hàm parse location
 function parseLocationString(locationString = "") {
-  let detail = "";
-  let communeName = "";
-  let districtName = "";
-  let provinceName = "";
-  // Tách theo dấu phẩy, bỏ khoảng trắng 2 bên
-  const parts = locationString.split(",").map(part => part.trim());
-  for (const part of parts) {
-    const lower = part.toLowerCase();
-    if (lower.includes("xã") || lower.includes("phường") || lower.includes("thị trấn")) {
-      communeName = part.replace(/(xã|phường|thị trấn)/i, "").trim();
-    } else if (lower.includes("huyện") || lower.includes("quận") || lower.includes("thị xã")) {
-      districtName = part.replace(/(huyện|quận|thị xã)/i, "").trim();
-    } else if (lower.includes("tỉnh") || lower.includes("thành phố") || lower.includes("tp")) {
-      provinceName = part.replace(/(tỉnh|thành phố|tp)/i, "").trim();
-    } else {
-      detail = part.trim();
-    }
-  }
+  const parts = locationString.split(",").map(p => p.trim());
+  // Lấy ra từ phải sang trái
+  const provinceName = parts[parts.length - 1] || "";
+  const districtName = parts[parts.length - 2] || "";
+  const communeName  = parts[parts.length - 3] || "";
+  // Còn lại (các phần đầu) ghép lại thành detail
+  const detailParts  = parts.slice(0, parts.length - 3);
+  const detail       = detailParts.join(", ");
+
   return { detail, communeName, districtName, provinceName };
 }
+
 
 
 // Hàm normalize
@@ -89,15 +80,15 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
     if (filters.search && filters.search.trim()) {
       const keyword = filters.search.toLowerCase();
       data = data.filter((item) => {
-        const title = item.request.title.toLowerCase();
-        const content = item.request.content.toLowerCase();
+        const title = item.helpRequest.title.toLowerCase();
+        const content = item.helpRequest.content.toLowerCase();
         return title.includes(keyword) || content.includes(keyword);
       });
     }
 
     // Lọc category
     if (filters.categoryId) {
-      data = data.filter((item) => item.request.category.id === filters.categoryId);
+      data = data.filter((item) => item.helpRequest.category.id === filters.categoryId);
     }
 
     // Lọc tags
@@ -115,14 +106,14 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
         : [normalizeString(filters.province)];
       data = data.filter((item) => {
         let requestProvName = "";
-        if (item.request.provinceCode) {
-          const provObj = provinces.find((p) => p.code === item.request.provinceCode);
+        if (item.helpRequest.provinceCode) {
+          const provObj = provinces.find((p) => p.code === item.helpRequest.provinceCode);
           if (provObj) {
             const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
             requestProvName = normalizeString(noPrefix);
           }
         } else {
-          const { provinceName } = parseLocationString(item.request.location || "");
+          const { provinceName } = parseLocationString(item.helpRequest.location || "");
           requestProvName = normalizeString(provinceName);
         }
         return filterProvs.some((filterProv) => requestProvName.includes(filterProv));
@@ -138,7 +129,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
     }
     setFilters(allValues);
   };
-  
+
 
   // Carousel settings
   const settings = {
@@ -167,14 +158,14 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
   const requestsByProvince = {};
   filteredRequests.forEach((request) => {
     let provinceName = "";
-    if (request.request.provinceCode) {
-      const provObj = provinces.find((p) => p.code === request.request.provinceCode);
+    if (request.helpRequest.provinceCode) {
+      const provObj = provinces.find((p) => p.code === request.helpRequest.provinceCode);
       if (provObj) {
         const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
         provinceName = normalizeString(noPrefix);
       }
     } else {
-      const { provinceName: parsedProvince } = parseLocationString(request.request.location || "");
+      const { provinceName: parsedProvince } = parseLocationString(request.helpRequest.location || "");
       provinceName = normalizeString(parsedProvince);
     }
     if (provinceName) {
@@ -189,8 +180,11 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="request-active-carousel" style={{ padding: "2rem" }}>
-      <b style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>Active requests</b>
+    <div className="request-active-carousel">
+
+      <Flex vertical='true'>
+        <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Active requests</b>
+      </Flex>
 
       {/* Hiển thị search nếu search = true */}
       {search && (
@@ -217,18 +211,18 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
             </Select>
           </Form.Item>
           <Form.Item name="province" label="Province">
-                    <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
-                      {provinces.map(prov => {
-                        // Bỏ tiền tố "Tỉnh " nếu có
-                        const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
-                        return (
-                          <Option key={prov.code} value={noPrefix}>
-                            {prov.name} {/* hiển thị Tỉnh Hà Giang, value = Hà Giang */}
-                          </Option>
-                        );
-                      })}
-                    </Select>
-                  </Form.Item>
+            <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
+              {provinces.map(prov => {
+                // Bỏ tiền tố "Tỉnh " nếu có
+                const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+                return (
+                  <Option key={prov.code} value={noPrefix}>
+                    {prov.name} {/* hiển thị Tỉnh Hà Giang, value = Hà Giang */}
+                  </Option>
+                );
+              })}
+            </Select>
+          </Form.Item>
         </Form>
       )}
 
@@ -247,32 +241,40 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
       {/* Hiển thị map nếu map = true */}
       {map && (
         <div style={{ marginTop: "2rem" }}>
-          <b style={{ fontSize: '1.4rem' }}>Active Request Map</b>
-          <MapContainer center={[21.0285, 105.8542]} zoom={8} style={{ height: "500px", width: "100%" }}>
+           <Flex vertical='true'>
+        <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Active requests</b>
+      </Flex>
+          <MapContainer 
+              center={[16.0471, 108.2062]} // Trung tâm VN (Đà Nẵng)
+              zoom={6} 
+              style={{ height: "500px", width: "100%" }}
+              maxBounds={[[8.0, 102.0], [23.5, 110.5]]} // Giới hạn phạm vi VN
+              maxBoundsViscosity={1.0} // Ngăn kéo bản đồ ra khỏi VN
+            > 
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {Object.keys(requestsByProvince).map((provKey) => {
-                const coord = provinceCoordinates[provKey];
-                if (!coord) return null;
-                const requests = requestsByProvince[provKey];
-                return (
-                  <Marker key={provKey} position={[coord.lat, coord.lng]}>
-                    <Popup>
-                      <h3>
-                        {coord.displayName} ({requests.length} request{requests.length > 1 ? "s" : ""})
-                      </h3>
-                      <ul>
-                        {requests.map((req) => (
-                          <li key={req.id}>
-                            <strong>
-                              <Link to={`/requests/${req.request.id}`}>{req.request.title}</Link>
-                            </strong>
-                          </li>
-                        ))}
-                      </ul>
-                    </Popup>
-                  </Marker>
-                );
-              })}
+              const coord = provinceCoordinates[provKey];
+              if (!coord) return null;
+              const requests = requestsByProvince[provKey];
+              return (
+                <Marker key={provKey} position={[coord.lat, coord.lng]}>
+                  <Popup>
+                    <h3>
+                      {coord.displayName} ({requests.length} request{requests.length > 1 ? "s" : ""})
+                    </h3>
+                    <ul>
+                      {requests.map((req) => (
+                        <li key={req.id}>
+                          <strong>
+                            <Link to={`/requests/${req.helpRequest.id}`}>{req.helpRequest.title}</Link>
+                          </strong>
+                        </li>
+                      ))}
+                    </ul>
+                  </Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
         </div>
       )}

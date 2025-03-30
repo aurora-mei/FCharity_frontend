@@ -12,7 +12,7 @@ const OrganizationMembers = ({ organizationId }) => {
     dispatch(getOrganizationMembers(organizationId));
   }, [dispatch, organizationId]);
 
-  const { members } = useSelector((state) => state.organizations);
+  const { members } = useSelector((state) => state.organization);
 
   const handleRemoveMember = (membershipId) => {
     if (window.confirm("Are you sure you want to remove this member?")) {
