@@ -1,3 +1,6 @@
+import React, { useEffect } from "react";
+
+import { Navigate } from "react-router-dom";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomeScreen from "../screens/general/HomeScreen.jsx";
 import ForumPage from "../screens/forum/ForumPage.jsx";
@@ -18,50 +21,62 @@ import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
 import ManageProfileScreen from "../screens/user/ManageProfileScreen.jsx";
 import ChangeProfileModal from "../components/ChangeProfileForm/ChangeProfileModal.jsx";
 import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
-import ProjectForm from "../components/ProjectForm/ProjectForm.jsx";
-import MyOrganizationScreen from "../screens/organization/MyOrganizationScreen.jsx";
-import CreateProjectScreen from "../screens/project/CreateProjectScreen.jsx";
+
+import MyOrganization from "../pages/manage/MyOrganization.jsx";
+import OrganizationDashboard from "../pages/manage/OrganizationDashboard.jsx";
+import CreateOrganization from "../pages/manage/CreateOrganization.jsx";
+import OrganizationProject from "../pages/manage/OrganizationProject.jsx";
+import OrganizationMember from "../pages/manage/OrganizationMember.jsx";
+import OrganizationRequest from "../pages/manage/OrganizationRequest.jsx";
+
+
 const AppRoutes = () => {
-    return (
-        <Router>
-            <Routes>
-                <Route path="/auth">
-                    <Route path="login" element={<LoginScreen />} />
-                    <Route path="signup" element={<SignupScreen />} />
-                    <Route path="otp-verification" element={<OtpVerificationScreen />} />
-                    <Route path="otp-reset-password" element={<ResetPwdScreen />} />
-                </Route>
-                <Route path="/" element={<Layout />}>
-                    <Route index element={<HomeScreen />} />
-                    <Route path="/forum" element={<ForumPage />} />
-                    <Route path="/posts/:id" element={<PostDetailPage />} />
-                    <Route path="/requests/:id" element={<RequestDetailScreen />} />
-                    <Route element={<PrivateRoute />}>
-                        <Route path="donate" element={<LoadingModal />} />
-                        <Route path="requests">
-                            <Route index element={<RequestListScreen />} />
-                            <Route path="create" element={<CreateRequestScreen />} />
-                            <Route path="edit/:id" element={<EditRequestScreen />} />
-                            <Route path="myrequests" element={<MyRequestScreen />} />
-                        </Route>
-                        <Route path="my-organization">
-                            {/* cần modify */}
-                            <Route index element={<MyOrganizationScreen />} />
-                            <Route path="projects/create/:requestId" element={<CreateProjectScreen />} />
-                        </Route>
-                        <Route path="posts">
-                            <Route path="create-post" element={<CreatePostPage />} />
-                        </Route>
-                        <Route path="user">
-                            <Route path="manage-profile/:keyTab" element={<ManageProfileScreen />} />
-                            <Route path="change-profile" element={<ChangeProfileModal />} />
-                            <Route path="change-password" element={<ChangePasswordModal />} />
-                        </Route>
-                    </Route>
-                </Route>
-            </Routes>
-        </Router>
-    );
+  return (
+    <Router>
+      <Routes>
+        <Route path="/auth">
+          <Route path="login" element={<LoginScreen />} />
+          <Route path="signup" element={<SignupScreen />} />
+          <Route path="otp-verification" element={<OtpVerificationScreen />} />
+          <Route path="otp-reset-password" element={<ResetPwdScreen />} />
+        </Route>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomeScreen />} />
+          <Route path="/forum" element={<ForumPage />} />
+          <Route path="/posts/:id" element={<PostDetailPage />} />
+          <Route path="/requests/:id" element={<RequestDetailScreen />} />
+          <Route element={<PrivateRoute />}>
+            <Route path="donate" element={<LoadingModal />} />
+            <Route path="requests">
+              <Route index element={<RequestListScreen />} />
+              <Route path="create" element={<CreateRequestScreen />} />
+              <Route path="edit/:id" element={<EditRequestScreen />} />
+              <Route path="myrequests" element={<MyRequestScreen />} />
+            </Route>
+            <Route path="posts">
+              <Route path="create-post" element={<CreatePostPage />} />
+            </Route>
+            <Route path="user">
+              <Route path="manage-profile/:keyTab" element={<ManageProfileScreen />} />
+              <Route path="change-profile" element={<ChangeProfileModal />} />
+              <Route path="change-password" element={<ChangePasswordModal />} />
+            </Route>
+            <Route path="/manage-organization">
+              <Route index element={<MyOrganization />} />
+              <Route path="dashboard" element={<OrganizationDashboard />} />
+              <Route path="users" element={<OrganizationMember />} />
+              <Route path="projects" element={<OrganizationProject />} />
+              <Route path="projects/create/:requestId" element={<CreateProjectScreen />} />
+              <Route path="requests" element={<OrganizationRequest />} />
+            </Route>
+            <Route path="/organizations">
+              <Route path="create" element={<CreateOrganization />} />
+            </Route>
+          </Route>
+        </Route>
+      </Routes>
+    </Router>
+  );
 };
 
 export default AppRoutes;
