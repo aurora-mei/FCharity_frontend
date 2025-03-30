@@ -12,6 +12,7 @@ import {
   getAllUsersNotInOrganization,
   getOrganizationInviteRequests,
   getOrganizationMembers,
+  fetchOrganizationMembers
 } from "../../redux/organization/organizationSlice";
 
 import organizationApi from "../../redux/organization/organizationApi.js";
@@ -24,6 +25,7 @@ import { GrUserAdmin } from "react-icons/gr";
 import { SiPhpmyadmin } from "react-icons/si";
 import { IoClose } from "react-icons/io5";
 import { UserOutlined } from "@ant-design/icons";
+import { fetchMyOrganization } from "../../redux/organization/organizationSlice";
 
 const OrganizationMember = () => {
   const dispatch = useDispatch();
@@ -41,22 +43,40 @@ const OrganizationMember = () => {
     open: false,
     content: 0,
   });
+  const { myOrganization } = useSelector(
+      (state) => state.organization
+    );
   const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const storedUser = localStorage.getItem("currentUser");
+    let currentUser = {};
+  
+    try {
+      currentUser = storedUser ? JSON.parse(storedUser) : {};
+    } catch (error) {
+      console.error("Error parsing currentUser from localStorage:", error);
+      currentUser = {};
+    }
+  useEffect(() => {
+      dispatch(fetchMyOrganization(currentUser.id))
+    }, [dispatch]);
 
   useEffect(() => {
-    if (managedOrganizations[selectedOrganization]?.id) {
+    if (myOrganization.organizationId) {
       dispatch(
-        getOrganizationMembers(managedOrganizations[selectedOrganization].id)
+        getOrganizationMembers(myOrganization.organizationId)
       );
+    dispatch(
+      fetchOrganizationMembers(myOrganization.organizationId)
+    )
       dispatch(
         getAllUsersNotInOrganization(
-          managedOrganizations[selectedOrganization].id
+          myOrganization.organizationId
         )
       );
     }
-  }, [managedOrganizations]);
+  }, [dispatch, myOrganization.organizationId]);
 
-  const { members, usersOutside } = useSelector((state) => state.organization);
+  const { myOrganizationMembers, usersOutside } = useSelector((state) => state.organization);
 
   useEffect(() => {
     setSuggestedUsers(
@@ -69,13 +89,13 @@ const OrganizationMember = () => {
   const handleInvite = (user) => {
     try {
       const invitation = {
-        userId: user.userId,
-        organizationId: managedOrganizations[selectedOrganization].id,
+        userId: user.id,
+        organizationId: myOrganization.organizationId,
       };
       dispatch(createMemberInviteRequest(invitation));
       setSuggestedUsers((prev) =>
         prev.map((u) =>
-          u.userId === user.userId ? { ...u, invited: true } : u
+          u.userId === user.id ? { ...u, invited: true } : u
         )
       );
     } catch (error) {
@@ -90,14 +110,14 @@ const OrganizationMember = () => {
   const handleDeleteInvitation = async (user) => {
     try {
       const invitation = {
-        userId: user.userId,
-        organizationId: managedOrganizations[selectedOrganization].id,
+        userId: user.id,
+        organizationId: myOrganization.organizationId,
       };
 
       const requestId = await organizationApi
         .getInviteRequestId(
-          managedOrganizations[selectedOrganization].id,
-          user.userId
+          myOrganization.organizationId,
+          user.id
         )
         .then((res) => res.data);
 
@@ -165,7 +185,7 @@ const OrganizationMember = () => {
               onClick={() => {
                 dispatch(
                   getOrganizationInviteRequests(
-                    managedOrganizations[selectedOrganization].id
+                    myOrganization.organizationId
                   )
                 );
                 setIsModelOpen({ open: true, content: 2 });
@@ -176,7 +196,7 @@ const OrganizationMember = () => {
           </div>
         </div>
         <div className="p-5 grid md:grid-cols-1 lg:grid-cols-2 gap-2">
-          {members.map((member, index) => (
+          {myOrganizationMembers.map((member, index) => (
             <div
               key={index}
               className="border border-gray-300 rounded-md flex justify-between items-center p-4 pb-6 relative"

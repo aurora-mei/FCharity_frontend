@@ -90,16 +90,16 @@ const CreateOrganization = () => {
       showInfo("Đang tạo tổ chức...");
       if (avatarInputRef.current?.files[0]) {
         const avatarUrl = await uploadFile(
-          avatarInputRef.current.files[0],
-          "organizations"
+          {file:avatarInputRef.current.files[0],
+          folderName:"organizations"}
         );
         updatedOrgInfo = { ...updatedOrgInfo, avatarUrl };
       }
 
       if (backgroundInputRef.current?.files[0]) {
         const backgroundUrl = await uploadFile(
-          backgroundInputRef.current.files[0],
-          "organizations"
+          {file:backgroundInputRef.current.files[0],
+          folderName:"organizations"}
         );
         updatedOrgInfo = { ...updatedOrgInfo, backgroundUrl };
       }

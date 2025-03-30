@@ -1,3 +1,4 @@
+import { APIPrivate } from "../../config/API/api";
 import api from "../../services/api";
 
 const organizationApi = {
@@ -37,7 +38,7 @@ const organizationApi = {
 
   getManagedOrganizations: () => api.get("/organizations/managed"),
   getAllUsersNotInOrganization: (organizationId) =>
-    api.get(`/users/outside/${organizationId}`),
+    APIPrivate.get(`/users/organizations/${organizationId}`),
 
   getAllRequests: () => api.get("/requests"),
   getAllRequestsByOrganization: (organizationId) =>

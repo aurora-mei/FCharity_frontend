@@ -5,6 +5,7 @@ import ManagerLayout from "../../components/Layout/ManagerLayout";
 import {
   getManagedOrganizations,
   updateOrganization,
+  fetchMyOrganization
 } from "../../redux/organization/organizationSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -20,6 +21,7 @@ import {
   showWarning,
   showInfo,
 } from "../../utils/showMessage";
+import { current } from "@reduxjs/toolkit";
 
 const MyOrganization = () => {
   const dispatch = useDispatch();
@@ -27,12 +29,20 @@ const MyOrganization = () => {
   const { myOrganization } = useSelector(
     (state) => state.organization
   );
-  const currentOrganization =myOrganization;
-
+  const [currentOrganization, setCurrentOrganization] = useState(myOrganization);
+   const storedUser = localStorage.getItem("currentUser");
+    let currentUser = {};
+  
+    try {
+      currentUser = storedUser ? JSON.parse(storedUser) : {};
+    } catch (error) {
+      console.error("Error parsing currentUser from localStorage:", error);
+      currentUser = {};
+    }
   console.log("managedOrganizations: ", myOrganization);
 
   const [orgInfo, setOrgInfo] = useState({
-    id: "",
+    organizationId: "",
     organizationName: "",
     email: "",
     phoneNumber: "",
@@ -46,21 +56,31 @@ const MyOrganization = () => {
   });
 
   useEffect(() => {
-    if (currentOrganization) {
-      setOrgInfo({
-        id: currentOrganization?.id,
-        organizationName: currentOrganization?.organizationName,
-        email: currentOrganization?.email,
-        phoneNumber: currentOrganization?.phoneNumber,
-        address: currentOrganization?.address,
-        walletId: currentOrganization?.walletId,
-        ceoId: currentOrganization?.ceoId,
-        organizationDescription: currentOrganization?.organizationDescription,
-        organizationStatus: currentOrganization?.organizationStatus,
-        avatarUrl: currentOrganization?.avatarUrl,
-        backgroundUrl: currentOrganization?.backgroundUrl,
-      });
+    dispatch(fetchMyOrganization(currentUser.id))
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (myOrganization) {
+      setCurrentOrganization(myOrganization);
     }
+  }, [myOrganization]);
+  
+  useEffect(() => {
+      if (currentOrganization) {
+        setOrgInfo({
+          organizationId: currentOrganization?.organizationId,
+          organizationName: currentOrganization?.organizationName,
+          email: currentOrganization?.email,
+          phoneNumber: currentOrganization?.phoneNumber,
+          address: currentOrganization?.address,
+          walletId: currentOrganization?.walletId,
+          ceoId: currentOrganization?.ceoId,
+          organizationDescription: currentOrganization?.organizationDescription,
+          organizationStatus: currentOrganization?.organizationStatus,
+          avatarUrl: currentOrganization?.avatarUrl,
+          backgroundUrl: currentOrganization?.backgroundUrl,
+        });
+    }    
   }, [currentOrganization]);
 
   const [avatar, setAvatar] = useState(null);
@@ -119,16 +139,16 @@ const MyOrganization = () => {
       showInfo("Cập nhật tổ chức...");
       if (avatarInputRef.current?.files[0]) {
         const avatarUrl = await uploadFile(
-          avatarInputRef.current.files[0],
-          "organizations"
+        {file:avatarInputRef.current.files[0],
+          folderName:"organizations"},
         );
         updatedOrgInfo = { ...updatedOrgInfo, avatarUrl };
       }
 
       if (backgroundInputRef.current?.files[0]) {
         const backgroundUrl = await uploadFile(
-          backgroundInputRef.current.files[0],
-          "organizations"
+          {file:backgroundInputRef.current.files[0],
+          folderName:"organizations"},
         );
         updatedOrgInfo = { ...updatedOrgInfo, backgroundUrl };
       }

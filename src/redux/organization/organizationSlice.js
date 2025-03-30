@@ -397,7 +397,8 @@ export const organizationSlice = createSlice({
       })
       .addCase(createOrganization.fulfilled, (state, action) => {
         state.loading = false;
-        state.organizations.push(action.payload);
+        state.myOrganization = action.payload;
+        console.log("myOrganization: ", action.payload);
       })
       .addCase(createOrganization.rejected, (state, action) => {
         state.loading = false;
