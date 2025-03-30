@@ -8,6 +8,7 @@ import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
 import { Badge, Card } from "antd";
 import { CheckCircleOutlined, UserOutlined, HomeOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 const { Title, Text, Paragraph } = Typography;
 const items =
   [
@@ -22,6 +23,7 @@ const items =
 const RequestDetailScreen = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const loading = useSelector((state) => state.request.loading);
   const requestData = useSelector((state) => state.request.currentRequest);
@@ -167,8 +169,8 @@ const RequestDetailScreen = () => {
 
           {/* Nút Donate & Share */}
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-          {currentUser.userId !== requestData.helpRequest.user.id && (
-            <Button type="default" block style={{ flex: 1 }}>
+          {currentUser.id !== requestData.helpRequest.user.id && (
+            <Button type="default" block style={{ flex: 1 }} onClick={()=>{navigate(`/my-organization/projects/create/${requestData.helpRequest.id}`)}}>
               Register
             </Button>
           )}

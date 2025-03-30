@@ -1,22 +1,46 @@
 import { useState, useEffect } from "react";
-import { Form, Input, Select, Button, Checkbox, DatePicker, Upload } from "antd";
+import { Form, Input, Select, Button, Checkbox, DatePicker, Upload,message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { fetchCategories } from "../../redux/category/categorySlice";
-import {fetchMyOrganizations, fetchOrganizationMembers } from "../../redux/organization/organizationSlice";
+import {fetchMyOrganization, fetchOrganizationMembers } from "../../redux/organization/organizationSlice";
 import { createProjectThunk } from "../../redux/project/projectSlice";
 import {fetchRequestById} from "../../redux/request/requestSlice";
-import { useParams } from "react-router-dom";
+import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { useParams,useNavigate } from "react-router-dom";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import LoadingModal from "../LoadingModal/index.jsx";
 import useLoading from "../../hooks/useLoading";
+import styled from 'styled-components';
+import PropTypes from 'prop-types';
 
 const { Option } = Select;
+const FormStyled = styled.div`
+  .upper-container-project {
+    background-color:white;
+    border-radius: 10px;
+  }
+  .container-project {
+    padding:2rem;
+  }
+  .back-button {
+    padding:1rem !important;
+    background-color: var(--primary-button-bg-color);
+    border-color: var(--primary-button-bg-color);
+    color: white !important;
+    font-size:0.8rem !important;
+  &:hover{
+    padding:1rem !important;
+    background-color: var(--primary-button-bg-color) !important;
+    border-color: var(--primary-button-bg-color) !important;
+    box-shadow: 0 0 0 2px var(--primary-button-bg-color); 
+  }
+  }
+`
 
-const ProjectForm = () => {
-  const { id } = useParams();
+const ProjectForm = ({requestId}) => {
   const [form] = Form.useForm();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const loadingUI = useLoading();
   const loading = useSelector((state) => state.organization.loading);
@@ -26,6 +50,7 @@ const ProjectForm = () => {
   const myOrganization = useSelector((state) => state.organization.myOrganization);
   const members = useSelector((state) => state.organization.myOrganizationMembers);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [attachments, setAttachments] = useState({}); // Lưu danh sách file đã upload
   const [uploadedImages, setUploadedImages] = useState([]);
   const [uploadedVideos, setUploadedVideos] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -40,18 +65,21 @@ const ProjectForm = () => {
       }
     }
 
-    dispatch(fetchMyOrganizations(currentUser.id));
-    dispatch(fetchRequestById(id));
+    dispatch(fetchMyOrganization(currentUser.id));
+    dispatch(fetchRequestById(requestId));
     dispatch(fetchCategories());
     dispatch(fetchTags());
-    if(myOrganization?.organizationId){
+    console.log("myOrganization", myOrganization);
+    if (myOrganization.organizationId) {
       dispatch(fetchOrganizationMembers(myOrganization.organizationId));
     }
     if (form.getFieldValue("email") === undefined) {
       initFormData();
     }
-  }, [dispatch]);
+  }, [dispatch,myOrganization.organizationId]);
+ 
   const initFormData = async () => {
+    console.log("myOrganizationmember", members);
     // Lấy user từ localStorage
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
@@ -69,6 +97,7 @@ const ProjectForm = () => {
     }
     setInitialLoading(false); // Kết thúc giai đoạn load dữ liệu ban đầu
   };
+
   const handleImageChange = async ({ fileList }) => {
     if (fileList.length === 0) return; // Nếu danh sách trống, không làm gì
 
@@ -166,25 +195,27 @@ const ProjectForm = () => {
     form.setFieldsValue({
       location: requestData.helpRequest.location || "",
       categoryId: requestData.helpRequest.category.id,
-      requestTags: requestData.requestTags?.map((taggable) => taggable.tag.id) || [],
+      tagIds: requestData.requestTags?.map((taggable) => taggable.tag.id) || [],
     });
+    console.log("Request Data:", requestData);
     setInitialLoading(false);
   };
   const onFinish = async (values) => {
        // Lấy userId
-       let myOrganization = {};
-       const storedMyOrganization = localStorage.getItem("myOrganization");
-       if (storedMyOrganization) {
-         try {
-          myOrganization = JSON.parse(storedMyOrganization);
-         } catch (error) {
-           console.error("Error parsing myOrganization:", error);
-         }
-       }
+      //  let myOrganization = {};
+      //  const storedMyOrganization = localStorage.getItem("myOrganization");
+      //  if (storedMyOrganization) {
+      //    try {
+      //     myOrganization = JSON.parse(storedMyOrganization);
+      //    } catch (error) {
+      //      console.error("Error parsing myOrganization:", error);
+      //    }
+      //  }
    
        // Tạo object gửi lên API
        const projectData = {
          ...values,
+         requestId:requestId,
          organizationId: myOrganization.organizationId,
          tagIds: values.tagIds,
          imageUrls: attachments.images,
@@ -195,7 +226,6 @@ const ProjectForm = () => {
        try {
          await dispatch(createProjectThunk(projectData)).unwrap();
          message.success("Create project successfully!");
-         navigate('/', { replace: true });
        } catch (error) {
          console.error("Error creating Project:", error);
          message.error("Failed to create project");
@@ -206,6 +236,7 @@ const ProjectForm = () => {
     return <LoadingModal />;
   }
   return (
+    <FormStyled>
     <div className="upper-container-project">
       <div className="container-project">
         <div className="create-project-form">
@@ -277,8 +308,8 @@ const ProjectForm = () => {
               </Select>
             </Form.Item>
 
-            <Form.Item label="Location" name="location" rules={[{ required: true, message: "Address is required" }]} disabled>
-              <Input />
+            <Form.Item label="Location" name="location" rules={[{ required: true, message: "Address is required" }]} >
+              <Input readOnly/>
             </Form.Item>
             <Form.Item label="Images" name="images" rules={[{ required: true, message: "At least one image is required" }]}>
               <Upload
@@ -315,7 +346,11 @@ const ProjectForm = () => {
         </div>
       </div>
     </div>
+    </FormStyled>
   );
+};
+ProjectForm.propTypes = {
+  requestId: PropTypes.string.isRequired,
 };
 
 export default ProjectForm;

@@ -10,7 +10,7 @@ const initialState = {
     error: null,
 };
 
-export const fetchMyOrganizations = createAsyncThunk("organization/my-org", async (userId) => {
+export const fetchMyOrganization = createAsyncThunk("organization/my-org", async (userId) => {
     return await organizationApi.getMyOrganization(userId);
 });
 
@@ -23,15 +23,15 @@ const organizationSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(fetchMyOrganizations.pending, (state) => {
+            .addCase(fetchMyOrganization.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchMyOrganizations.fulfilled, (state, action) => {
+            .addCase(fetchMyOrganization.fulfilled, (state, action) => {
                 state.loading = false;
-                state.currentOrganization = action.payload;
+                state.myOrganization = action.payload;
                 localStorage.setItem("myOrganization", JSON.stringify(action.payload));
             })
-            .addCase(fetchMyOrganizations.rejected, (state, action) => {
+            .addCase(fetchMyOrganization.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             })

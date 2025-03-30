@@ -129,7 +129,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
         return filterProvs.some((filterProv) => requestProvName.includes(filterProv));
       });
     }
-
+   
     setFilteredRequests(data);
   }, [activeRequests, filters, provinces]);
 

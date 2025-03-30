@@ -147,7 +147,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
                     <div className="category-badge">
                         {requestData.helpRequest.category.categoryName}
                     </div>
-                    {currentUser.userId === requestData.helpRequest.user.id && (
+                    {currentUser.id === requestData.helpRequest.user.id && (
                         <div className="menu-badge">
                             <MoreOptions onEdit={() => handleEdit(requestData)} onDelete={() => handleDelete(requestData.helpRequest.id)} />
                         </div>)}
