@@ -49,6 +49,14 @@ const Navbar = () => {
         {
             key: '2',
             label: (
+                <a rel="noopener noreferrer" href="/organization/my-organization">
+                   My Organization
+                </a>
+            ),
+        },
+        {
+            key: '3',
+            label: (
                 <a onClick={logout}>
                     Sign out
                 </a>

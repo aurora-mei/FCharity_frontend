@@ -18,8 +18,8 @@ import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
 import ManageProfileScreen from "../screens/user/ManageProfileScreen.jsx";
 import ChangeProfileModal from "../components/ChangeProfileForm/ChangeProfileModal.jsx";
 import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
-
-<Route path="/create-post" element={<CreatePostPage />} />
+import ProjectForm from "../components/ProjectForm/ProjectForm.jsx";
+import MyOrganizationScreen from "../screens/organization/MyOrganizationScreen.jsx";
 
 const AppRoutes = () => {
     return (
@@ -43,6 +43,12 @@ const AppRoutes = () => {
                             <Route path="create" element={<CreateRequestScreen />} />
                             <Route path="edit/:id" element={<EditRequestScreen />} />
                             <Route path="myrequests" element={<MyRequestScreen />} />
+                        </Route>
+                        <Route path="organizations">
+                            {/* cần modify */}
+                            <Route index element={<LoadingModal />} />
+                            <Route path="my-organization" element={<MyOrganizationScreen />}/>
+                            <Route path="projects/create" element={<ProjectForm />} />
                         </Route>
                         <Route path="posts">
                             <Route path="create-post" element={<CreatePostPage />} />

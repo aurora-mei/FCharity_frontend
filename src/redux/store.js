@@ -6,7 +6,8 @@ import tagReducer from './tag/tagSlice';
 import helperReducer from './helper/helperSlice';
 import postReducer from './post/postSlice';
 import userReducer from './user/userSlice';
-
+import organizationReducer from './organization/organizationSlice';
+import projectReducer from './project/projectSlice';
 const reducer = combineReducers({
     auth: authReducer,
     request: requestReducer,
@@ -14,7 +15,9 @@ const reducer = combineReducers({
     tag: tagReducer,
     helper: helperReducer,
     post: postReducer,
-    user: userReducer
+    user: userReducer,
+    organization: organizationReducer,
+    project: projectReducer,
 });
 
 export const store = configureStore({
