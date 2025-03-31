@@ -11,7 +11,7 @@ const ProjectCard = ({projectData}) => {
          <div style={{ position: "relative" }}>
             {/* {projectData.attachments && projectData.attachments.length > 0 ? (
                 <img
-                    src={projectData.attachments[0].imageUrl}
+                    // src={projectData.attachments[0].imageUrl}
                     alt="Request"
                     style={{ height: "11rem", width: "100%", borderTopLeftRadius: "1rem", borderTopRightRadius: "1rem" }}
                 />
@@ -36,7 +36,7 @@ const ProjectCard = ({projectData}) => {
             <p style={{ height: "3rem" }}><Paragraph ellipsis={{ tooltip: projectData.project.projectName, rows: 2, expandable: false }}>{requestData.helpRequest.content}</Paragraph ></p>
             <p className="text-gray-600 text-sm">Contact: {projectData.project.email}</p>
 
-            <div className="tags">
+            {/* <div className="tags">
                 {projectData.projectTags.map((tag) => (
                     <span key={tag.id}>
                         <div className="donation-badge">

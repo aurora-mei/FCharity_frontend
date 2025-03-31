@@ -29,7 +29,7 @@ const CreateOrganization = () => {
     address: "",
     walletId: "",
     organizationDescription: "",
-    organizationStatus: "Active",
+    organizationStatus: "PENDING",
     avatarUrl: null,
     backgroundUrl: null,
   });
@@ -118,7 +118,7 @@ const CreateOrganization = () => {
             address: "",
             walletId: "",
             organizationDescription: "",
-            organizationStatus: "Active",
+            organizationStatus: "PENDING",
             avatarUrl: "",
             backgroundUrl: "",
           });

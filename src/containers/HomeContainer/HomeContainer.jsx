@@ -13,6 +13,7 @@ import { useEffect } from 'react';
 import { Flex } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation, Trans } from 'react-i18next';
+import OrganizationActiveCarousel from '../../components/OrganizationManagement/OrganizationActiveCarousel';
 
 const HomeContainer = () => {
     const projects = useSelector(state => state.project.projects);
@@ -28,6 +29,7 @@ const HomeContainer = () => {
                 <Noting />
                 <Flex vertical='true' gap='4rem' style={{ margin: '4rem 10rem' }}>
                     <RequestActiveCarousel />
+                    <OrganizationActiveCarousel />
                     <FundraiserBoard projects={projects} />
                     <EventBoard />
                 </Flex>
