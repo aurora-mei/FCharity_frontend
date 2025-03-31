@@ -364,6 +364,7 @@ export const getAllUsersNotInOrganization = createAsyncThunk(
       const response = await organizationApi.getAllUsersNotInOrganization(
         organizationId
       );
+      console.log("users outside: ", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -382,7 +383,7 @@ export const organizationSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
+    builder 
       .addCase(getAllOrganizations.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -392,6 +393,18 @@ export const organizationSlice = createSlice({
         state.organizations = action.payload;
       })
       .addCase(getAllOrganizations.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteInviteRequest.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteInviteRequest.fulfilled, (state, action) => {
+        state.loading = false;
+        state.inviteRequests = state.inviteRequests.filter((inviteRequest) => inviteRequest.organizationRequestId !== action.payload); 
+      })
+      .addCase(deleteInviteRequest.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -463,7 +476,7 @@ export const organizationSlice = createSlice({
       })
       .addCase(getOrganizationInviteRequests.fulfilled, (state, action) => {
         state.loading = false;
-        state.inviteRequests = action.payload;
+        state.inviteRequests =action.payload;
       })
       .addCase(getOrganizationInviteRequests.rejected, (state, action) => {
         state.loading = false;

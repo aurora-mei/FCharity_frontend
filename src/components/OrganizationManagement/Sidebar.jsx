@@ -33,7 +33,7 @@ const Sidebar = () => {
           className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200"
         >
           <FaBuildingUser style={{ fontSize: "24px" }} />
-          <span className="text-base font-medium">Users</span>
+          <span className="text-base font-medium">Members</span>
         </Link>
         <Link
           to="/manage-organization/projects"

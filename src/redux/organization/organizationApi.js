@@ -22,7 +22,7 @@ const organizationApi = {
   deleteJoinRequest: (requestId) => api.delete(`/join-requests/${requestId}`),
 
   getOrganizationInviteRequests: (organizationId) =>
-    api.get(`/invite-requests/organizations/${organizationId}`),
+    APIPrivate.get(`api/invite-requests/organizations/${organizationId}`),
   inviteMember: (requestInfo) => api.post("/invite-requests", requestInfo),
   getInviteRequestId: (organizationId, userId) =>
     api.get(`/invite-requests/request-id/${organizationId}/${userId}`),

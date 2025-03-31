@@ -324,59 +324,12 @@ const CreateOrganization = () => {
                 className="w-full h-[120px] p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
               />
             </div>
-            <div className="flex gap-2 items-center">
-              <label htmlFor="status" className="w-[160px] shrink-0">
-                Status
-              </label>
-              <select
-                name="organizationStatus"
-                id="status"
-                placeholder="Active"
-                value={orgInfo.organizationStatus}
-                onChange={handleChange}
-                className="w-[120px] p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
             <div className="flex flex-row-reverse mt-8">
               <button className="bg-green-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-green-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300">
                 <span className="text-white">Create</span>
               </button>
             </div>
           </form>
-        </div>
-        <div className="absolute right-[20px] top-[690px] w-[200px] h-[550px] bg-gradient-to-b from-blue-500 to-indigo-600 rounded-lg shadow-lg lg:hidden xl:block overflow-hidden">
-          {/* Ảnh quảng cáo */}
-          <div className="relative h-[60%] w-full">
-            <img
-              src="https://thietkecanva.vn/wp-content/uploads/2022/10/thiet-ke-template-canva-bat-dong-san-chuyen-nghiep-canva-bds-thietkecanva-58.png"
-              alt="Advertisements"
-              className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-            />
-            {/* Hiệu ứng nháy ở góc */}
-            <div className="absolute top-2 left-2 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded animate-pulse">
-              HOT DEAL!
-            </div>
-          </div>
-
-          {/* Nội dung mô tả */}
-          <div className="p-4 text-white h-[40%] flex flex-col justify-between">
-            <div>
-              <h3 className="text-lg font-bold mb-2 animate-bounce">
-                Khuyến mãi đặc biệt!
-              </h3>
-              <p className="text-sm">
-                Nhận ngay ưu đãi 50% khi tham gia lần đầu tiên. Đừng bỏ lỡ cơ
-                hội này!
-              </p>
-            </div>
-            {/* Nút CTA */}
-            <button className="mt-2 bg-yellow-400 text-indigo-800 font-semibold py-2 px-4 rounded-md hover:bg-yellow-500 hover:scale-105 transition-all duration-300">
-              Tham gia ngay
-            </button>
-          </div>
         </div>
       </div>
     </ManagerLayout>

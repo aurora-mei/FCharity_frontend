@@ -11,9 +11,9 @@ import {
   deleteInviteRequest,
   getAllUsersNotInOrganization,
   getOrganizationInviteRequests,
-  getOrganizationMembers,
   fetchOrganizationMembers
 } from "../../redux/organization/organizationSlice";
+import { Empty } from "antd";
 
 import organizationApi from "../../redux/organization/organizationApi.js";
 
@@ -31,13 +31,13 @@ const OrganizationMember = () => {
   const dispatch = useDispatch();
 
   const {
+    loading,
     selectedOrganization,
     managedOrganizations,
     inviteRequests,
     joinRequests,
   } = useSelector((state) => state.organization);
 
-  console.log("organization invitation requests: ", inviteRequests);
 
   const [isModelOpen, setIsModelOpen] = useState({
     open: false,
@@ -62,14 +62,16 @@ const OrganizationMember = () => {
 
   useEffect(() => {
     if (myOrganization.organizationId) {
-      dispatch(
-        getOrganizationMembers(myOrganization.organizationId)
-      );
     dispatch(
       fetchOrganizationMembers(myOrganization.organizationId)
     )
       dispatch(
         getAllUsersNotInOrganization(
+          myOrganization.organizationId
+        )
+      );
+      dispatch(
+        getOrganizationInviteRequests(
           myOrganization.organizationId
         )
       );
@@ -95,7 +97,7 @@ const OrganizationMember = () => {
       dispatch(createMemberInviteRequest(invitation));
       setSuggestedUsers((prev) =>
         prev.map((u) =>
-          u.userId === user.id ? { ...u, invited: true } : u
+          u.id === user.id ? { ...u, invited: true } : u
         )
       );
     } catch (error) {
@@ -104,7 +106,7 @@ const OrganizationMember = () => {
   };
 
   const handleRemove = (user) => {
-    setSuggestedUsers((prev) => prev.filter((u) => u.userId !== user.userId));
+    setSuggestedUsers((prev) => prev.filter((u) => u.id !== user.id));
   };
 
   const handleDeleteInvitation = async (user) => {
@@ -122,17 +124,16 @@ const OrganizationMember = () => {
         .then((res) => res.data);
 
       dispatch(deleteInviteRequest(requestId));
-
       setSuggestedUsers((prev) =>
         prev.map((u) =>
-          u.userId === user.userId ? { ...u, invited: false } : u
+          u.id === user.id ? { ...u, invited: false } : u
         )
       );
     } catch (error) {
       console.error("Failed to invite member:", error);
     }
   };
-
+console.log("invite", inviteRequests);
   return (
     <ManagerLayout>
       <div className="pl-2">
@@ -177,7 +178,7 @@ const OrganizationMember = () => {
               className="text-gray-800 rounded-xl bg-gray-300 px-4 py-2 hover:bg-gray-400 hover:cursor-pointer transition duration-200"
               onClick={() => setIsModelOpen({ open: true, content: 1 })}
             >
-              Mời tham gia
+              Invite
             </button>
             <button
               type="button"
@@ -191,7 +192,7 @@ const OrganizationMember = () => {
                 setIsModelOpen({ open: true, content: 2 });
               }}
             >
-              Lời mời đã gửi
+              Invitation has sent
             </button>
           </div>
         </div>
@@ -230,23 +231,6 @@ const OrganizationMember = () => {
                 <span className="w-[5px] h-[5px] rounded-full bg-gray-500 shrink-0"></span>
               </div>
               <div className="absolute bottom-2 right-3 flex gap-1 justify-between items-center">
-                {member.user.userStatus === "Verified" && (
-                  <div className=" px-2 py-1 bg-green-500 text-white rounded-full flex gap-1 justify-between items-center">
-                    <FaRegCheckCircle />{" "}
-                    <span className="text-xs">Verified</span>
-                  </div>
-                )}
-                {member.user.userStatus === "Unverified" && (
-                  <div className=" px-2 py-1 bg-red-500 text-white rounded-full flex gap-1 justify-between items-center">
-                    <IoWarningOutline />{" "}
-                    <span className="text-xs">Unverified</span>
-                  </div>
-                )}
-                {member.user.userRole === "Admin" && (
-                  <div className=" px-2 py-1 bg-black text-white rounded-full flex gap-1 justify-between items-center">
-                    <GrUserAdmin /> <span className="text-xs">Admin</span>
-                  </div>
-                )}
                 {member.user.userRole === "CEO" && (
                   <div className=" px-2 py-1 bg-purple-600 text-white rounded-full flex gap-1 justify-between items-center">
                     <SiPhpmyadmin /> <span className="text-xs">CEO</span>
@@ -282,7 +266,7 @@ const OrganizationMember = () => {
                     className="text-xl font-semibold"
                     style={{ margin: 0, padding: 0 }}
                   >
-                    Mời tham gia
+                    Invite
                   </p>
                   <span
                     className="hover:cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-300"
@@ -291,8 +275,7 @@ const OrganizationMember = () => {
                     <IoClose style={{ fontSize: "24px" }} />
                   </span>
                 </div>
-                <div className="flex gap-2 h-[420px]">
-                  <div className="w-[230px] h-full max-h-full  flex flex-col gap-2">
+                <div className="h-full max-h-full  flex flex-col gap-2">
                     <div className="flex items-center justify-center pl-2">
                       <label htmlFor="searchTerm" className="-mr-8 z-10">
                         <IoSearch style={{ fontSize: "22px", color: "gray" }} />
@@ -301,7 +284,7 @@ const OrganizationMember = () => {
                         type="text"
                         name="searchTerm"
                         id="searchTerm"
-                        placeholder="Tìm kiếm thành viên"
+                        placeholder="Find member"
                         className="w-full pl-10 p-2 bg-gray-100 border border-gray-300 rounded-full text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
                       />
                     </div>
@@ -311,7 +294,7 @@ const OrganizationMember = () => {
                         className="font-semibold text-lg text-gray-800"
                         style={{ margin: 0, padding: 0 }}
                       >
-                        {suggestedUsers?.length || "0"} ứng viên
+                        {suggestedUsers?.length || "0"} users found
                       </p>
                       <div className="overflow-y-scroll grow-1">
                         {suggestedUsers &&
@@ -353,7 +336,7 @@ const OrganizationMember = () => {
                                             handleInvite(user);
                                           }}
                                         >
-                                          Mời
+                                          Invite
                                         </button>
                                         <button
                                           type="button"
@@ -368,7 +351,7 @@ const OrganizationMember = () => {
                                             handleRemove(user);
                                           }}
                                         >
-                                          Xóa
+                                          Remove
                                         </button>
                                       </div>
                                     )}
@@ -388,7 +371,7 @@ const OrganizationMember = () => {
                                       handleDeleteInvitation(user);
                                     }}
                                   >
-                                    Hủy
+                                    Cancel
                                   </button>
                                 )}
                               </div>
@@ -414,8 +397,7 @@ const OrganizationMember = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-amber-200 grow-1"></div>
-                </div>
+               
               </div>
             )}
             {isModelOpen?.content === 2 && (
@@ -425,7 +407,7 @@ const OrganizationMember = () => {
                     className="text-xl font-semibold"
                     style={{ margin: 0, padding: 0 }}
                   >
-                    Lời mời đã gửi
+                    Invitation has sent
                   </p>
                   <span
                     className="hover:cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-300"
@@ -438,20 +420,8 @@ const OrganizationMember = () => {
                 <div className="relative shadow-md sm:rounded-lg flex flex-col gap-6">
                   <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 pb-4 bg-white mt-1">
                     <div className="relative">
-                      <button
-                        className="inline-flex items-center bg-white border border-gray-300  hover:bg-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 gap-2"
-                        type="button"
-                        style={{ color: "rgb(64, 67, 71)" }}
-                      >
-                        <span>Action</span>
-                        <FaChevronDown />
-                      </button>
-                      {/* <!-- Dropdown menu --> */}
-                      <div className="z-50 bg-white rounded-lg shadow-sm w-32 absolute top-8 text-sm text-gray-700 flex flex-col gap-1">
-                        <button className="block px-4 py-2 hover:bg-gray-100 hover:cursor-pointer">
-                          Hủy
-                        </button>
-                      </div>
+                   
+                    
                     </div>
                     <label htmlFor="table-search" className="sr-only">
                       Search
@@ -501,79 +471,86 @@ const OrganizationMember = () => {
                       </tr>
                     </thead>
                     <div className="h-[300px] overflow-y-scroll">
-                      {inviteRequests?.map((invitation, index) => (
-                        <tr
-                          key={index}
-                          className="bg-white border-b border-gray-200 hover:bg-gray-50 h-full"
-                        >
-                          <td className="w-4 p-4">
-                            <div className="flex items-center">
-                              <input
-                                type="checkbox"
-                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
-                              />
-                              <label
-                                htmlFor="checkbox-table-search-1"
-                                className="sr-only"
-                              >
-                                checkbox
-                              </label>
-                            </div>
-                          </td>
-                          <td
-                            scope="row"
-                            className="flex items-center px-6 py-4 text-gray-800 whitespace-nowrap w-[220px]"
+                      {
+                      inviteRequests && inviteRequests.length > 0 ?(
+                        inviteRequests?.map((invitation, index) => (
+                          <tr
+                            key={index}
+                            className="bg-white border-b border-gray-200 hover:bg-gray-50 h-full"
                           >
-                            <img
-                              className="w-10 h-10 rounded-full"
-                              src={invitation.user.avatar}
-                              alt="avatar image"
-                            />
-                            <div className="ps-3">
-                              <div className="text-base font-semibold">
-                                {invitation.user.fullName}
+                            <td className="w-4 p-4">
+                              <div className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
+                                />
+                                <label
+                                  htmlFor="checkbox-table-search-1"
+                                  className="sr-only"
+                                >
+                                  checkbox
+                                </label>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 w-[230px]">
-                            {invitation.user.email}
-                          </td>
-                          <td className="px-6 py-4 w-[150px]">
-                            <div className="flex items-center">
+                            </td>
+                            <td
+                              scope="row"
+                              className="flex items-center px-6 py-4 text-gray-800 whitespace-nowrap w-[220px]"
+                            >
+                              <img
+                                className="w-10 h-10 rounded-full"
+                                src={invitation.user.avatar}
+                                alt="avatar image"
+                              />
+                              <div className="ps-3">
+                                <div className="text-base font-semibold">
+                                  {invitation.user.fullName}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 w-[230px]">
+                              {invitation.user.email}
+                            </td>
+                            <td className="px-6 py-4 w-[150px]">
+                              <div className="flex items-center">
+                                {invitation.status === "Pending" && (
+                                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-500 me-2"></div>
+                                )}
+                                {invitation.status === "Approved" && (
+                                  <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div>
+                                )}
+                                {invitation.status === "Rejected" && (
+                                  <div className="h-2.5 w-2.5 rounded-full bg-red-500 me-2"></div>
+                                )}
+                                {invitation.status}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
                               {invitation.status === "Pending" && (
-                                <div className="h-2.5 w-2.5 rounded-full bg-yellow-500 me-2"></div>
+                                <button
+                                  type="button"
+                                  className="px-3 py-1 rounded-md bg-gray-300 hover:bg-gray-500 hover:cursor-pointer hover:text-white"
+                                  style={{ color: "rgb(64, 67, 71)" }}
+                                  onClick={() => {
+                                    handleDeleteInvitation(invitation.user);
+                                  }}
+                                >
+                                  Cancel
+                                </button>
                               )}
-                              {invitation.status === "Approved" && (
-                                <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div>
+                              {invitation.status !== "Pending" && (
+                                <button
+                                  type="button"
+                                  className="px-3 py-1 rounded-md bg-green-500 hover:bg-green-700 hover:cursor-pointer hover:text-white"
+                                  style={{ color: "white" }}
+                                >
+                                  Delete
+                                </button>
                               )}
-                              {invitation.status === "Rejected" && (
-                                <div className="h-2.5 w-2.5 rounded-full bg-red-500 me-2"></div>
-                              )}
-                              {invitation.status}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            {invitation.status === "Pending" && (
-                              <button
-                                type="button"
-                                className="px-3 py-1 rounded-md bg-gray-300 hover:bg-gray-500 hover:cursor-pointer hover:text-white"
-                                style={{ color: "rgb(64, 67, 71)" }}
-                              >
-                                Hủy
-                              </button>
-                            )}
-                            {invitation.status !== "Pending" && (
-                              <button
-                                type="button"
-                                className="px-3 py-1 rounded-md bg-green-500 hover:bg-green-700 hover:cursor-pointer hover:text-white"
-                                style={{ color: "white" }}
-                              >
-                                Xóa
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                          </tr>
+                        ))
+                      ):<Empty>No invitation has sent.</Empty>
+                     }
                     </div>
                   </div>
                 </div>
