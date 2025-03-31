@@ -9,9 +9,9 @@ const ProjectCard = ({projectData}) => {
     return ( 
     <Flex vertical gap={5} style={{ boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 8px 0px", borderRadius: "1rem" }}>
          <div style={{ position: "relative" }}>
-            {projectData.attachments && projectData.attachments.length > 0 ? (
+            {/* {projectData.attachments && projectData.attachments.length > 0 ? ( */}
                 <img
-                    src={projectData.attachments[0].imageUrl}
+                    // src={projectData.attachments[0].imageUrl}
                     alt="Request"
                     style={{ height: "11rem", width: "100%", borderTopLeftRadius: "1rem", borderTopRightRadius: "1rem" }}
                 />
@@ -23,7 +23,7 @@ const ProjectCard = ({projectData}) => {
                 />
             )}
             <div className="category-badge">
-                {projectData.project.category.categoryName}
+                {/* {projectData.project.category.categoryName} */}
             </div>
             {/* {currentUser.id === requestData.helpRequest.user.id && (
                 <div className="menu-badge">
@@ -31,12 +31,12 @@ const ProjectCard = ({projectData}) => {
                 </div>)} */}
         </div> 
         {/* Nội dung */}
-        <div style={{ padding: "1rem" }} >
-            <a style={{ fontWeight: "bold", color: "black" }} href={`/requests/${projectData.project.id}`} >{requestData.helpRequest.title}</a>
-            <p style={{ height: "3rem" }}><Paragraph ellipsis={{ tooltip: projectData.project.projectName, rows: 2, expandable: false }}>{requestData.helpRequest.content}</Paragraph ></p>
-            <p className="text-gray-600 text-sm">Contact: {projectData.project.email}</p>
+        {/* <div style={{ padding: "1rem" }} > */}
+            {/* <a style={{ fontWeight: "bold", color: "black" }} href={`/requests/${projectData.project.id}`} >{requestData.helpRequest.title}</a> */}
+            {/* <p style={{ height: "3rem" }}><Paragraph ellipsis={{ tooltip: projectData.project.projectName, rows: 2, expandable: false }}>{requestData.helpRequest.content}</Paragraph ></p> */}
+            {/* <p className="text-gray-600 text-sm">Contact: {projectData.project.email}</p> */}
 
-            <div className="tags">
+            {/* <div className="tags">
                 {projectData.projectTags.map((tag) => (
                     <span key={tag.id}>
                         <div className="donation-badge">
@@ -45,7 +45,7 @@ const ProjectCard = ({projectData}) => {
                     </span>
                 ))}
             </div>
-        </div> 
+        </div>  */}
     </Flex>)
 
             }

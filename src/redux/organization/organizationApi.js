@@ -2,7 +2,7 @@ import { APIPrivate } from "../../config/API/api";
 import api from "../../services/api";
 
 const organizationApi = {
-  getAllOrganizations: () => api.get("/organizations"),
+  getAllOrganizations: () => APIPrivate.get("/api/organizations"),
   createOrganization: (orgData) => api.post("/organizations", orgData),
   deleteOrganization: (organizationId) =>
     api.delete(`/organizations/${organizationId}`),

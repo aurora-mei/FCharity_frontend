@@ -39,9 +39,11 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchMyOrganization(currentUser.id));
-    // dispatch(getManagedOrganizations());
-  }, [myOrganization.organizationId]);
+    if (currentUser?.id && (!myOrganization || !myOrganization.id)) {
+        dispatch(fetchMyOrganization(currentUser.id));
+    }
+}, [currentUser.id, dispatch]);
+ 
 
   const { managedOrganizations } = useSelector((state) => state.organization);
 
@@ -57,7 +59,7 @@ const Navbar = () => {
     {
       key: "2",
       label:
-      myOrganization ? (
+      myOrganization && myOrganization.organizationId ? (
           <Link rel="noopener noreferrer" to="/manage-organization">
             My Organizations
           </Link>
