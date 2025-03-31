@@ -1,34 +1,82 @@
-import React, { useEffect } from "react";
-import { List, Avatar, Typography, Tag, Dropdown, Menu } from "antd";
-import dayjs from "dayjs";
+import React, { useState, useEffect, useRef } from "react";
+import { List, Avatar, Typography, Button, Space,Tag } from "antd";
 import { useNavigate } from "react-router-dom";
-const { Title, Text } = Typography;
+import { UpOutlined, DownOutlined, MessageOutlined, ShareAltOutlined, UserOutlined, PictureOutlined } from "@ant-design/icons";
 
-const tagStyle = {
-    display: "inline-flex",
-    alignItems: "center",
-    border: "1px solid #065f46",      // Viền xanh đậm
-    backgroundColor: "#d1fae5",         // Nền xanh nhạt
-    color: "#065f46",                   // Chữ xanh đậm
-    padding: "2px 8px",
-    borderRadius: "999px",              // Bo tròn
-    fontWeight: 600,
-    fontSize: "0.6rem"
-};
+const { Title, Text } = Typography;
 
 const PostItem = ({ postResponse }) => {
     const navigate = useNavigate();
+    const attachments = postResponse?.attachments || [];
+    const attachmentCount = attachments.length;
+    const taggables = postResponse?.taggables || [];
+    // State để lưu thumbnail
+    const [thumbnail, setThumbnail] = useState("https://via.placeholder.com/100");
+    const videoRef = useRef(null);
+    
     useEffect(() => {
-        console.log(postResponse);
-    }, [postResponse]);
+        console.log(postResponse?.taggables);
+        if (attachments.length > 0) {
+            const imageAttachment = attachments.find(att => att.match(/\.(jpg|jpeg|png|gif)$/));
+            const videoAttachment = attachments.find(att => att.match(/\.(mp4|webm)$/));
 
-    const menu = (
-        <Menu>
-            <Menu.Item key="1">Delete</Menu.Item>
-            <Menu.Item key="2">Update</Menu.Item>
-            <Menu.Item key="3">Report</Menu.Item>
-        </Menu>
-    );
+            if (imageAttachment) {
+                setThumbnail(imageAttachment); // Ưu tiên ảnh
+            } else if (videoAttachment) {
+                generateVideoThumbnail(videoAttachment);
+            }
+        }
+    }, [attachments]);
+    const formatTime = (createdAt) => {
+        const now = new Date();
+        const createdTime = new Date(createdAt);
+        const diffInSeconds = Math.floor((now - createdTime) / 1000);
+    
+        if (diffInSeconds < 60) {
+            return `${diffInSeconds} giây trước`;
+        }
+        
+        const diffInMinutes = Math.floor(diffInSeconds / 60);
+        if (diffInMinutes < 60) {
+            return `${diffInMinutes} phút trước`;
+        }
+    
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) {
+            return `${diffInHours} giờ trước`;
+        }
+    
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays < 7) {
+            return `${diffInDays} ngày trước`;
+        }
+    
+        return createdTime.toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
+    };
+    
+    // Tạo thumbnail từ video
+    const generateVideoThumbnail = (videoUrl) => {
+        const video = document.createElement("video");
+        video.src = videoUrl;
+        video.crossOrigin = "anonymous";
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = "metadata";
+
+        video.onloadeddata = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 160;  // Kích thước nhỏ để load nhanh
+            canvas.height = 90;
+            const ctx = canvas.getContext("2d");
+
+            video.currentTime = 2; // Lấy frame tại giây thứ 2
+
+            video.onseeked = () => {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                setThumbnail(canvas.toDataURL("image/png")); // Chuyển frame thành URL ảnh
+            };
+        };
+    };
 
     return (
         <List.Item
@@ -41,60 +89,87 @@ const PostItem = ({ postResponse }) => {
                 alignItems: "center",
                 gap: "15px",
                 transition: "background 0.2s",
+                position: "relative"
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f5f5")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
+            {/* **Thumbnail với số lượng attachment** */}
             <div style={{ position: "relative" }}>
-                <Avatar 
-                    shape="square" 
-                    size={80} 
-                    src={(postResponse?.attachments?.length > 0) 
-                        ? postResponse.attachments[0] 
-                        : "https://via.placeholder.com/100"} 
+                <Avatar
+                    shape="square"
+                    size={80}
+                    src={thumbnail}
+                    icon={<UserOutlined />}
                 />
-                {postResponse?.attachments?.length > 1 && (
+                
+                {attachmentCount > 1 && (
                     <div style={{
                         position: "absolute",
-                        bottom: 5,
-                        left: 5,
-                        background: "rgba(0,0,0,0.6)",
+                        bottom: 4,
+                        left: 4,
+                        backgroundColor: "rgba(0, 0, 0, 0.6)",
                         color: "#fff",
                         fontSize: "12px",
-                        padding: "2px 5px",
-                        borderRadius: "4px"
+                        padding: "2px 6px",
+                        borderRadius: "5px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px"
                     }}>
-                        {postResponse.attachments.length}
+                        <PictureOutlined />
+                        {attachmentCount}
                     </div>
                 )}
             </div>
 
-            <div style={{ flex: 1, overflow: "hidden" }}>
+            {/* **Thông tin Post** */}
+            <div style={{ flex: 1 }}>
                 <Text strong>{postResponse.post.user.fullName || "Unknown User"}</Text>
                 <Text type="secondary" style={{ marginLeft: 10 }}>
-                    {postResponse.post.createdAt 
-                        ? dayjs(postResponse.post.createdAt).format("YYYY-MM-DD HH:mm") 
-                        : "Unknown Date"}
-                </Text>
+    {formatTime(postResponse.post.createdAt)}
+</Text>
 
-                <div style={{ marginTop: 5 }}>
-                    {postResponse.taggables && postResponse.taggables.length > 0
-                        ? postResponse.taggables.map((tag) => (
-                            <Tag key={tag.id} style={tagStyle}>#{tag.tag.tagName}</Tag>
-                          ))
-                        : <Text type="secondary">No tags</Text>}
-                </div>
+                {taggables.map((tag) => (
+                    <Tag key={tag.id} style={{ marginRight: 10 }}>{tag.tag.tagName}</Tag>
+                ))}
 
-                <Title level={5} style={{ margin: "5px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <Title level={5} style={{ marginTop: "5px", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {postResponse.post.title}
                 </Title>
 
-                <Text type="secondary">{postResponse.post.vote} votes</Text>
+                {/* **Các nút tương tác** */}
+                <Space size={4}>
+    <Button 
+        shape="circle" 
+        size="small" 
+        icon={<UpOutlined style={{ fontSize: 14 }} />} 
+        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
+    />
+    <Text strong style={{ fontSize: 14 }}>{postResponse.post.votes || 0}</Text>
+    <Button 
+        shape="circle" 
+        size="small" 
+        icon={<DownOutlined style={{ fontSize: 14 }} />} 
+        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
+    />
+    <Button 
+        shape="circle" 
+        size="small" 
+        icon={<MessageOutlined style={{ fontSize: 14 }} />} 
+        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
+    />
+    <Button 
+        shape="circle" 
+        size="small" 
+        icon={<ShareAltOutlined style={{ fontSize: 14 }} />} 
+        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
+    />
+</Space>
+
+
+
             </div>
-            
-            <Dropdown menu={menu} trigger={["click"]}>
-                <Text style={{ cursor: "pointer", fontSize: "18px" }}>⋮</Text>
-            </Dropdown>
         </List.Item>
     );
 };

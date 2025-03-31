@@ -12,9 +12,7 @@ const { Content } = Layout;
 const ForumPage = () => {
     const dispatch = useDispatch();
     const posts = useSelector((state) => state.post.posts);
-    const loading = useSelector((state) => state.post.loading);
-
-    const [selectedPost, setSelectedPost] = useState(null);
+    
     const [viewMode, setViewMode] = useState("compact");
     const [sortBy, setSortBy] = useState("Best");
 
@@ -27,7 +25,7 @@ const ForumPage = () => {
             <LeftSidebar />
             <Content style={{ background: "#fff", flex: 1, margin: "0 20px" }}>
                 <ForumHeader sortBy={sortBy} setSortBy={setSortBy} viewMode={viewMode} setViewMode={setViewMode} />
-                <PostList posts={posts} viewMode={viewMode} onSelectPost={setSelectedPost} />
+                <PostList posts={posts} viewMode={viewMode} />
             </Content>
             <RightSidebar />
         </Layout>

@@ -5,6 +5,7 @@ import categoryReducer from './category/categorySlice';
 import tagReducer from './tag/tagSlice';
 import helperReducer from './helper/helperSlice';
 import postReducer from './post/postSlice';
+import commentReducer from './post/commentSlice';
 import userReducer from './user/userSlice';
 
 const reducer = combineReducers({
@@ -14,7 +15,8 @@ const reducer = combineReducers({
     tag: tagReducer,
     helper: helperReducer,
     post: postReducer,
-    user: userReducer
+    user: userReducer,
+    comment: commentReducer
 });
 
 export const store = configureStore({
