@@ -5,6 +5,7 @@ import categoryReducer from "./category/categorySlice";
 import tagReducer from "./tag/tagSlice";
 import helperReducer from "./helper/helperSlice";
 import postReducer from "./post/postSlice";
+import commentReducer from './post/commentSlice';
 
 import userReducer from "./user/userSlice";
 import organizationReducer from "./organization/organizationSlice";
@@ -19,6 +20,7 @@ const reducer = combineReducers({
   user: userReducer,
   organization: organizationReducer,
   project: projectReducer,
+  comment: commentReducer
 });
 
 export const store = configureStore({
