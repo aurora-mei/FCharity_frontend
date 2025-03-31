@@ -21,8 +21,11 @@ const PostForm = () => {
     const tags = useSelector((state) => state.tag.tags || []);
     const token = useSelector((state) => state.auth.token);
     const storedUser = localStorage.getItem("currentUser");
-    const [attachments, setAttachments] = useState({ images: [], videos: [] });
-    const [uploading, setUploading] = useState(false);
+    const [attachments, setAttachments] = useState({}); // Lưu danh sách file đã upload
+    const [uploading, setUploading] = useState(false); // Trạng thái loading khi upload
+    const [uploadedImages, setUploadedImages] = useState([]);
+    const [uploadedVideos, setUploadedVideos] = useState([]);
+
     let currentUser = {};
 
     try {
@@ -50,49 +53,113 @@ const PostForm = () => {
 
         const postData = {
             ...values,
-            userId: currentUser.id,
+            userId: currentUser.userId,
             tagIds: values.tagIds,
             imageUrls: attachments.images,
-            videoUrls: attachments.videos
+            videoUrls: attachments.videos// Gửi danh sách file đã upload
         };
 
         console.log("Final Post Data:", postData);
+        await dispatch(createPosts(postData)).unwrap();
+        navigate('/forum', { replace: true });
+    };
+    const handleImageChange = async ({ fileList }) => {
+        if (fileList.length === 0) return; // Nếu danh sách trống, không làm gì
+
+        setUploading(true);
+        const latestFile = fileList[fileList.length - 1];
 
         try {
-            await dispatch(createPosts(postData)).unwrap();
-            message.success("Post created successfully!");
-            navigate('/forum', { replace: true });
+            const response = await dispatch(uploadFileHelper({ file: latestFile.originFileObj, folderName: "images" })).unwrap();
+            console.log("response", response);
+            latestFile.url = response;
+            setUploadedImages((prevImages) => {
+                const uploadedImages = [...prevImages, response];
+                setAttachments((prev) => ({
+                    ...prev,
+                    images: uploadedImages,
+                    videos: prev.videos || []
+                }));
+                return uploadedImages;
+            });
+            console.log("attachments", attachments);
+            message.success(`Uploaded ${latestFile.name}`);
         } catch (error) {
-            console.error("Error creating post:", error);
-            message.error("Failed to create post. Please try again.");
-        }
-    };
-
-    const handleFileChange = async ({ fileList }, type) => {
-        setUploading(true);
-        let uploadedFiles = [];
-
-        for (const file of fileList) {
-            try {
-                const response = await dispatch(uploadFileHelper(file.originFileObj, type)).unwrap();
-                uploadedFiles.push(response);
-                message.success(`Uploaded ${file.name}`);
-            } catch (error) {
-                console.error(`Error uploading ${type}:`, error);
-                message.error(`Upload failed for ${file.name}`);
-            }
+            console.error("Error uploading image:", error);
+            message.error(`Upload failed for ${latestFile.name}`);
         }
 
-        setAttachments(prev => {
-            const newAttachments = { ...prev, [type]: uploadedFiles };
-            console.log("Updated attachments:", newAttachments);
-            return newAttachments;
-        });
 
+        console.log("attachment", attachments);
         setUploading(false);
     };
 
+    const handleVideoChange = async ({ fileList }) => {
+        if (fileList.length === 0) return;
+
+        setUploading(true);
+        const latestFile = fileList[fileList.length - 1];
+
+        try {
+            const response = await dispatch(uploadFileHelper({ file: latestFile.originFileObj, folderName: "videos" })).unwrap();
+            console.log("response", response);
+            latestFile.url = response;
+            setUploadedVideos((prevVideos) => {
+                const updatedVideos = [...prevVideos, response];
+
+                // Cập nhật state attachments sau khi uploadedVideos cập nhật
+                setAttachments((prev) => ({
+                    ...prev,
+                    videos: updatedVideos,
+                    images: prev.images || []
+                }));
+
+                return updatedVideos; // Trả về danh sách mới
+            });
+
+            message.success(`Uploaded ${latestFile.name}`);
+        } catch (error) {
+            console.error("Error uploading video:", error);
+            message.error(`Upload failed for ${latestFile.name}`);
+        }
+
+        setUploading(false);
+    };
+    const handleRemoveFile = async ({ file, type }) => {
+        try {
+            console.log("Deleting file:", file, type);
+            if (type === "images") {
+                setUploadedImages((prevImages) => {
+                    const updatedImages = prevImages.filter((image) => image !== file.url);
+                    console.log("updatedImages", updatedImages);
+                    setAttachments((prev) => ({
+                        ...prev,
+                        images: updatedImages,
+                    }));
+                    return updatedImages;
+                });
+            } else {
+                setUploadedVideos((prevVideos) => {
+                    const updatedVideos = prevVideos.filter((video) => video !== file.url);
+                    setAttachments((prev) => ({
+                        ...prev,
+                        videos: updatedVideos,
+                    }));
+                    return updatedVideos;
+                });
+            }
+            console.log("attachments", attachments);
+            message.success(`Deleted ${file.name}`);
+        } catch (error) {
+            console.error("Error deleting file:", error);
+            message.error(`Delete failed for ${file.name}`);
+        }
+    };
+
+
+
     if (loadingUI || loading) return <LoadingModal />;
+
 
     return (
         <Form form={form} onFinish={onFinish} layout="vertical">
@@ -103,30 +170,73 @@ const PostForm = () => {
             <Form.Item name="content" label="Content" rules={[{ required: true, message: 'Please enter the post content!' }]}> 
                 <Input.TextArea rows={4} placeholder="Enter post content" />
             </Form.Item>
-
-            <Form.Item label="Tags" name="tagIds" rules={[{ required: true, message: "At least one tag is required" }]}> 
-                <Select mode="multiple" placeholder="Select tags" allowClear>
-                    {tags.map(tag => (
-                        <Option key={tag.id} value={tag.id}>{tag.tagName}</Option>
+            <Form.Item
+                className="select-multiple"
+                label="Tags"
+                name="tagIds"
+                rules={[{ required: true, message: "At least one tag is required" }]}
+            >
+                <Select
+                    mode="multiple"
+                    placeholder="Select tags"
+                    allowClear
+                    onChange={(selectedTags) => {
+                        if (selectedTags.length > 5) {
+                            message.warning("You can select up to 5 tags only.");
+                            form.setFieldsValue({ tagIds: selectedTags.slice(0, 5) });
+                        }
+                    }}
+                >
+                    {Array.isArray(tags) && tags.map(tag => (
+                        <Option key={tag.id} value={tag.id}>
+                            {tag.tagName}
+                        </Option>
                     ))}
                 </Select>
             </Form.Item>
 
+
             <Form.Item label="Images" name="images">
-                <Upload multiple listType="picture" beforeUpload={() => false} accept="image/*" onChange={(info) => handleFileChange(info, 'images')}>
+                <Upload
+                    multiple
+                    listType="picture"
+                    beforeUpload={() => false} // Không upload ngay, chờ xử lý thủ công
+                    beforeRemove={() => false}
+                    accept="image/*"
+                    onChange={handleImageChange} // Xử lý khi chọn file
+                    onRemove={(file) => handleRemoveFile({ file, type: "images" })}
+                >
                     <Button icon={<UploadOutlined />} loading={uploading}>Click to Upload</Button>
                 </Upload>
             </Form.Item>
-
             <Form.Item label="Videos" name="videos">
-                <Upload multiple listType="picture" beforeUpload={() => false} accept="video/*" onChange={(info) => handleFileChange(info, 'videos')}>
+                <Upload
+                    multiple
+                    listType="picture"
+                    beforeUpload={() => false} // Không upload ngay, chờ xử lý thủ công
+                    beforeRemove={() => false}
+                    accept="video/*"
+                    onChange={handleVideoChange} // Xử lý khi chọn file
+                    onRemove={(file) => handleRemoveFile({ file, type: "videos" })}
+                >
                     <Button icon={<UploadOutlined />} loading={uploading}>Click to Upload</Button>
                 </Upload>
             </Form.Item>
 
             <div style={{ display: "flex", justifyContent: "center" }}>
-                <Button htmlType="submit" type="default" style={{ border: "1px solid #213547", backgroundColor: "transparent", color: "#213547" }}>Submit</Button>
+                <Button
+                    htmlType="submit"
+                    type="default"
+                    style={{
+                        border: "1px solid #213547",
+                        backgroundColor: "transparent",
+                        color: "#213547",
+                    }}
+                >
+                    Submit
+                </Button>
             </div>
+
         </Form>
     );
 };

@@ -1,14 +1,15 @@
 import { Cloudinary } from "@cloudinary/url-gen/index";
+import { API, APIPrivate } from "../../config/API/api";
 import axios from "axios";
 const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME;
 const CLOUDINARY_URL = import.meta.env.VITE_CLOUDINARY_URL;
-const PRESET_NAME = import.meta.env.VITE_PRESET_NAME;
+const PRESET_NAME = import.meta.env.VITE_CLOUDINARY_PRESET_NAME;
 const cloudinary = new Cloudinary({
     cloud: {
         cloudName: CLOUD_NAME,
     },
 });
-export async function uploadFile(file, folderName = "default-folder") {
+export async function uploadFile({file, folderName = "default-folder"}) {
     console.log("Uploading file:", file);
 
     const formData = new FormData();

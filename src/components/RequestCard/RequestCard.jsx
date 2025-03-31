@@ -35,6 +35,10 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
     // Xử lý xóa
     const handleDelete = async (id) => {
+        if (requestData.helpRequest.status !== "PENDING" && requestData.helpRequest.status !== "APPROVED") {
+            message.warning("Only Pending requests can be deleted.");
+            return;
+        }
         try {
             console.log("Deleting request with ID:", id);
             await dispatch(deleteRequest(id)).unwrap();
@@ -45,9 +49,14 @@ const RequestCard = ({ requestData, showActions = true }) => {
             message.error("Failed to delete request: " + (error.message || "Unknown error"));
         }
     };
+    
 
     // Mở modal Edit
     const handleEdit = (data) => {
+        if (requestData.helpRequest.status !== "PENDING" && requestData.helpRequest.status !== "APPROVED") {
+            message.warning("Only Pending requests can be edited.");
+            return;
+        }
         setCurrentRequestData(data);
         setIsModalVisible(true);
 
@@ -85,6 +94,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
 
     // Cập nhật request (bao gồm các trường province, district, commune)
     const handleUpdate = async (values) => {
+        console.log("currentRequestData.helpRequest.id", currentRequestData.helpRequest.id);
         const updatedRequest = {
             id: currentRequestData.helpRequest.id,
             userId: currentRequestData.helpRequest.userId,

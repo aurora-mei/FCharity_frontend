@@ -18,14 +18,28 @@ const { Option } = Select;
    1) HÀM HỖ TRỢ PARSE ĐỊA CHỈ VÀ TÌM TỈNH/QUẬN/PHƯỜNG THEO TÊN
    --------------------------------------------------------- */
 
-// Tách địa chỉ thành 4 phần: detail, communeName, districtName, provinceName
+// Hàm parse location
 function parseLocationString(locationString = "") {
-  const parts = locationString.split(",").map((p) => p.trim());
-  const provinceName = parts[parts.length - 1] || "";
-  const districtName = parts[parts.length - 2] || "";
-  const communeName  = parts[parts.length - 3] || "";
+  const parts = locationString.split(",").map(p => p.trim());
+  
+  // If there are less than 3 parts, return what we can.
+  if(parts.length < 3) {
+    return { detail: locationString, communeName: "", districtName: "", provinceName: "" };
+  }
+  
+  const provincePart = parts[parts.length - 1];
+  const districtPart = parts[parts.length - 2];
+  const communePart  = parts[parts.length - 3];
   const detailParts  = parts.slice(0, parts.length - 3);
-  const detail       = detailParts.join(", ");
+  
+  const detail = detailParts.join(", ");
+  // For province, remove common prefixes (tỉnh, thành phố, tp)
+  const provinceName = provincePart.replace(/^(tỉnh|thành phố|tp)\s*/i, "").trim();
+  // For district, even if it contains "thành phố" keyword, treat it as district
+  const districtName = districtPart.replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "").trim();
+  // For commune, remove the commune keywords
+  const communeName  = communePart.replace(/^(xã|phường|thị trấn)\s*/i, "").trim();
+  
   return { detail, communeName, districtName, provinceName };
 }
 
@@ -76,7 +90,8 @@ const CreateRequestForm = () => {
   // State upload file
   const [attachments, setAttachments] = useState({});
   const [uploading, setUploading] = useState(false);
-
+  const [uploadedImages, setUploadedImages] = useState([]);
+    const [uploadedVideos, setUploadedVideos] = useState([]);
   // State cho dropdown địa chỉ
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -237,51 +252,99 @@ const CreateRequestForm = () => {
   /* ----------------------------------
      5) XỬ LÝ UPLOAD ẢNH & VIDEO
      ---------------------------------- */
-  const handleImageChange = async ({ fileList }) => {
-    setUploading(true);
-    let uploadedFiles = [];
+     const handleImageChange = async ({ fileList }) => {
+      if (fileList.length === 0) return; // Nếu danh sách trống, không làm gì
 
-    for (const file of fileList) {
-      try {
-        const response = await dispatch(uploadFileHelper(file.originFileObj, "images")).unwrap();
-        uploadedFiles.push(response);
-        message.success(`Uploaded ${file.name}`);
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        message.error(`Upload failed for ${file.name}`);
-      }
-    }
+      setUploading(true);
+      const latestFile = fileList[fileList.length - 1];
 
-    setAttachments((prev) => ({
-      ...prev,
-      images: uploadedFiles,
-      videos: prev.videos || []
-    }));
-    setUploading(false);
-  };
+        try {
+            const response = await dispatch(uploadFileHelper({ file: latestFile.originFileObj, folderName: "images" })).unwrap();
+            console.log("response", response);
+            latestFile.url = response; 
+            setUploadedImages((prevImages) => {
+                const uploadedImages = [...prevImages, response];
+                setAttachments((prev) => ({
+                    ...prev,
+                    images: uploadedImages,
+                    videos: prev.videos || []
+                }));
+                return uploadedImages;
+            });
+            console.log("attachments", attachments);
+            message.success(`Uploaded ${latestFile.name}`);
+        } catch (error) {
+            console.error("Error uploading image:", error);
+            message.error(`Upload failed for ${latestFile.name}`);
+        }
 
-  const handleVideoChange = async ({ fileList }) => {
-    setUploading(true);
-    let uploadedFiles = [];
 
-    for (const file of fileList) {
-      try {
-        const response = await dispatch(uploadFileHelper(file.originFileObj, "videos")).unwrap();
-        uploadedFiles.push(response);
-        message.success(`Uploaded ${file.name}`);
-      } catch (error) {
-        console.error("Error uploading video:", error);
-        message.error(`Upload failed for ${file.name}`);
-      }
-    }
+        console.log("attachment", attachments);
+        setUploading(false);
+    };
 
-    setAttachments((prev) => ({
-      ...prev,
-      videos: uploadedFiles,
-      images: prev.images || []
-    }));
-    setUploading(false);
-  };
+    const handleVideoChange = async ({ fileList }) => {
+        if (fileList.length === 0) return;
+
+        setUploading(true);
+        const latestFile = fileList[fileList.length - 1];
+
+        try {
+            const response = await dispatch(uploadFileHelper({ file: latestFile.originFileObj, folderName: "videos" })).unwrap();
+            console.log("response", response);
+            latestFile.url = response;
+            setUploadedVideos((prevVideos) => {
+                const updatedVideos = [...prevVideos, response];
+
+                // Cập nhật state attachments sau khi uploadedVideos cập nhật
+                setAttachments((prev) => ({
+                    ...prev,
+                    videos: updatedVideos,
+                    images: prev.images || []
+                }));
+
+                return updatedVideos; // Trả về danh sách mới
+            });
+
+            message.success(`Uploaded ${latestFile.name}`);
+        } catch (error) {
+            console.error("Error uploading video:", error);
+            message.error(`Upload failed for ${latestFile.name}`);
+        }
+
+        setUploading(false);
+    };
+    const handleRemoveFile = async ({file, type}) => {
+        try {
+            console.log("Deleting file:", file,type);
+            if (type === "images") {
+                setUploadedImages((prevImages) => {
+                    const updatedImages = prevImages.filter((image) => image !== file.url);
+                    console.log("updatedImages", updatedImages);
+                    setAttachments((prev) => ({
+                        ...prev,
+                        images: updatedImages,
+                    }));
+                    return updatedImages;
+                });
+            } else {
+                setUploadedVideos((prevVideos) => {
+                    const updatedVideos = prevVideos.filter((video) => video !== file.url);
+                    setAttachments((prev) => ({
+                        ...prev,
+                        videos: updatedVideos,
+                    }));
+                    return updatedVideos;
+                });
+            }
+            console.log("attachments", attachments);
+            message.success(`Deleted ${file.name}`);
+        } catch (error) {
+            console.error("Error deleting file:", error);
+            message.error(`Delete failed for ${file.name}`);
+        }
+    };
+    
 
   /* -----------------------
      6) XỬ LÝ SUBMIT FORM
@@ -431,38 +494,33 @@ const CreateRequestForm = () => {
             </Form.Item>
 
             {/* Upload Images */}
-            <Form.Item
-              label="Images"
-              name="images"
-              rules={[{ required: true, message: "At least one image is required" }]}
-            >
-              <Upload
-                multiple
-                listType="picture"
-                beforeUpload={() => false}
-                accept="image/*"
-                onChange={handleImageChange}
-              >
-                <Button icon={<UploadOutlined />} loading={uploading}>
-                  Click to Upload
-                </Button>
-              </Upload>
-            </Form.Item>
+            <Form.Item label="Images" name="images" rules={[{ required: true, message: "At least one image is required" }]}>
+                            <Upload
+                                multiple
+                                listType="picture"
+                                beforeUpload={() => false} // Không upload ngay, chờ xử lý thủ công
+                                beforeRemove={() => false}
+                                accept="image/*"
+                                onChange={handleImageChange} // Xử lý khi chọn file
+                                onRemove={(file)=>handleRemoveFile({file, type: "images"})}
+                            >
+                                <Button icon={<UploadOutlined />} loading={uploading}>Click to Upload</Button>
+                            </Upload>
+                        </Form.Item>
+                        <Form.Item label="Videos" name="videos">
+                            <Upload
+                                multiple
+                                listType="picture"
+                                beforeUpload={() => false} // Không upload ngay, chờ xử lý thủ công
+                                beforeRemove={() => false}
+                                accept="video/*"
+                                onChange={handleVideoChange} // Xử lý khi chọn file
+                                onRemove={(file)=>handleRemoveFile({file, type: "videos"})}
+                            >
+                                <Button icon={<UploadOutlined />} loading={uploading}>Click to Upload</Button>
+                            </Upload>
+                        </Form.Item>
 
-            {/* Upload Videos */}
-            <Form.Item label="Videos" name="videos">
-              <Upload
-                multiple
-                listType="picture"
-                beforeUpload={() => false}
-                accept="video/*"
-                onChange={handleVideoChange}
-              >
-                <Button icon={<UploadOutlined />} loading={uploading}>
-                  Click to Upload
-                </Button>
-              </Upload>
-            </Form.Item>
 
             {/* Category */}
             <Form.Item

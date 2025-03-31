@@ -1,26 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, message, Spin, Modal, Select, Upload } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { Form, Input, Button, message, Spin, Modal, Select } from "antd";
 import { useDispatch } from "react-redux";
 import { updateProfile } from "../../redux/user/userSlice";
-import { uploadFileHelper } from "../../redux/helper/helperSlice";
 
 const { Option } = Select;
 
 function parseLocationString(locationString = "") {
   const parts = locationString.split(",").map(p => p.trim());
-  // Lấy ra từ phải sang trái
+  // Nếu số phần nhỏ hơn 3, trả về chuỗi ban đầu
+  if (parts.length < 3) {
+    return { detail: locationString, communeName: "", districtName: "", provinceName: "" };
+  }
   const provinceName = parts[parts.length - 1] || "";
   const districtName = parts[parts.length - 2] || "";
   const communeName  = parts[parts.length - 3] || "";
-  // Còn lại (các phần đầu) ghép lại thành detail
   const detailParts  = parts.slice(0, parts.length - 3);
   const detail       = detailParts.join(", ");
-
   return { detail, communeName, districtName, provinceName };
 }
 
-// Hàm tìm province theo tên (so sánh lowercase, bỏ dấu)
 function findProvinceByName(provinces, name) {
   if (!name) return null;
   return provinces.find((p) =>
@@ -37,7 +35,6 @@ function findProvinceByName(provinces, name) {
   );
 }
 
-// Tương tự cho district, commune
 function findDistrictByName(districts, name) {
   if (!name) return null;
   return districts.find((d) =>
@@ -76,18 +73,17 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
-  // State cho dropdown
+  // State cho dropdown địa chỉ
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [communes, setCommunes] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
 
-  // State upload avatar
-  const [uploading, setUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState("");
+  // Vì modal này không cập nhật avatar nên ta chỉ giữ giá trị avatar ban đầu
+  const [initialAvatar, setInitialAvatar] = useState("");
 
-  // Tải danh sách tỉnh
+  // Hàm load danh sách tỉnh
   const loadProvinces = async () => {
     try {
       const res = await fetch("https://provinces.open-api.vn/api/p/");
@@ -100,12 +96,10 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
     }
   };
 
-  // Tải danh sách district
+  // Hàm load district
   const loadDistricts = async (provinceCode) => {
     try {
-      const res = await fetch(
-        `https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`
-      );
+      const res = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
       const data = await res.json();
       setDistricts(data.districts || []);
       return data.districts || [];
@@ -115,12 +109,10 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
     }
   };
 
-  // Tải danh sách commune
+  // Hàm load commune
   const loadCommunes = async (districtCode) => {
     try {
-      const res = await fetch(
-        `https://provinces.open-api.vn/api/d/${districtCode}?depth=2`
-      );
+      const res = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
       const data = await res.json();
       setCommunes(data.wards || []);
       return data.wards || [];
@@ -130,36 +122,31 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
     }
   };
 
-  // Khi modal mở, ta parse address
+  // Khi modal mở, load dữ liệu user từ localStorage và set vào form
   useEffect(() => {
     if (!visible) return;
     const fetchData = async () => {
-      // Lấy user từ localStorage
       const storedUser = localStorage.getItem("currentUser");
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
-          // Gán form
+          // Đặt avatar ban đầu, không cho phép thay đổi qua modal này
+          setInitialAvatar(parsedUser.avatar);
           form.setFieldsValue({
             fullName: parsedUser.fullName,
             phoneNumber: parsedUser.phoneNumber,
-            address: "", // tạm thời để rỗng, lát parse
-            avatar: parsedUser.avatar,
+            address: "", // Chờ parse address sau
+            avatar: parsedUser.avatar, // Giữ lại avatar cũ
           });
-          setAvatarUrl(parsedUser.avatar);
 
-          // parse address
+          // Parse địa chỉ
           const { detail, communeName, districtName, provinceName } = parseLocationString(
             parsedUser.address || ""
           );
-
-          // Tải danh sách tỉnh
-          const allProvinces = await loadProvinces();
-
-          // fill address detail
           form.setFieldsValue({ address: detail });
 
-          // Tìm province code
+          // Load danh sách tỉnh
+          const allProvinces = await loadProvinces();
           if (provinceName) {
             const foundProv = findProvinceByName(allProvinces, provinceName);
             if (foundProv) {
@@ -189,9 +176,9 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
       setInitialLoading(false);
     };
     fetchData();
-  }, [visible]);
+  }, [visible, form]);
 
-  // handle province/district/commune change
+  // Xử lý thay đổi cho province, district, commune
   const handleProvinceChange = async (value) => {
     setSelectedProvince(value);
     form.setFieldsValue({ district: null, commune: null });
@@ -212,44 +199,28 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
     form.setFieldsValue({ commune: value });
   };
 
-  // Upload avatar
-  const handleAvatarChange = async ({ fileList }) => {
-    setUploading(true);
-    const file = fileList[0];
-    if (file) {
-      try {
-        const result = await dispatch(uploadFileHelper(file.originFileObj, "images")).unwrap();
-        const newAvatarUrl = result.url || result;
-        setAvatarUrl(newAvatarUrl);
-        form.setFieldsValue({ avatar: newAvatarUrl });
-        message.success("Avatar uploaded");
-      } catch (error) {
-        console.error("Error uploading avatar:", error);
-        message.error(`Upload failed for ${file.name}`);
-      }
-    }
-    setUploading(false);
-  };
-
+  // Khi submit form, avatar không thay đổi – giữ giá trị ban đầu
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      // Lấy provinceObj, districtObj, communeObj
+      // Giữ avatar cũ nếu không có giá trị mới (modal này không cho sửa avatar)
+      values.avatar = initialAvatar;
+
+      // Lấy đối tượng province, district, commune để ghép fullAddress
       const provinceObj = provinces.find((p) => p.code === form.getFieldValue("province"));
       const districtObj = districts.find((d) => d.code === form.getFieldValue("district"));
-      const communeObj = communes.find((c) => c.code === form.getFieldValue("commune"));
-      // Ghép fullAddress
+      const communeObj  = communes.find((c) => c.code === form.getFieldValue("commune"));
+
       values.fullAddress =
         values.address +
         (communeObj ? `, ${communeObj.name}` : "") +
         (districtObj ? `, ${districtObj.name}` : "") +
         (provinceObj ? `, ${provinceObj.name}` : "");
 
-      // Gọi API update
+      // Gọi API cập nhật profile với avatar không thay đổi
       await dispatch(updateProfile(values)).unwrap();
       message.success("Profile updated successfully");
 
-      // Đóng modal + refresh
       onCancel();
       window.location.reload();
     } catch (err) {
@@ -291,9 +262,10 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
         <Form.Item
           label="Address"
           name="address"
-          rules={[{ required: true, message: "Address is required" },
-          { pattern: /^[^,]*$/, message: "Address should not contain comma" }
-          ]}          
+          rules={[
+            { required: true, message: "Address is required" },
+            { pattern: /^[^,]*$/, message: "Address should not contain comma" }
+          ]}
         >
           <Input placeholder="Enter street address" />
         </Form.Item>
@@ -348,34 +320,9 @@ const ChangeProfileModal = ({ visible, onCancel }) => {
           </Select>
         </Form.Item>
 
-        <Form.Item label="Avatar URL" name="avatar">
-          <Input placeholder="Avatar URL" disabled />
-        </Form.Item>
-
-        <Form.Item>
-          <Upload
-            multiple={false}
-            listType="picture"
-            beforeUpload={() => false}
-            accept="image/*"
-            onChange={handleAvatarChange}
-            defaultFileList={
-              avatarUrl
-                ? [
-                    {
-                      uid: "-1",
-                      name: "avatar.png",
-                      status: "done",
-                      url: avatarUrl,
-                    },
-                  ]
-                : []
-            }
-          >
-            <Button icon={<UploadOutlined />} loading={uploading}>
-              Upload Avatar
-            </Button>
-          </Upload>
+        {/* Hidden field để giữ avatar hiện tại */}
+        <Form.Item name="avatar" hidden>
+          <Input />
         </Form.Item>
 
         <Form.Item>

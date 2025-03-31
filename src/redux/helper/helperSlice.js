@@ -4,8 +4,8 @@ import { uploadFile } from "./helperApi";
 const initialState = {
     loading: false,
 }
-export const uploadFileHelper = createAsyncThunk("helper/uploadImageHelper", async ({file, folderName = "default-folder"}) => {
-    return await uploadFile(file, folderName);
+export const uploadFileHelper = createAsyncThunk("helper/uploadImageHelper", async ({ file, folderName = "default-folder" }) => {
+    return await uploadFile({file, folderName});
 }
 );
 export const helperSlice = createSlice({
