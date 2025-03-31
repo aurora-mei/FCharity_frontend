@@ -53,7 +53,7 @@ const PostForm = () => {
 
         const postData = {
             ...values,
-            userId: currentUser.userId,
+            userId: currentUser.id,
             tagIds: values.tagIds,
             imageUrls: attachments.images,
             videoUrls: attachments.videos// Gửi danh sách file đã upload

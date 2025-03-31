@@ -16,7 +16,8 @@ const PostItem = ({ postResponse }) => {
     
     useEffect(() => {
         console.log(postResponse?.taggables);
-        if (attachments.length > 0) {
+        if (attachments !==null) {
+            console.log("att",attachments)
             const imageAttachment = attachments.find(att => att.match(/\.(jpg|jpeg|png|gif)$/));
             const videoAttachment = attachments.find(att => att.match(/\.(mp4|webm)$/));
 

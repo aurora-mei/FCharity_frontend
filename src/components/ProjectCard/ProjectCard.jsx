@@ -21,7 +21,7 @@ const ProjectCard = ({projectData}) => {
                     alt="Placeholder"
                     style={{ height: "11rem", width: "100%", borderTopLeftRadius: "1rem", borderTopRightRadius: "1rem" }}
                 />
-            )}
+            )
             <div className="category-badge">
                 {/* {projectData.project.category.categoryName} */}
             </div>
