@@ -38,7 +38,7 @@ const FormStyled = styled.div`
   }
 `
 
-const ProjectForm = ({requestId}) => {
+const ProjectForm = ({requestId,myOrganization}) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -47,24 +47,16 @@ const ProjectForm = ({requestId}) => {
   const categories = useSelector((state) => state.category.categories || []);
   const tags = useSelector((state) => state.tag.tags || []);
   const requestData = useSelector((state) => state.request.currentRequest);
-  const myOrganization = useSelector((state) => state.organization.myOrganization);
   const members = useSelector((state) => state.organization.myOrganizationMembers);
   const [initialLoading, setInitialLoading] = useState(true);
   const [attachments, setAttachments] = useState({}); // Lưu danh sách file đã upload
   const [uploadedImages, setUploadedImages] = useState([]);
   const [uploadedVideos, setUploadedVideos] = useState([]);
+  const [createdSuccess, setCreatedSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
   useEffect(() => {
-    let currentUser = {};
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
-      try {
-        currentUser = JSON.parse(storedUser);
-      } catch (error) {
-        console.error("Error parsing currentUser:", error);
-      }
-    }
-    dispatch(fetchMyOrganization(currentUser.id));
+   
+   
     dispatch(fetchRequestById(requestId));
     dispatch(fetchCategories());
     dispatch(fetchTags());
@@ -224,6 +216,7 @@ const ProjectForm = ({requestId}) => {
        console.log("Final Project Data:", projectData);
        try {
          await dispatch(createProjectThunk(projectData)).unwrap();
+         setCreatedSuccess(true);
          message.success("Create project successfully!");
        } catch (error) {
          console.error("Error creating Project:", error);
@@ -246,31 +239,31 @@ const ProjectForm = ({requestId}) => {
           </div>
           <Form form={form} layout="vertical" onFinish={onFinish}>
             <Form.Item label="Project Name" name="projectName" rules={[{ required: true, message: "Project Name is required" }]}>
-              <Input />
+              <Input readOnly={createdSuccess}/>
             </Form.Item>
 
             <Form.Item label="Email" name="email" rules={[{ required: true, type: "email", message: "Valid Email is required" }]}>
-              <Input type="email" />
+              <Input type="email" readOnly={createdSuccess}/>
             </Form.Item>
 
             <Form.Item label="Phone Number" name="phone" rules={[{ required: true, message: "Phone Number is required" }]}>
-              <Input />
+              <Input readOnly={createdSuccess}/>
             </Form.Item>
 
             <Form.Item label="Project Description" name="projectDescription" rules={[{ required: true, message: "Please enter a project description" }]}>
-              <Input.TextArea />
+              <Input.TextArea readOnly={createdSuccess}/>
             </Form.Item>
 
             <Form.Item label="Planned Start Time" name="plannedStartTime" rules={[{ required: true, message: "Start Time is required" }]}>
-              <DatePicker showTime />
+              <DatePicker showTime disabled={createdSuccess}/>
             </Form.Item>
 
             <Form.Item label="Planned End Time" name="plannedEndTime" rules={[{ required: true, message: "End Time is required" }]}>
-              <DatePicker showTime />
+              <DatePicker showTime disabled={createdSuccess}/>
             </Form.Item>
 
             <Form.Item label="Leader" name="leaderId" rules={[{ required: true, message: "Leader is required" }]}>
-              <Select placeholder="Select a leader">
+              <Select placeholder="Select a leader" disabled={createdSuccess}>
                 {members.map(member => (
                   <Option key={member.id} value={member.user.id}>{member.user.fullName}</Option>
                 ))}
@@ -282,7 +275,7 @@ const ProjectForm = ({requestId}) => {
               name="categoryId"
               rules={[{ required: true, message: "Category is required" }]}
             >
-              <Select placeholder="Select a category">
+              <Select placeholder="Select a category" disabled={createdSuccess}>
                 {categories.map(category => (
                   <Option key={category.id} value={category.id}>
                     {category.categoryName}
@@ -297,7 +290,7 @@ const ProjectForm = ({requestId}) => {
               name="tagIds"
               rules={[{ required: true, message: "At least one tag is required" }]}
             >
-              <Select mode="multiple" placeholder="Select tags" allowClear>
+              <Select mode="multiple" placeholder="Select tags" allowClear disabled={createdSuccess}>
                 {Array.isArray(tags) &&
                   tags.map(tag => (
                     <Option key={tag.id} value={tag.id}>
@@ -320,7 +313,7 @@ const ProjectForm = ({requestId}) => {
                 onChange={handleImageChange} // Xử lý khi chọn file
                 onRemove={(file) => handleRemoveFile({ file, type: "images" })}
               >
-                <Button icon={<UploadOutlined />} loading={uploading}>Click to Upload</Button>
+                <Button icon={<UploadOutlined />} loading={uploading} disabled={createdSuccess}>Click to Upload</Button>
               </Upload>
             </Form.Item>
             <Form.Item label="Videos" name="videos">
@@ -333,11 +326,11 @@ const ProjectForm = ({requestId}) => {
                 onChange={handleVideoChange} // Xử lý khi chọn file
                 onRemove={(file) => handleRemoveFile({ file, type: "videos" })}
               >
-                <Button icon={<UploadOutlined />} loading={uploading}>Click to Upload</Button>
+                <Button icon={<UploadOutlined />} loading={uploading} disabled={createdSuccess}>Click to Upload</Button>
               </Upload>
             </Form.Item>
             <Form.Item>
-              <Button type="primary" htmlType="submit" block className="continue-button" disabled={uploading}>
+              <Button type="primary" htmlType="submit" block className="continue-button" disabled={!uploading && createdSuccess}>
                 {uploading ? "Uploading..." : "Create Project"}
               </Button>
             </Form.Item>
@@ -350,6 +343,9 @@ const ProjectForm = ({requestId}) => {
 };
 ProjectForm.propTypes = {
   requestId: PropTypes.string.isRequired,
+  myOrganization: PropTypes.shape({
+    organizationId: PropTypes.string,
+  }).isRequired,
 };
 
 export default ProjectForm;

@@ -37,7 +37,7 @@ APIPrivate.interceptors.response.use(
         console.log("Error response: ", error.response);
         if ((
             error.response.status === 403 
-            || error.response.data.message.includes("Token expired")
+            || (error.response.status === 400 &&  error.response.data.message.includes("Token expired"))
         )
             && error.config && !error.config.url.includes("cloudinary") ) {
             const refreshToken = localStorage.getItem("refreshToken");

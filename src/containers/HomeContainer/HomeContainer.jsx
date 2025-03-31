@@ -8,10 +8,18 @@ import ForumBoard from "../ForumBoard/ForumBoard";
 import NotingGreen from "../../components/NotingGreen/NotingGreen";
 import RequestListScreen from "../../screens/request/RequestListScreen";
 import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
+import { fetchProjectsThunk } from '../../redux/project/projectSlice';
+import { useEffect } from 'react';
 import { Flex } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation, Trans } from 'react-i18next';
 
 const HomeContainer = () => {
+    const projects = useSelector(state => state.project.projects);
+    const dispatch = useDispatch();
+    useEffect(() => {
+        dispatch(fetchProjectsThunk());
+    }, [dispatch]);
     const { t, i18n } = useTranslation();
     return (
         <div >
@@ -20,7 +28,7 @@ const HomeContainer = () => {
                 <Noting />
                 <Flex vertical='true' gap='4rem' style={{ margin: '4rem 10rem' }}>
                     <RequestActiveCarousel />
-                    <FundraiserBoard />
+                    <FundraiserBoard projects={projects} />
                     <EventBoard />
                 </Flex>
                 <NotingGreen message={

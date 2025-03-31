@@ -41,9 +41,30 @@ const fetchMyOwnerProject = async (userId) => {
         throw err.response.data;
     }
 }
+//members
 const fetchProjectMembers = async (projectId) => {
     try {
-        const response = await APIPrivate.get(`projects/members/${projectId}`);
+        const response = await APIPrivate.get(`projects/members/${projectId}/active`);
+        console.log("Project members:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get project members:", err);
+        throw err.response.data;
+    }
+}
+const addProjectMember = async ({projectId,userId}) => {
+    try {
+        const response = await APIPrivate.post(`projects/members/add-member/${projectId}/${userId}`);
+        console.log("Project members:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get project members:", err);
+        throw err.response.data;
+    }
+}
+const moveOutProjectMember = async (memberId) => {
+    try {
+        const response = await APIPrivate.post(`projects/members/move-out/${memberId}`);
         console.log("Project members:", response.data);
         return response.data;
     } catch (err) {
@@ -52,5 +73,5 @@ const fetchProjectMembers = async (projectId) => {
     }
 }
 
-const projectApi = { fetchProjects, createProject, fetchProjectById, fetchProjectMembers};
+const projectApi = { fetchProjects, createProject, fetchProjectById, addProjectMember, fetchProjectMembers,moveOutProjectMember};
 export default projectApi;
