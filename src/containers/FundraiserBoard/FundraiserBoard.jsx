@@ -30,13 +30,13 @@ const FundraiserBoard = ({projects}) => {
                     <img src={top5Projects && top5Projects.length > 0? top5Projects[0].attachments[0].imageUrl: image} alt="" style={{ boxShadow: '0 4px 8px 0 rgba(0,0,0,0.2)' }} />
                 </Col>
                 <Col span='12'>
-                    <Flex wrap gap='25px'>
+                    {/* <Flex wrap gap='25px'>
                         {
                            top5Projects&& top5Projects.slice(1,5).map(project => (
                                 <ProjectCard key={project.project.id} projectData={project} />
                             ))
                         }
-                    </Flex>
+                    </Flex> */}
                 </Col>
             </Row>
         </Flex >

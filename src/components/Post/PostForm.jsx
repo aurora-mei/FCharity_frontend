@@ -3,14 +3,12 @@ import { Form, Input, Button, Select, Upload, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import "antd/dist/reset.css";
 import { useDispatch, useSelector } from 'react-redux';
-import { createRequest } from '../../redux/request/requestSlice';
+import { createPosts } from '../../redux/post/postSlice.js';
 import { uploadFileHelper } from "../../redux/helper/helperSlice";
 import { fetchTags } from '../../redux/tag/tagSlice';
 import { useNavigate } from "react-router-dom";
 import LoadingModal from "../LoadingModal/index.jsx";
 import useLoading from "../../hooks/useLoading";
-import { createPosts } from '../../redux/post/postSlice.js';
-
 
 const { Option } = Select;
 
@@ -29,33 +27,38 @@ const PostForm = () => {
     const [uploadedVideos, setUploadedVideos] = useState([]);
 
     let currentUser = {};
+
     try {
         currentUser = storedUser ? JSON.parse(storedUser) : {};
     } catch (error) {
         console.error("Error parsing currentUser from localStorage:", error);
-        currentUser = {};
     }
 
     useEffect(() => {
-        dispatch(fetchTags());
-    }, [dispatch]);
+        if (!tags.length) {
+            dispatch(fetchTags());
+        }
+    }, [dispatch, tags]);
 
     useEffect(() => {
-        console.log("Tags:", tags);
-        console.log("token: ", token);
-        console.log("currentUser:", currentUser);
-    }, [tags]);
+        if (!token) {
+            message.error("You need to log in first!");
+            navigate("/login");
+        }
+    }, [token]);
 
     const onFinish = async (values) => {
         console.log("Form Values:", values);
         console.log("Attachments:", attachments);
+
         const postData = {
             ...values,
-            userId: currentUser.userId,
+            userId: currentUser.id,
             tagIds: values.tagIds,
             imageUrls: attachments.images,
             videoUrls: attachments.videos// Gửi danh sách file đã upload
         };
+
         console.log("Final Post Data:", postData);
         await dispatch(createPosts(postData)).unwrap();
         navigate('/forum', { replace: true });
@@ -160,19 +163,11 @@ const PostForm = () => {
 
     return (
         <Form form={form} onFinish={onFinish} layout="vertical">
-            <Form.Item
-                name="title"
-                label="Title"
-                rules={[{ required: true, message: 'Please enter the post title!' }]}
-            >
+            <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the post title!' }]}> 
                 <Input placeholder="Enter post title" />
             </Form.Item>
 
-            <Form.Item
-                name="content"
-                label="Content"
-                rules={[{ required: true, message: 'Please enter the post content!' }]}
-            >
+            <Form.Item name="content" label="Content" rules={[{ required: true, message: 'Please enter the post content!' }]}> 
                 <Input.TextArea rows={4} placeholder="Enter post content" />
             </Form.Item>
             <Form.Item
