@@ -33,7 +33,7 @@ const FundraiserBoard = ({projects}) => {
                 <Col span='12'>
                     <Flex wrap gap='25px'>
                         {
-                           top5Projects&& top5Projects.slice(1,5).map(project => (
+                           top5Projects&& top5Projects > 1 && top5Projects.slice(1,5).map(project => (
                                 <ProjectCard key={project.project.id} projectData={project} />
                             ))
                         }
