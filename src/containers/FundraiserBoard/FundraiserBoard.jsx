@@ -2,7 +2,7 @@ import React,{useEffect} from 'react';
 import PropTypes from 'prop-types';
 import './FundraiserBoard.pcss';
 import { CaretDownOutlined } from '@ant-design/icons';
-import { Row, Col, Button, Flex } from 'antd';
+import { Row, Col, Button, Flex, Empty } from 'antd';
 import ProjectCard from '../../components/ProjectCard/ProjectCard';
 import image from '../../assets/two-birds-white-minimalist-g98cih2t3q56hxky.jpg';
 const FundraiserBoard = ({projects}) => {
@@ -25,20 +25,22 @@ const FundraiserBoard = ({projects}) => {
                 </Col>
             </Row>
 
+           { top5Projects && top5Projects.length > 0 ? (
             <Row gutter={25} style={{ height: 'fit-content', display: 'flex', justifyContent: 'center', alignContent: 'center' }} >
                 <Col span='12' style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
-                    <img src={top5Projects && top5Projects.length > 0? top5Projects[0].attachments[0].imageUrl: image} alt="" style={{ boxShadow: '0 4px 8px 0 rgba(0,0,0,0.2)' }} />
+                    <img src={ top5Projects[0].attachments[0].imageUrl} alt="" style={{ boxShadow: '0 4px 8px 0 rgba(0,0,0,0.2)' }} />
                 </Col>
                 <Col span='12'>
-                    {/* <Flex wrap gap='25px'>
+                    <Flex wrap gap='25px'>
                         {
-                           top5Projects&& top5Projects.slice(1,5).map(project => (
+                           top5Projects&& top5Projects > 1 && top5Projects.slice(1,5).map(project => (
                                 <ProjectCard key={project.project.id} projectData={project} />
                             ))
                         }
-                    </Flex> */}
+                    </Flex>
                 </Col>
             </Row>
+           ):<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='No projects found' /> }
         </Flex >
     );
 

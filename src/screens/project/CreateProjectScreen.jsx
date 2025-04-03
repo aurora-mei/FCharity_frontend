@@ -75,7 +75,7 @@ const CreateProjectScreen = () => {
     const newProject = useSelector((state) => state.project.currentProject);
     const myOrganization = useSelector((state) => state.organization.myOrganization);
     const organizationMembers = useSelector((state) => state.organization.myOrganizationMembers);
-    const [availableMembers, setAvailableMembers] = useState(organizationMembers);
+    const [availableMembers, setAvailableMembers] = useState([]);
     const [selectedOrgMembers, setSelectedOrgMembers] = useState([]);
     const [selectedProjectMembers, setSelectedProjectMembers] = useState([]);
     const [isFirstMount, setIsFirstMount] = useState(true);
@@ -212,7 +212,7 @@ const CreateProjectScreen = () => {
         console.log("Project Members:", myProjectMembers);
         console.log("Organization Members:", organizationMembers);
         if (isFirstMount && organizationMembers?.length > 0) {
-            setAvailableMembers(organizationMembers);
+            setAvailableMembers(organizationMembers.filter((member) => member.user.id !== myOrganization.organizationId));
             setIsFirstMount(false); // Sau lần đầu, không gán lại nữa
         }
     }, [dispatch, newProject, myOrganization.organizationId]);

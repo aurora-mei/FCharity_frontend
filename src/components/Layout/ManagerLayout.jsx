@@ -1,7 +1,6 @@
 import React from "react";
 import Navbar from "../Navbar/Navbar";
 import Sidebar from "../OrganizationManagement/Sidebar";
-import AppFooter from "../AppFooter/AppFooter";
 import { ToastContainer } from "react-toastify";
 
 const ManagerLayout = ({ children }) => {
@@ -10,7 +9,6 @@ const ManagerLayout = ({ children }) => {
         <Sidebar />
         <main className="flex-1 ml-64 pt-6">
           <div>{children}</div>
-          <AppFooter />
           <ToastContainer
             position="bottom-right"
             autoClose={3000}

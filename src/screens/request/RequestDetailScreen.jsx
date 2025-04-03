@@ -3,11 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { fetchRequestById } from "../../redux/request/requestSlice";
 import LoadingModal from "../../components/LoadingModal";
-import { Carousel, Typography, Alert, Tag, Button, Breadcrumb, Flex } from "antd";
+import { Carousel, Typography, Alert, Tag, Button, Breadcrumb, Flex, message } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
 import { Badge, Card } from "antd";
 import { CheckCircleOutlined, UserOutlined, HomeOutlined } from "@ant-design/icons";
+import {fetchMyOrganization} from "../../redux/organization/organizationSlice";
 import { useNavigate } from "react-router-dom";
 const { Title, Text, Paragraph } = Typography;
 const items =
@@ -24,7 +25,7 @@ const RequestDetailScreen = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const myOrganization = useSelector((state) => state.organization.myOrganization);
   const loading = useSelector((state) => state.request.loading);
   const requestData = useSelector((state) => state.request.currentRequest);
   const error = useSelector((state) => state.request.error);
@@ -40,7 +41,8 @@ const RequestDetailScreen = () => {
     
   useEffect(() => {
     dispatch(fetchRequestById(id));
-  }, [dispatch, id]);
+     dispatch(fetchMyOrganization(currentUser.id));
+  }, [dispatch, id,myOrganization.organizationId]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -170,7 +172,15 @@ const RequestDetailScreen = () => {
           {/* Nút Donate & Share */}
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
           {currentUser.id !== requestData.helpRequest.user.id && (
-            <Button type="default" block style={{ flex: 1 }} onClick={()=>{navigate(`/manage-organization/projects/create/${requestData.helpRequest.id}`)}}>
+            <Button type="default" block style={{ flex: 1 }} onClick={()=>{
+              if(myOrganization){
+                if(myOrganization.organizationStatus === "APPROVED"){
+                  navigate(`/donate/${requestData.helpRequest.id}`)
+                }
+              }else{
+                message.error("You must be a ceo of an organization to register for request")
+              }
+              }}>
               Register
             </Button>
           )}

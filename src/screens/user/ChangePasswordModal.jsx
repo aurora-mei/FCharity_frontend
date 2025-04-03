@@ -36,7 +36,7 @@ const ChangePasswordModal = ({ visible, onCancel, userHasPassword }) => {
       // Bạn có thể xóa các token khác nếu cần, ví dụ: localStorage.removeItem("token");
       message.info("Please log in again with your new password.");
       dispatch(logOut());
-      navigate("/login");
+      navigate("/auth/login");
     } catch (error) {
       console.error("Error changing password:", error);
       message.error(error.message || "Failed to change password");

@@ -10,8 +10,8 @@ const organizationApi = {
     api.get(`/organizations/${organizationId}`),
   updateOrganization: (orgData) => api.put(`/organizations`, orgData),
 
-  getOrganizationMembers: (organizationId) =>
-    api.get(`/organization-members/${organizationId}`),
+  // getOrganizationMembers: (organizationId) =>
+  //   api.get(`/organization-members/${organizationId}`),
   removeOrganizationMember: (membershipId) =>
     api.delete(`/organization-members/${membershipId}`),
 
