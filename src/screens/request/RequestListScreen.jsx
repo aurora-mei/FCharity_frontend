@@ -10,16 +10,28 @@ import { fetchTags } from "../../redux/tag/tagSlice";
 const { Title } = Typography;
 const { Option } = Select;
 
+// Hàm parse location
 function parseLocationString(locationString = "") {
   const parts = locationString.split(",").map(p => p.trim());
-  // Lấy ra từ phải sang trái
-  const provinceName = parts[parts.length - 1] || "";
-  const districtName = parts[parts.length - 2] || "";
-  const communeName  = parts[parts.length - 3] || "";
-  // Còn lại (các phần đầu) ghép lại thành detail
+  
+  // If there are less than 3 parts, return what we can.
+  if(parts.length < 3) {
+    return { detail: locationString, communeName: "", districtName: "", provinceName: "" };
+  }
+  
+  const provincePart = parts[parts.length - 1];
+  const districtPart = parts[parts.length - 2];
+  const communePart  = parts[parts.length - 3];
   const detailParts  = parts.slice(0, parts.length - 3);
-  const detail       = detailParts.join(", ");
-
+  
+  const detail = detailParts.join(", ");
+  // For province, remove common prefixes (tỉnh, thành phố, tp)
+  const provinceName = provincePart.replace(/^(tỉnh|thành phố|tp)\s*/i, "").trim();
+  // For district, even if it contains "thành phố" keyword, treat it as district
+  const districtName = districtPart.replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "").trim();
+  // For commune, remove the commune keywords
+  const communeName  = communePart.replace(/^(xã|phường|thị trấn)\s*/i, "").trim();
+  
   return { detail, communeName, districtName, provinceName };
 }
 
@@ -71,15 +83,15 @@ const RequestListScreen = () => {
     if (filters.search && filters.search.trim()) {
       const keyword = filters.search.toLowerCase();
       data = data.filter(item => {
-        const title = item.request.title.toLowerCase();
-        const content = item.request.content.toLowerCase();
+        const title = item.helpRequest.title.toLowerCase();
+        const content = item.helpRequest.content.toLowerCase();
         return title.includes(keyword) || content.includes(keyword);
       });
     }
 
     // category
     if (filters.categoryId) {
-      data = data.filter(item => item.request.category.id === filters.categoryId);
+      data = data.filter(item => item.helpRequest.category.id === filters.categoryId);
     }
 
     // tags
@@ -95,14 +107,14 @@ const RequestListScreen = () => {
       const filterProv = normalizeString(filters.province);
       data = data.filter(item => {
         let requestProvName = "";
-        if (item.request.provinceCode) {
-          const provObj = provinces.find(p => p.code === item.request.provinceCode);
+        if (item.helpRequest.provinceCode) {
+          const provObj = provinces.find(p => p.code === item.helpRequest.provinceCode);
           if (provObj) {
             const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
             requestProvName = normalizeString(noPrefix);
           }
         } else {
-          const { provinceName } = parseLocationString(item.request.location || "");
+          const { provinceName } = parseLocationString(item.helpRequest.location || "");
           requestProvName = normalizeString(provinceName);
         }
         return requestProvName.includes(filterProv);

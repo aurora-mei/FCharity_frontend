@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Carousel, Form, Input, Select,Flex } from "antd";
+import { Carousel, Form, Input, Select,Flex, Skeleton,Empty } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -13,20 +13,30 @@ import provinceCoordinates from "./provinceCoordinates";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
+// Hàm parse location
 function parseLocationString(locationString = "") {
   const parts = locationString.split(",").map(p => p.trim());
-  // Lấy ra từ phải sang trái
-  const provinceName = parts[parts.length - 1] || "";
-  const districtName = parts[parts.length - 2] || "";
-  const communeName  = parts[parts.length - 3] || "";
-  // Còn lại (các phần đầu) ghép lại thành detail
+  
+  // If there are less than 3 parts, return what we can.
+  if(parts.length < 3) {
+    return { detail: locationString, communeName: "", districtName: "", provinceName: "" };
+  }
+  
+  const provincePart = parts[parts.length - 1];
+  const districtPart = parts[parts.length - 2];
+  const communePart  = parts[parts.length - 3];
   const detailParts  = parts.slice(0, parts.length - 3);
-  const detail       = detailParts.join(", ");
-
+  
+  const detail = detailParts.join(", ");
+  // For province, remove common prefixes (tỉnh, thành phố, tp)
+  const provinceName = provincePart.replace(/^(tỉnh|thành phố|tp)\s*/i, "").trim();
+  // For district, even if it contains "thành phố" keyword, treat it as district
+  const districtName = districtPart.replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "").trim();
+  // For commune, remove the commune keywords
+  const communeName  = communePart.replace(/^(xã|phường|thị trấn)\s*/i, "").trim();
+  
   return { detail, communeName, districtName, provinceName };
 }
-
-
 
 // Hàm normalize
 function normalizeString(str = "") {
@@ -119,7 +129,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
         return filterProvs.some((filterProv) => requestProvName.includes(filterProv));
       });
     }
-
+   
     setFilteredRequests(data);
   }, [activeRequests, filters, provinces]);
 
@@ -176,7 +186,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
     }
   });
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Skeleton/>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
@@ -235,20 +245,21 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
           ))}
         </Carousel>
       ) : (
-        <p>No active requests found.</p>
+        <Empty description="No active requests found"/>
       )}
 
       {/* Hiển thị map nếu map = true */}
       {map && (
         <div style={{ marginTop: "2rem" }}>
            <Flex vertical='true'>
-        <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Active requests</b>
+        <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Map of requests</b>
       </Flex>
           <MapContainer 
               center={[16.0471, 108.2062]} // Trung tâm VN (Đà Nẵng)
-              zoom={6} 
-              style={{ height: "500px", width: "100%" }}
-              maxBounds={[[8.0, 102.0], [23.5, 110.5]]} // Giới hạn phạm vi VN
+              zoom={8} 
+              className="map-container"
+             
+              maxBounds={[[8.0, 102.0], [34.5, 110.5]]} // Giới hạn phạm vi VN
               maxBoundsViscosity={1.0} // Ngăn kéo bản đồ ra khỏi VN
             > 
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -263,14 +274,16 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
                       {coord.displayName} ({requests.length} request{requests.length > 1 ? "s" : ""})
                     </h3>
                     <ul>
-                      {requests.map((req) => (
+                      {requests.slice(0, 5).map((req) => (
                         <li key={req.id}>
                           <strong>
                             <Link to={`/requests/${req.helpRequest.id}`}>{req.helpRequest.title}</Link>
                           </strong>
                         </li>
                       ))}
+                      {requests.length > 5 && <li>...</li>}
                     </ul>
+
                   </Popup>
                 </Marker>
               );
