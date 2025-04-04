@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { SearchOutlined, CaretDownOutlined } from "@ant-design/icons";
 import { Affix, Button, Flex, Space, Row, Col, Dropdown } from "antd";
-import avatar from "../../assets/download (11).jpg";
+import avatar from "../../assets/charity.jpg";
 import { logOut } from "../../redux/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation, Trans } from "react-i18next";

@@ -95,23 +95,40 @@ const PostItem = ({ postResponse }) => {
             onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f5f5")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
-            <Avatar
-    shape="square"
-    size={80}
-    src={(postResponse?.attachments?.length > 0)
-        ? postResponse.attachments[0]
-        : "https://via.placeholder.com/100"}
-/>
+            {/* **Thumbnail với số lượng attachment** */}
+            <div style={{ position: "relative" }}>
+                <Avatar
+                    shape="square"
+                    size={80}
+                    src={thumbnail}
+                    icon={<UserOutlined />}
+                />
+                
+                {attachmentCount > 1 && (
+                    <div style={{
+                        position: "absolute",
+                        bottom: 4,
+                        left: 4,
+                        backgroundColor: "rgba(0, 0, 0, 0.6)",
+                        color: "#fff",
+                        fontSize: "12px",
+                        padding: "2px 6px",
+                        borderRadius: "5px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px"
+                    }}>
+                        <PictureOutlined />
+                        {attachmentCount}
+                    </div>
+                )}
+            </div>
 
-
-            {/* Nội dung bài post */}
-            <div style={{ flex: 1, overflow: "hidden" }}>
-                {/* Hiển thị người tạo bài post */}
+            {/* **Thông tin Post** */}
+            <div style={{ flex: 1 }}>
                 <Text strong>{postResponse.post.user.fullName || "Unknown User"}</Text>
                 <Text type="secondary" style={{ marginLeft: 10 }}>
-    {postResponse.post.createdAt
-        ? dayjs(postResponse.post.createdAt).format("YYYY-MM-DD HH:mm:ss")
-        : "Unknown Date"}
+    {formatTime(postResponse.post.createdAt)}
 </Text>
 
                 {taggables.map((tag) => (
@@ -154,7 +171,6 @@ const PostItem = ({ postResponse }) => {
 
 
             </div>
-
         </List.Item>
     );
 };
