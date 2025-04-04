@@ -252,7 +252,6 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
       {map && (
         <div style={{ marginTop: "2rem" }}>
            <Flex vertical='true'>
-        <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Active requests</b>
       </Flex>
           <MapContainer 
               center={[16.0471, 108.2062]} // Trung tâm VN (Đà Nẵng)

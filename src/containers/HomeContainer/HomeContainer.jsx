@@ -29,7 +29,7 @@ const HomeContainer = () => {
                 <Noting />
                 <Flex vertical='true' gap='4rem' style={{ margin: '4rem 10rem' }}>
                     <RequestActiveCarousel />
-                    <OrganizationActiveCarousel />
+                    {/* <OrganizationActiveCarousel /> */}
                     <FundraiserBoard projects={projects} />
                     <EventBoard />
                 </Flex>
