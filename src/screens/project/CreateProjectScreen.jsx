@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjectMembers,addProjectMemberThunk, moveOutProjectMemberThunk  } from '../../redux/project/projectSlice';
 import { fetchOrganizationMembers, fetchMyOrganization } from '../../redux/organization/organizationSlice';
 import { useEffect, useState } from 'react';
-
+import LoadingModal from '../../components/LoadingModal';
 import moment from 'moment';
 const { Title } = Typography;
 const ScreenStyled = styled.div`
@@ -216,6 +216,7 @@ const CreateProjectScreen = () => {
             setIsFirstMount(false); // Sau lần đầu, không gán lại nữa
         }
     }, [dispatch, newProject, myOrganization.organizationId]);
+   
     return (
         <ScreenStyled>
             <Row
@@ -278,7 +279,7 @@ const CreateProjectScreen = () => {
                                         {organizationMembers && organizationMembers.length > 0 && (
                                             <>
                                                 <Flex gap={10} justify='space-between' style={{marginBottom:'0.5rem'}}>
-                                                    <Title level={5}>Organization Members</Title>
+                                                    <Title level={5}>{myOrganization.organizationName}'s Members</Title>
                                                     {selectedOrgMembers.length > 0 && (
                                                         <StyledButton onClick={handleAddMembers}>
                                                             Add to project

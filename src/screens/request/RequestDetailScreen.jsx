@@ -8,7 +8,7 @@ import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
 import { Badge, Card } from "antd";
 import { CheckCircleOutlined, UserOutlined, HomeOutlined } from "@ant-design/icons";
-import {fetchMyOrganization} from "../../redux/organization/organizationSlice";
+import {fetchMyOrganization,fetchOrganizationMembers} from "../../redux/organization/organizationSlice";
 import { useNavigate } from "react-router-dom";
 const { Title, Text, Paragraph } = Typography;
 const items =
@@ -28,6 +28,7 @@ const RequestDetailScreen = () => {
   const myOrganization = useSelector((state) => state.organization.myOrganization);
   const loading = useSelector((state) => state.request.loading);
   const requestData = useSelector((state) => state.request.currentRequest);
+  const orgMembers = useSelector((state) => state.organization.myOrganizationMembers);
   const error = useSelector((state) => state.request.error);
   const [expanded, setExpanded] = useState(false);
   const storedUser = localStorage.getItem("currentUser");
@@ -42,6 +43,9 @@ const RequestDetailScreen = () => {
   useEffect(() => {
     dispatch(fetchRequestById(id));
      dispatch(fetchMyOrganization(currentUser.id));
+     if (myOrganization.organizationId) {
+           dispatch(fetchOrganizationMembers(myOrganization.organizationId));
+         }
   }, [dispatch, id,myOrganization.organizationId]);
 
   useEffect(() => {
@@ -175,7 +179,13 @@ const RequestDetailScreen = () => {
             <Button type="default" block style={{ flex: 1 }} onClick={()=>{
               if(myOrganization){
                 if(myOrganization.organizationStatus === "APPROVED"){
-                  navigate(`/donate/${requestData.helpRequest.id}`)
+                  if(orgMembers.filter((member)=>member.user.userRole !== "Leader").length === 0){
+                    message.error("Your organization doesn't have any available member to be leader")
+                  }else{
+                    navigate(`/manage-organization/projects/create/${requestData.helpRequest.id}`)
+                  }
+                }else{
+                  message.error("Your organization is not approved yet")
                 }
               }else{
                 message.error("You must be a ceo of an organization to register for request")

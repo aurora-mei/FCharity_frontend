@@ -213,7 +213,9 @@ const ProjectForm = ({requestId,myOrganization}) => {
    
        console.log("Final Project Data:", projectData);
        try {
+        setUploading(true);
          await dispatch(createProjectThunk(projectData)).unwrap();
+         setUploading(false);
          setCreatedSuccess(true);
          message.success("Create project successfully!");
        } catch (error) {

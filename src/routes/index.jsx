@@ -70,6 +70,9 @@ const AppRoutes = () => {
               <Route path="projects/create/:requestId" element={<CreateProjectScreen />} />
               <Route path="requests" element={<OrganizationRequest />} />
             </Route>
+            <Route path="manage-project">
+              <Route index element={<CreateProjectScreen />} />
+            </Route>
             <Route path="/organizations">
               <Route path="create" element={<CreateOrganization />} />
             </Route>

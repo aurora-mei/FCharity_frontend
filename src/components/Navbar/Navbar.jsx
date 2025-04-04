@@ -61,7 +61,7 @@ const Navbar = () => {
       label:
       myOrganization && myOrganization.organizationId ? (
           <Link rel="noopener noreferrer" to="/manage-organization">
-            My Organizations
+            My Organization
           </Link>
         ) : (
           <Link rel="noopener noreferrer" to="/organizations/create">
@@ -71,6 +71,15 @@ const Navbar = () => {
     },
     {
       key: "3",
+      label:
+      currentUser.userRole === "Leader" &&  (
+          <Link rel="noopener noreferrer" to="/manage-project">
+            My Owner Project
+          </Link>
+        )
+    },
+    {
+      key: "4",
       label: (
         <Link to="/" onClick={logout}>
           Sign out
