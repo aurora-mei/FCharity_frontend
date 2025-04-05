@@ -29,6 +29,9 @@ export const addProjectMemberThunk = createAsyncThunk("project/members/add-membe
 export const moveOutProjectMemberThunk = createAsyncThunk("project/members/move-out", async (memberId) => {
     return await projectApi.moveOutProjectMember(memberId);
 });
+export const fetchProjectById = createAsyncThunk("project/fetch-by-id", async (id) => {
+    return await projectApi.fetchProjectById(id);
+});
 const projectSlice = createSlice({
     name: 'Project',
     initialState,
@@ -54,6 +57,17 @@ const projectSlice = createSlice({
                 state.projects = action.payload;
             })
             .addCase(fetchProjectsThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(fetchProjectById.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchProjectById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentProject = action.payload;
+            })
+            .addCase(fetchProjectById.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             })

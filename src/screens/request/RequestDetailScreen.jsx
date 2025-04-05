@@ -158,20 +158,6 @@ const RequestDetailScreen = () => {
           <a style={{ fontSize: "0.9rem", color: "gray" }} onClick={() => setExpanded(!expanded)}>
             {expanded ? "Read Less" : "Read More"}
           </a>
-          {/* <Paragraph
-            ellipsis={{ rows: 2, expandable: true, symbol: "Read more" }}
-          >
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada. Nam sagittis quam a ligula pharetra, sit amet dictum ex tristique.
-          </Paragraph> */}
-          {/* <p style={{ color: "#444" }}>
-            Churchtown Primary School, a vibrant and beloved community school in Southport, is raising funds for a new playground to honour the memory of two children, Alice and Bebe, who tragically lost their lives in the Southport stabbings in July 2024.
-          </p>
-
-          <p style={{ color: "#444" }}>
-            This new playground, which has been proposed by Alice’s parents as a way of honouring her memory, will serve as a joyful, healing space for all our pupils...
-          </p>
-
-          <a href="#">Read more</a> */}
 
           {/* Nút Donate & Share */}
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
