@@ -1,32 +1,97 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Empty, List, Typography, Form, Input, Select, Tabs, Badge } from "antd";
 import LoadingModal from "../../components/LoadingModal";
 import RequestCard from "../../components/RequestCard/RequestCard";
 import { fetchRequestsByUserIdThunk } from "../../redux/request/requestSlice";
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
+import { Bar, Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { useDispatch, useSelector } from "react-redux";
 
 const { Title } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Tooltip,
+  Legend
+);
+
+// Hàm parse location
 function parseLocationString(locationString = "") {
   const parts = locationString.split(",").map(p => p.trim());
-  // Lấy ra từ phải sang trái
-  const provinceName = parts[parts.length - 1] || "";
-  const districtName = parts[parts.length - 2] || "";
-  const communeName  = parts[parts.length - 3] || "";
-  // Còn lại (các phần đầu) ghép lại thành detail
+  
+  // If there are less than 3 parts, return what we can.
+  if(parts.length < 3) {
+    return { detail: locationString, communeName: "", districtName: "", provinceName: "" };
+  }
+  
+  const provincePart = parts[parts.length - 1];
+  const districtPart = parts[parts.length - 2];
+  const communePart  = parts[parts.length - 3];
   const detailParts  = parts.slice(0, parts.length - 3);
-  const detail       = detailParts.join(", ");
-
+  
+  const detail = detailParts.join(", ");
+  // For province, remove common prefixes (tỉnh, thành phố, tp)
+  const provinceName = provincePart.replace(/^(tỉnh|thành phố|tp)\s*/i, "").trim();
+  // For district, even if it contains "thành phố" keyword, treat it as district
+  const districtName = districtPart.replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "").trim();
+  // For commune, remove the commune keywords
+  const communeName  = communePart.replace(/^(xã|phường|thị trấn)\s*/i, "").trim();
+  
   return { detail, communeName, districtName, provinceName };
 }
 
+// Normalize a string (remove diacritics and convert to lowercase)
+const normalizeString = (str = "") =>
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-/** Loại bỏ dấu và chuyển về chữ thường */
-const normalizeString = (str = "") => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+// Get an array of years from (currentYear - 10) to currentYear
+const getYearOptions = () => {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let y = currentYear - 10; y <= currentYear; y++) {
+    years.push(y.toString());
+  }
+  return years;
+};
+
+// Compute monthly counts for the filtered requests (for a given year)
+const processRequestsByMonth = (requests, year) => {
+  const counts = {};
+  // Initialize counts for all 12 months
+  for (let m = 1; m <= 12; m++) {
+    const monthStr = m.toString().padStart(2, "0");
+    counts[monthStr] = 0;
+  }
+  requests.forEach((req) => {
+    const date = new Date(req.helpRequest.creationDate);
+    if (date.getFullYear().toString() === year) {
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      counts[month] = (counts[month] || 0) + 1;
+    }
+  });
+  return {
+    labels: Object.keys(counts),
+    data: Object.values(counts),
+  };
+};
 
 const MyRequestScreen = () => {
   const [requestCounts, setRequestCounts] = useState({
@@ -38,12 +103,18 @@ const MyRequestScreen = () => {
     hidden: 0,
   });
 
+  const [filters, setFilters] = useState({});
+  const [filteredRequests, setFilteredRequests] = useState([]);
+  const [form] = Form.useForm();
+  const [activeTab, setActiveTab] = useState("all");
+  const [provinces, setProvinces] = useState([]);
+  
   const dispatch = useDispatch();
   const loading = useSelector((state) => state.request.loading);
   const requestsByUserId = useSelector((state) => state.request.requestsByUserId) || [];
   const error = useSelector((state) => state.request.error);
 
-  // Lấy user từ localStorage
+  // Get user from localStorage
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
   try {
@@ -52,17 +123,10 @@ const MyRequestScreen = () => {
     console.error("Error parsing currentUser:", err);
   }
 
-  // State filter, list filtered
-  const [filters, setFilters] = useState({});
-  const [filteredRequests, setFilteredRequests] = useState([]);
-  const [form] = Form.useForm();
-  const [activeTab, setActiveTab] = useState("all");
-  const [provinces, setProvinces] = useState([]);
-
-  // Categories, tags từ Redux
   const categories = useSelector((state) => state.category.categories) || [];
   const tags = useSelector((state) => state.tag.tags) || [];
 
+  // Update request counts based on requestsByUserId
   useEffect(() => {
     const counts = {
       all: requestsByUserId.length,
@@ -75,13 +139,13 @@ const MyRequestScreen = () => {
     setRequestCounts(counts);
   }, [requestsByUserId]);
 
-  // Nếu chưa có categories/tags thì load
+  // Load categories and tags if not available
   useEffect(() => {
     if (!categories.length) dispatch(fetchCategories());
     if (!tags.length) dispatch(fetchTags());
   }, [dispatch, categories.length, tags.length]);
 
-  // Lấy provinces từ open-api
+  // Load provinces from open-api
   useEffect(() => {
     fetch("https://provinces.open-api.vn/api/p/")
       .then((res) => res.json())
@@ -89,23 +153,23 @@ const MyRequestScreen = () => {
       .catch((err) => console.error("Failed to load provinces:", err));
   }, []);
 
-  // Lấy request của user 1 lần
+  // Fetch user's requests on mount
   useEffect(() => {
     if (currentUser.id) {
       dispatch(fetchRequestsByUserIdThunk(currentUser.id));
     }
   }, [dispatch, currentUser.id]);
 
-  // Mỗi khi requestsByUserId hoặc filters thay đổi -> filter cục bộ
+  // Filter requests whenever requests, filters, activeTab, or provinces change
   useEffect(() => {
     let data = [...requestsByUserId];
 
-    // Filter by status
+    // Filter by status tab
     if (activeTab !== "all") {
       data = data.filter(item => item.helpRequest.status.toLowerCase() === activeTab);
     }
 
-    // Search (title, content)
+    // Filter by search keyword
     if (filters.search && filters.search.trim()) {
       const keyword = filters.search.toLowerCase();
       data = data.filter(item => {
@@ -116,12 +180,12 @@ const MyRequestScreen = () => {
       });
     }
 
-    // Category
+    // Filter by category
     if (filters.categoryId) {
       data = data.filter(item => item.helpRequest.category.id === filters.categoryId);
     }
 
-    // Tags
+    // Filter by tags
     if (filters.requestTags && filters.requestTags.length > 0) {
       data = data.filter(item => {
         const requestTagIds = item.requestTags.map(t => t.tag.id);
@@ -129,67 +193,118 @@ const MyRequestScreen = () => {
       });
     }
 
-    // Province
+    // Filter by province
     if (filters.province) {
-      const filterProv = normalizeString(filters.province); // "ha giang" (nếu user chọn "Hà Giang")
+      const filterProv = normalizeString(filters.province);
       data = data.filter(item => {
         let requestProvName = "";
-        if (item.request.provinceCode) {
-          // Tìm object province trong list
+        if (item.helpRequest?.provinceCode) {
           const provObj = provinces.find(p => p.code === item.helpRequest.provinceCode);
           if (provObj) {
-            // "Tỉnh Hà Giang" -> ta bỏ tiền tố "Tỉnh " (nếu có) => "Hà Giang"
             const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
             requestProvName = normalizeString(noPrefix);
           }
         } else {
-          // parse location => "Hà Giang"
-          const { provinceName } = parseLocationString(item.helpRequest.location || "");
+          const { provinceName } = parseLocationString(item.helpRequest?.location || "");
           requestProvName = normalizeString(provinceName);
         }
-        // So sánh partial => "ha giang".includes("ha giang") => true
         return requestProvName.includes(filterProv);
+      });
+    }
+
+    // Filter by year if provided
+    if (filters.year) {
+      data = data.filter(item => {
+        const date = new Date(item.helpRequest.creationDate);
+        return date.getFullYear().toString() === filters.year;
       });
     }
 
     setFilteredRequests(data);
   }, [requestsByUserId, filters, activeTab, provinces]);
 
+  // Update filters when form values change
   const onValuesChange = (changedValues, allValues) => {
     if (!allValues.province) {
       delete allValues.province;
     }
     setFilters(allValues);
   };
-  
+
+  // Prepare data for monthly chart (for the selected year from the filter)
+  const selectedYear = filters.year || new Date().getFullYear().toString();
+  const { labels: months, data: requestCountsByMonth } = processRequestsByMonth(filteredRequests, selectedYear);
+
+  const barChartData = {
+    labels: months,
+    datasets: [
+      {
+        label: "Requests per Month",
+        backgroundColor: "#3498db",
+        borderColor: "#2980b9",
+        data: requestCountsByMonth,
+      },
+    ],
+  };
+
+  const lineChartData = {
+    labels: months,
+    datasets: [
+      {
+        label: "Requests per Month",
+        backgroundColor: "rgba(52, 152, 219, 0.2)",
+        borderColor: "#3498db",
+        pointBackgroundColor: "#2980b9",
+        data: requestCountsByMonth,
+        fill: true,
+      },
+    ],
+  };
+
+  // Compute year options (current year - 10 to current year)
+  const currentYear = new Date().getFullYear();
+  const yearOptions = [];
+  for (let y = currentYear; y >= currentYear - 10; y--) {
+    yearOptions.push(y.toString());
+  }
+
 
   if (loading) return <LoadingModal />;
   if (error) {
-    return <p style={{ color: "red" }}>Failed to load your requests: {error.message || error}</p>;
+    return <p style={{ color: "red" }}>
+      Failed to load your requests: {error.message || error}
+    </p>;
   }
 
   return (
     <div style={{ padding: "0 2rem" }}>
-      {/* <Title level={5}>My Requests</Title> */}
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-      <TabPane tab={<Badge count={requestCounts.all} offset={[10, 0]} color="gray" >All</Badge>} key="all" />
-      <TabPane tab={<Badge count={requestCounts.pending} offset={[10, 0]} color="gray" >Pending</Badge>} key="pending" />
-      <TabPane tab={<Badge count={requestCounts.approved} offset={[10, 0]}>Approved</Badge>} key="approved" />
-      <TabPane tab={<Badge count={requestCounts.rejected} offset={[10, 0]}>Rejected</Badge>} key="rejected" />
-      <TabPane tab={<Badge count={requestCounts.completed} offset={[10, 0]} color="gray" >Completed</Badge>} key="completed" />
-      <TabPane tab={<Badge count={requestCounts.hidden} offset={[10, 0]} color="gray" >Hidden</Badge>} key="hidden" />
-    </Tabs>
-
-      {/* Form filter */}
       <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
-      <Form.Item name="search" label="Search">
-          <Input
-            placeholder="Search requests" 
-            allowClear 
-            size="small"
-            style={{ height: 31 }}
-            suffix={null}
-          />
+      <Form.Item name="year" label="Year">
+          <Select placeholder="Select year" allowClear style={{ minWidth: 100 }}>
+            {yearOptions.map(year => (
+              <Option key={year} value={year}>
+                {year}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+      </Form>
+      {/* Charts for monthly trend */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "2rem" }}>
+        <div style={{ width: "45%" }}>
+          <h3>Monthly Trend (Bar Chart)</h3>
+          <Bar data={barChartData} />
+        </div>
+        <div style={{ width: "45%" }}>
+          <h3>Monthly Trend (Line Chart)</h3>
+          <Line data={lineChartData} />
+        </div>
+      </div>
+
+      {/* Filter Form */}
+      <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
+        <Form.Item name="search" label="Search">
+          <Input placeholder="Search requests" allowClear size="small" style={{ height: 31 }} />
         </Form.Item>
         <Form.Item name="categoryId" label="Category">
           <Select placeholder="Select category" allowClear style={{ minWidth: 150 }}>
@@ -209,22 +324,31 @@ const MyRequestScreen = () => {
             ))}
           </Select>
         </Form.Item>
-        {/* Province: hiển thị "Tỉnh Hà Giang" cho user, nhưng value là "Hà Giang" */}
+        {/* Province filter */}
         <Form.Item name="province" label="Province">
           <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
             {provinces.map(prov => {
-              // Bỏ tiền tố "Tỉnh " nếu có
               const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
               return (
                 <Option key={prov.code} value={noPrefix}>
-                  {prov.name} {/* hiển thị Tỉnh Hà Giang, value = Hà Giang */}
+                  {prov.name}
                 </Option>
               );
             })}
           </Select>
         </Form.Item>
+        {/* Year filter */}
       </Form>
+      <Tabs activeKey={activeTab} onChange={setActiveTab}>
+  <TabPane key="all" tab={<Badge count={requestCounts.all}>All</Badge>} />
+  <TabPane key="pending" tab={<Badge count={requestCounts.pending}>Pending</Badge>} />
+  <TabPane key="approved" tab={<Badge count={requestCounts.approved}>Approved</Badge>} />
+  <TabPane key="rejected" tab={<Badge count={requestCounts.rejected}>Rejected</Badge>} />
+  <TabPane key="completed" tab={<Badge count={requestCounts.completed}>Completed</Badge>} />
+  <TabPane key="hidden" tab={<Badge count={requestCounts.hidden}>Hidden</Badge>} />
+  </Tabs>
 
+      {/* List of Requests */}
       {filteredRequests.length > 0 ? (
         <List
           grid={{ gutter: 16, column: 4 }}
@@ -236,7 +360,14 @@ const MyRequestScreen = () => {
           )}
         />
       ) : (
-        <Empty description="No request found" />
+        <Empty
+          description={
+            <span>
+              You have no request.{" "}
+              <a href="/requests/create">Create one now</a>
+            </span>
+          }
+        />
       )}
     </div>
   );

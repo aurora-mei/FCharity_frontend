@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import authApi from './authApi';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import authApi from "./authApi";
 
 const initialState = {
   loading: false,
@@ -17,12 +17,18 @@ const initialState = {
 export const signUp = createAsyncThunk("auth/signup", async (signupData) => {
   return await authApi.signup(signupData);
 });
-export const sendOTPCode = createAsyncThunk("auth/sendOTP", async (sendOTPData) => {
-  return await authApi.sendOTP(sendOTPData);
-});
-export const verifyEmail = createAsyncThunk("auth/verify", async (verifyData) => {
-  return await authApi.verify(verifyData);
-});
+export const sendOTPCode = createAsyncThunk(
+  "auth/sendOTP",
+  async (sendOTPData) => {
+    return await authApi.sendOTP(sendOTPData);
+  }
+);
+export const verifyEmail = createAsyncThunk(
+  "auth/verify",
+  async (verifyData) => {
+    return await authApi.verify(verifyData);
+  }
+);
 export const sendResetPasswordOTPCode = createAsyncThunk(
   "auth/sendResetPasswordOTP",
   async (sendOTPData) => {
@@ -45,18 +51,27 @@ export const logIn = createAsyncThunk("auth/login", async (loginData) => {
   return await authApi.login(loginData);
 });
 export const logOut = createAsyncThunk("auth/logout", () => {});
-export const getCurrentUser = createAsyncThunk("users/current-user", async () => {
-  return await authApi.getCurrentUser();
-});
-export const googleLogIn = createAsyncThunk("auth/googleLogin", async (token) => {
-  return await authApi.googleLogin(token);
-});
-export const changePassword = createAsyncThunk("auth/changePassword", async (changePasswordData) => {
-  return await authApi.changePassword(changePasswordData);
-});
+export const getCurrentUser = createAsyncThunk(
+  "users/current-user",
+  async () => {
+    return await authApi.getCurrentUser();
+  }
+);
+export const googleLogIn = createAsyncThunk(
+  "auth/googleLogin",
+  async (token) => {
+    return await authApi.googleLogin(token);
+  }
+);
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async (changePasswordData) => {
+    return await authApi.changePassword(changePasswordData);
+  }
+);
 
 export const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     // Other reducers if needed
@@ -69,8 +84,8 @@ export const authSlice = createSlice({
       .addCase(signUp.fulfilled, (state, action) => {
         state.loading = false;
         state.newUser = action.payload;
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('token');
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("token");
       })
       .addCase(sendResetPasswordOTPCode.pending, (state) => {
         state.loading = true;
@@ -94,8 +109,8 @@ export const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload.token;
         state.refreshToken = action.payload.refreshToken;
-        localStorage.setItem('token', state.token);
-        localStorage.setItem('refreshToken', state.refreshToken);
+        localStorage.setItem("token", state.token);
+        localStorage.setItem("refreshToken", state.refreshToken);
       })
       .addCase(logIn.rejected, (state, action) => {
         state.loading = false;
@@ -107,7 +122,7 @@ export const authSlice = createSlice({
       .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
         state.currentUser = action.payload;
-        localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+        localStorage.setItem("currentUser", JSON.stringify(state.currentUser));
         console.log("currentUser state: ", state.currentUser);
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
@@ -119,8 +134,8 @@ export const authSlice = createSlice({
         state.currentUser = {};
         state.newUser = {};
         state.verified = false;
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('token');
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("token");
       })
       .addCase(verifyResetPasswordOTPCode.pending, (state) => {
         state.loading = true;
@@ -139,8 +154,8 @@ export const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload.token;
         state.refreshToken = action.payload.refreshToken;
-        localStorage.setItem('token', state.token);
-        localStorage.setItem('refreshToken', state.refreshToken);
+        localStorage.setItem("token", state.token);
+        localStorage.setItem("refreshToken", state.refreshToken);
         console.log("Google login token state:", state.refreshToken);
         console.log("Google login token state:", state.token);
       })
@@ -160,7 +175,7 @@ export const authSlice = createSlice({
         state.error = action.error;
       })
       .addMatcher(
-        (action) => action.type.endsWith('/rejected'),
+        (action) => action.type.endsWith("/rejected"),
         (state, action) => {
           state.loading = false;
           state.error = action.error;
