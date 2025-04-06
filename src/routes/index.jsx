@@ -38,6 +38,7 @@ import OrganizationRequest from "../pages/manage/OrganizationRequest.jsx";
 //project
 import CreateProjectScreen from "../screens/project/CreateProjectScreen.jsx";
 import ProjectDetailScreen from "../screens/project/ProjectDetailScreen.jsx";
+import ProjectMoreDetailScreen from "../screens/project/ProjectMoreDetailsScreen.jsx";
 import Deposit from "../screens/user/Deposit.jsx";
 
 
@@ -91,6 +92,7 @@ const AppRoutes = () => {
             </Route>
             <Route path="projects">
               <Route path=":projectId" element={<ProjectDetailScreen />} />
+              <Route path=":projectId/details" element={<ProjectMoreDetailScreen />} />
             </Route>
             <Route path="/organizations">
               <Route path="create" element={<CreateOrganization />} />

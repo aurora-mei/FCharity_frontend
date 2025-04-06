@@ -71,7 +71,7 @@ const CreateProjectScreen = () => {
     const { requestId } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const myProjectMembers = useSelector((state) => state.project.myProjectMembers);
+    const myProjectMembers = useSelector((state) => state.project.projectMembers);
     const newProject = useSelector((state) => state.project.currentProject);
     const myOrganization = useSelector((state) => state.organization.myOrganization);
     const organizationMembers = useSelector((state) => state.organization.myOrganizationMembers);

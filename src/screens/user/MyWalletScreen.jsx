@@ -5,7 +5,7 @@ import {
     ArrowUpOutlined,
     ArrowDownOutlined, WalletOutlined
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTransactionHistoryOfUser, getCurrentWalletThunk } from '../../redux/user/userSlice';
 import moment from 'moment-timezone';
@@ -83,9 +83,23 @@ const MyWalletScreen = () => {
             title: 'Transaction Type', dataIndex: 'transactionType', key: 'transactionType',
             render: (text) => {
                 if (text === "DEPOSIT") {
-                    return <Tag color="green" >Deposit</Tag>
+                    return <Tag color="green" >{text}</Tag>
                 } else {
-                    return <Tag color="red">Withdraw</Tag>
+                    return <Tag color="red">{text}</Tag>
+                }
+            }
+        },
+        {
+            title: 'Target Account', dataIndex: 'objectId', key: 'objectName',
+            render: (text, record) => {
+                if (record.transactionType === "DEPOSIT" || record.transactionType === "WITHDRAW") {
+                    return null
+                } else if (record.transactionType === "DONATE_PROJECT") {
+                    return <Link to={`/projects/${record.objectId}`}>
+                        {record.objectName}
+                    </Link>
+                } else {
+                    return null; // Ensure the else block is not empty
                 }
             }
         },
@@ -151,7 +165,7 @@ const MyWalletScreen = () => {
                         <StyledCard>
                             <b>Total spending <span> <Text type="danger">-16.4%</Text></span></b>
                             <Title level={3}>{transactions
-                                .filter((x) => x.transactionType === "WITHDRAW")
+                                .filter((x) => x.transactionType !== "DEPOSIT")
                                 .reduce((total, transaction) => total + transaction.amount, 0)
                                 .toLocaleString()} VND</Title>
                         </StyledCard>
