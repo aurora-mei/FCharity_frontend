@@ -91,6 +91,9 @@ const sendJoinRequest = async ({projectId,requestData}) => {
         const response = await APIPrivate.post(`projects/requests/${projectId}/join`, requestData);
         console.log("Join request sent:", response.data);
         message.success("Join request sent successfully");
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000); 
         return response.data;
     } catch (err) {
         console.error("Error sending join request:", err);

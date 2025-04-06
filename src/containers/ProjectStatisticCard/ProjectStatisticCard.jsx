@@ -104,14 +104,13 @@ const StyledButton = styled(Button)`
         color: black !important;
     }
 `;
-const ProjectStatisticCard = ({ project, donations, isOpenModal, setIsOpenModal }) => {
+const ProjectStatisticCard = ({ projectRequests,projectMembers, donations, isOpenModal, setIsOpenModal }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [recentDonation, setRecentDonation] = useState([]);
     const [topDonation, setTopDonation] = useState([]);
     const [firstDonation, setFirstDonation] = useState([]);
-    const projectRequests = useSelector((state) => state.project.projectRequests);
-    const projectMembers = useSelector((state) => state.project.projectMembers);
+    
     const storedUser = localStorage.getItem("currentUser");
     let currentUser = {};
 
@@ -120,24 +119,22 @@ const ProjectStatisticCard = ({ project, donations, isOpenModal, setIsOpenModal 
     } catch (error) {
         console.error("Error parsing currentUser from localStorage:", error);
     }
+   
+    
     useEffect(() => {
-        if (projectRequests && projectRequests.length <= 0) {
-            dispatch(fetchProjectRequests(project.id));
-            dispatch(fetchProjectMembers(project.id));
-        }
         if (donations && donations.length > 0) {
             setRecentDonation(donations.filter((x) => (
-                moment(new Date).date == moment(x.donationTime).date &&
-                moment(new Date).month == moment(x.donationTime).month &&
-                moment(new Date).year == moment(x.donationTime).year
-            ))
-                .sort((a, b) => moment(b.donationTime) - moment(a.donationTime)));
+                moment().isSame(x.donationTime, 'day')
+            )).sort((a, b) => moment(b.donationTime) - moment(a.donationTime)));
+    
             setTopDonation(donations.filter((x) => x.donationStatus === "VERIFIED")
                 .sort((a, b) => b.amount - a.amount));
+    
             setFirstDonation(donations.filter((x) => x.donationStatus === "VERIFIED")
                 .sort((a, b) => moment(a.donationTime) - moment(b.donationTime)));
         }
-    }, [dispatch, donations]);
+    }, [donations]);
+    
 
     const handleSendJoinRequest = () => {
         dispatch(
@@ -145,7 +142,8 @@ const ProjectStatisticCard = ({ project, donations, isOpenModal, setIsOpenModal 
                 projectId: donations[0].projectId,
                 requestData: { userId: currentUser.id }
             })
-        ).unwrap();
+        );
+      
     };
     const showConfirm = () => {
         Modal.confirm({
@@ -270,7 +268,7 @@ const ProjectStatisticCard = ({ project, donations, isOpenModal, setIsOpenModal 
                         (() => {
                             console.log("Project Requests:", projectRequests);
                             const userRequests = projectRequests.filter(x => x.userId === currentUser.id);
-                            const userIsMember = projectMembers.some(x => x.userId === currentUser.id);
+                            const userIsMember = projectMembers.some(x => x.user.id === currentUser.id);
 
                             // Check if any relevant request exists (Join, Invitation, Leave)
                             const hasRelevantRequest = userRequests.some(x =>
@@ -278,7 +276,7 @@ const ProjectStatisticCard = ({ project, donations, isOpenModal, setIsOpenModal 
                                 (x.requestType === "INVITATION" && (x.status === "CANCELLED" || x.status === "REJECTED")) ||
                                 (x.requestType === "LEAVE_REQUEST" && x.status === "APPROVED")
                             );
-                            console.log(userRequests.length === 0)
+                            console.log(projectMembers)
                             // If no request exists or relevant request has been cancelled/rejected
                             if (hasRelevantRequest || userRequests.length === 0) {
                                 return (
@@ -322,9 +320,6 @@ const ProjectStatisticCard = ({ project, donations, isOpenModal, setIsOpenModal 
     );
 }
 ProjectStatisticCard.propTypes = {
-    project: PropTypes.shape({
-        id: PropTypes.string.isRequired,
-    }).isRequired,
     donations: PropTypes.arrayOf(
         PropTypes.shape({
             projectId: PropTypes.string.isRequired,

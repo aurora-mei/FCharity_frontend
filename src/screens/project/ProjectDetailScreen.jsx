@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { Row, Input, Col, Modal, Form, Flex, Typography, Carousel, Button, Badge, Divider, Table,InputNumber, message, Breadcrumb, Skeleton, Card, Progress, Avatar, Space } from "antd";
+import { Row, Input, Col, Modal, Form, Flex, Typography, Carousel, Button, Badge, Divider, Table, InputNumber, message, Breadcrumb, Skeleton, Card, Progress, Avatar, Space } from "antd";
 import { UserOutlined, LeftCircleOutlined, HomeOutlined, FlagOutlined } from "@ant-design/icons";
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
 import { getOrganization } from "../../redux/organization/organizationSlice";
 import { getCurrentWalletThunk } from "../../redux/user/userSlice";
-import {Link } from "react-router-dom";
+import { fetchProjectRequests, fetchProjectMembers } from "../../redux/project/projectSlice";
+import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
 import {
     ShareAltOutlined,
     DollarOutlined,
     RiseOutlined,
     StarOutlined,
-    UnorderedListOutlined
+    UnorderedListOutlined,
 } from '@ant-design/icons';
 import { fetchProjectById, createDonationThunk, fetchDonationsOfProject } from "../../redux/project/projectSlice";
 import styled from "styled-components";
@@ -285,6 +286,22 @@ const StyledSection = {
       }
     `
 };
+const StyledOverlappingAvatars = styled.div`
+  position: relative;
+  margin:1rem 0;
+  height: 50px;
+ width: 50px;
+  img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #000;
+    object-fit: cover;
+    position: absolute;
+    cursor:pointer;
+  }
+`;
+
 
 const columns = [
     {
@@ -310,7 +327,7 @@ const columns = [
         dataIndex: 'amount',
         key: 'amount',
         render: (text) => (
-            <Text style={{ fontSize: '0.7rem' }} type="success" >{text?.toLocaleString()||0} VND</Text>  // Hiển thị số tiền theo định dạng VND
+            <Text style={{ fontSize: '0.7rem' }} type="success" >{text?.toLocaleString() || 0} VND</Text>  // Hiển thị số tiền theo định dạng VND
         )
     },
     {
@@ -332,15 +349,18 @@ const ProjectDetailScreen = () => {
 
     const currentProject = useSelector((state) => state.project.currentProject);
     const donations = useSelector((state) => state.project.donations);
+    const projectRequests = useSelector((state) => state.project.projectRequests);
+    const projectMembers = useSelector((state) => state.project.projectMembers);
+
     const currentOrganization = useSelector((state) => state.organization.currentOrganization);
     const loading = useSelector((state) => state.project.loading);
     const [expanded, setExpanded] = useState(false);
     const [isOpenModal, setIsOpenModal] = useState(false);
-     const balance = useSelector((state) => state.user.currentBalance);
-           
+    const balance = useSelector((state) => state.user.currentBalance);
+
     const storedUser = localStorage.getItem("currentUser");
     let currentUser = {};
-   
+
     try {
         currentUser = storedUser ? JSON.parse(storedUser) : {};
     } catch (error) {
@@ -350,10 +370,13 @@ const ProjectDetailScreen = () => {
         dispatch(fetchProjectById(projectId));
         dispatch(fetchDonationsOfProject(projectId));
         dispatch(getCurrentWalletThunk());
+
     }, [dispatch, projectId, donations.length]);
     useEffect(() => {
         if (currentProject.project) {
             dispatch(getOrganization(currentProject.project.organizationId));
+            dispatch(fetchProjectRequests(project.id));
+            dispatch(fetchProjectMembers(project.id));
         }
     }, [dispatch, currentProject.project, donations]);
 
@@ -381,12 +404,12 @@ const ProjectDetailScreen = () => {
         {
             href: '/',
             title: (
-                <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem",color:"green" }} /> // Increase icon size
+                <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }} /> // Increase icon size
             ),
         },
         {
             title: (
-                <p style={{ fontSize: "1rem" ,color:"green"}}>Project {project.projectName}</p> // Increase text size
+                <p style={{ fontSize: "1rem", color: "green" }}>Project {project.projectName}</p> // Increase text size
             ),
         },
     ];
@@ -408,10 +431,10 @@ const ProjectDetailScreen = () => {
         <StyledScreen>
             <Row gutter={8} justify="center" style={{ margin: "0 auto" }}>
                 <Col span={13} >
-                <Breadcrumb items={items} style={{marginLeft:"1rem"}}/>
-                {/* <LeftCircleOutlined  onClick={()=>navigate(-1)} style={{ fontWeight: "bold", fontSize: "1.5rem" }}/> */}
+                    <Breadcrumb items={items} style={{ marginLeft: "1rem" }} />
+                    {/* <LeftCircleOutlined  onClick={()=>navigate(-1)} style={{ fontWeight: "bold", fontSize: "1.5rem" }}/> */}
                     <Flex gap={0} vertical className="request-detail-page" >
-                   
+
                         <Flex vertical gap={0} className="request-detail">
                             <Title level={3} className="request-title">{project.projectName}</Title>
 
@@ -519,6 +542,21 @@ const ProjectDetailScreen = () => {
                                 </StyledSection.ProfileSection>
 
                                 <Divider />
+                                <strong>Members</strong>
+                                <Flex>
+                                    <StyledOverlappingAvatars>
+                                        {projectMembers.map((member, index) => (
+                                            <img
+                                                key={member.id}
+                                                src={member.user.avatar || "https://via.placeholder.com/50"}
+                                                alt={`Avatar ${member.user.fullName}`}
+                                                title={`${member.user.fullName}`}
+                                                style={{ left: `${index * 24}px`, zIndex: projectMembers.length - index }}
+                                            />
+                                        ))}
+                                    </StyledOverlappingAvatars>
+                                </Flex>
+                                <Divider />
 
                                 <StyledSection.Meta>
                                     Created {moment().diff(moment(project.createdAt), 'days')} d ago · <a href="#">{project.category.categoryName}</a>
@@ -535,8 +573,8 @@ const ProjectDetailScreen = () => {
 
                     </Flex>
                 </Col>
-                <Col span={8} style={{marginTop:"2rem"}}>
-                <ProjectStatisticCard project={project} donations={donations} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
+                <Col span={8} style={{ marginTop: "2rem" }}>
+                    <ProjectStatisticCard projectMembers={projectMembers} projectRequests={projectRequests} donations={donations} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
 
                     <StyledWrapper>
                         <Card className="donation-card">
@@ -588,7 +626,7 @@ const ProjectDetailScreen = () => {
                     </StyledWrapper>
                 </Col>
             </Row>
-           <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal}  project={project} handleDonate={handleDonate} balance={balance} />
+            <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} balance={balance} />
         </StyledScreen>
     );
 }
