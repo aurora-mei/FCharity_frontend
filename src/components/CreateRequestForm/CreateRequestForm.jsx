@@ -101,7 +101,7 @@ const CreateRequestForm = () => {
 
   // Để hiển thị spinner khi chưa load xong tỉnh (vì cần load xong mới parse)
   const [initialLoading, setInitialLoading] = useState(true);
-
+  const [aiLoading, setAiLoading] = useState(false);
   /* -----------------------------------------
      2) LẤY CATEGORIES, TAGS, DANH SÁCH TỈNH
      ----------------------------------------- */
@@ -344,7 +344,66 @@ const CreateRequestForm = () => {
             message.error(`Delete failed for ${file.name}`);
         }
     };
+
+    const generateRequestWithAI = async () => {
+      setAiLoading(true);
+      try {
+        const currentValues = form.getFieldsValue();
+        const aiHint = currentValues.aiHint || "a general request";
     
+        const prompt = `
+    Generate a request title and content for a user based on the following hint: "${aiHint}".
+    Additional details:
+    - Category: ${currentValues.categoryId ? categories.find(c => c.id === currentValues.categoryId)?.categoryName : "any category"}
+    - Tags: ${currentValues.tagIds ? currentValues.tagIds.map(id => tags.find(t => t.id === id)?.tagName).join(", ") : "any tags"}
+    - Location: ${currentValues.location || "any location"}, ${communes.find(c => c.code === currentValues.commune)?.name || ""}, 
+      ${districts.find(d => d.code === currentValues.district)?.name || ""}, 
+      ${provinces.find(p => p.code === currentValues.province)?.name || ""}
+    - Emergency: ${currentValues.isEmergency ? "yes" : "no"}
+    
+    Please provide a concise title (max 10 words) and a detailed content (100-150 words).
+    
+    Format the response as:
+    Title: [Your title here]
+    Content: [Your content here]
+        `;
+    
+        const GEMINI_API = import.meta.env.VITE_GEMINI_API;  
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMINI_API}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        });
+    
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Gemini API error: ${errorData.error?.message || response.statusText}`);
+        }
+    
+        const data = await response.json();
+    
+        if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+          throw new Error("No valid response from Gemini");
+        }
+    
+        const aiResponse = data.candidates[0].content.parts[0].text;
+        const [titleLine, ...contentLines] = aiResponse.split("\n");
+        const title = titleLine.replace("Title:", "").trim();
+        const content = contentLines.join("\n").replace("Content:", "").trim();
+    
+        form.setFieldsValue({ title, content });
+        message.success("Request generated successfully by AI!");
+      } catch (error) {
+        console.error("Error generating request with Gemini:", error.message);
+        message.error(`Failed to generate request with Gemini: ${error.message}`);
+      } finally {
+        setAiLoading(false);
+      }
+    };    
 
   /* -----------------------
      6) XỬ LÝ SUBMIT FORM
@@ -416,7 +475,7 @@ const CreateRequestForm = () => {
               Create a Request
             </Title>
             <p className="subtitle">
-              Fill in the details to create a new request.
+              Fill in the details or use AI to generate a request.
             </p>
           </div>
           <Form form={form} layout="vertical" onFinish={onFinish}>
@@ -428,6 +487,28 @@ const CreateRequestForm = () => {
             {/* Content */}
             <Form.Item label="Content" name="content" rules={[{ required: true, message: "Content is required" }]}>
               <Input.TextArea />
+            </Form.Item>
+
+            {/* Trường gợi ý cho AI */}
+            <Form.Item
+              label="AI Hint (e.g., 'Create a request about flood relief')"
+              name="aiHint"
+              rules={[{ required: false }]} // Không bắt buộc
+            >
+              <Input placeholder="Enter a hint for AI generation" />
+            </Form.Item>
+
+            {/* Nút Generate with AI */}
+            <Form.Item>
+              <Button
+              className="continue-btn"
+                type="dashed"
+                onClick={generateRequestWithAI}
+                loading={aiLoading}
+                block
+              >
+                {aiLoading ? "Generating..." : "Generate with AI"}
+              </Button>
             </Form.Item>
 
             {/* Phone */}
