@@ -101,6 +101,7 @@ const MyRequestScreen = () => {
     rejected: 0,
     completed: 0,
     hidden: 0,
+    registered: 0,
   });
 
   const [filters, setFilters] = useState({});
@@ -135,6 +136,7 @@ const MyRequestScreen = () => {
       rejected: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "rejected").length,
       completed: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "completed").length,
       hidden: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "hidden").length,
+      registered: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "registered").length,
     };
     setRequestCounts(counts);
   }, [requestsByUserId]);
@@ -346,6 +348,7 @@ const MyRequestScreen = () => {
   <TabPane key="rejected" tab={<Badge count={requestCounts.rejected}>Rejected</Badge>} />
   <TabPane key="completed" tab={<Badge count={requestCounts.completed}>Completed</Badge>} />
   <TabPane key="hidden" tab={<Badge count={requestCounts.hidden}>Hidden</Badge>} />
+  <TabPane key="registered" tab={<Badge count={requestCounts.registered}>Registered</Badge>} />
   </Tabs>
 
       {/* List of Requests */}
