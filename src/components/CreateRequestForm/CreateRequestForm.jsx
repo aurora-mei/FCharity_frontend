@@ -501,7 +501,7 @@ const CreateRequestForm = () => {
             {/* Nút Generate with AI */}
             <Form.Item>
               <Button
-              className="continue-btn"
+              className="continue-button"
                 type="dashed"
                 onClick={generateRequestWithAI}
                 loading={aiLoading}
