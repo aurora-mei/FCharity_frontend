@@ -68,175 +68,152 @@ const CommentItem = React.memo(({
   currentVotes 
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const indentSize = Math.min(level * 32, 256); // Giới hạn indent tối đa 256px
-  const commentDetail = comment.comment; // Lấy comment thực sự
+  const commentDetail = comment.comment;
   const replies = comment.replies;
   const hasReplies = replies?.length > 0;
-  console.log(comment);
+
   return (
     comment.comment && (
       <div
-      style={{
-        marginLeft: indentSize,
-        position: 'relative',
-        marginBottom: 8,
-        transition: 'margin 0.2s',
-      }}
-    >
-      {/* Vertical connector line */}
-      {level > 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            left: -16,
-            top: 0,
-            bottom: 0,
-            width: 2,
-            backgroundColor: '#edeff1',
-          }}
-        />
-      )}
-
-      <div style={{ position: 'relative' }}>
-        {/* Collapse button */}
-        {hasReplies && (
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
+        style={{
+          marginLeft: level > 0 ? 44 : 0,
+          position: 'relative',
+          marginBottom: 8,
+        }}
+      >
+        {level > 0 && (
+          <div
             style={{
               position: 'absolute',
-              left: -28,
-              top: 4,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              zIndex: 1,
+              left: -24,
+              top: 0,
+              bottom: 0,
+              width: 2,
+              backgroundColor: '#e4e6eb',
             }}
-          >
-            <span
-              style={{
-                display: 'block',
-                transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)',
-                transition: 'transform 0.2s',
-                fontSize: 12,
-                color: '#878a8c'
-              }}
-            >
-              ▶
-            </span>
-          </button>
+          />
         )}
 
-        {/* Comment content */}
-        <div style={{ 
-          backgroundColor: '#f8f9fa',
-          borderRadius: 8,
-          padding: 12,
-          position: 'relative'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Avatar
-              size={28}
-              src={commentDetail.user?.avatar}
-              style={{ border: '2px solid #0079d3' }}
-            />
-            <Text strong>{commentDetail.user?.fullName}</Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              {formatTimeAgo(commentDetail.createdAt)}
-            </Text>
-          </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Avatar
+            size={32}
+            src={commentDetail.user?.avatar}
+            style={{ flexShrink: 0 }}
+          />
 
-          <Paragraph style={{ 
-            margin: '8px 0',
-            paddingLeft: 36 // Căn đều với avatar
-          }}>
-            {commentDetail.content}
-          </Paragraph>
-
-          {/* Vote and Reply buttons */}
-          <Space style={{ marginLeft: 36 }}>
-            <Button
-              size="small"
-              onClick={() => handleVote(commentDetail.commentId, 1)}
-              icon={<UpOutlined />}
-              style={{ padding: '0 8px' }}
-            />
-            <Text strong style={{ minWidth: 30, textAlign: 'center' }}>
-              {commentDetail.vote + (currentVotes[commentDetail.commentId] || 0)}
-            </Text>
-            <Button
-              size="small"
-              onClick={() => handleVote(commentDetail.commentId, -1)}
-              icon={<DownOutlined />}
-              style={{ padding: '0 8px' }}
-            />
-            
-            <Button 
-              size="small"
-              onClick={() => setReplyingTo(prev => 
-                prev === commentDetail.commentId ? null : commentDetail.commentId
-              )}
-              icon={<MessageOutlined />}
-              style={{ marginLeft: 8 }}
-            >
-              Reply
-            </Button>
-          </Space>
-
-          {/* Reply input */}
-          {replyingTo === commentDetail.commentId && (
+          <div style={{ flex: 1 }}>
             <div style={{ 
-              marginTop: 12,
-              marginLeft: 36,
+              backgroundColor: '#f0f2f5',
+              borderRadius: 18,
+              padding: '8px 12px',
               position: 'relative'
             }}>
-              <div style={{
-                position: 'absolute',
-                left: -44,
-                top: 12,
-                bottom: 0,
-                width: 2,
-                backgroundColor: '#edeff1',
-              }}/>
-              
-              <Input.TextArea
-                rows={2}
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Write a reply..."
-                autoSize={{ minRows: 2, maxRows: 4 }}
-                style={{ background: 'white' }}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Text strong style={{ fontSize: 13 }}>{commentDetail.user?.fullName}</Text>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {formatTimeAgo(commentDetail.createdAt)}
+                </Text>
+              </div>
+
+              <Paragraph style={{ 
+                margin: '4px 0 0',
+                fontSize: 15,
+                lineHeight: 1.4
+              }}>
+                {commentDetail.content}
+              </Paragraph>
+            </div>
+
+            {/* Phần Action Buttons */}
+            <div style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              margin: '4px 0 8px',
+              paddingLeft: 8
+            }}>
+              <Button
+                type="text"
+                size="small"
+                icon={<UpOutlined style={{ 
+                  fontSize: 14,
+                  color: currentVotes[commentDetail.commentId] === true ? '#ff4500' : '#65676b'
+                }} />}
+                onClick={() => handleVote(commentDetail.commentId, true)}
               />
-              <Space style={{ marginTop: 8 }}>
-                <Button 
-                  size="small"
-                  onClick={() => {
-                    setReplyingTo(null);
-                    setReplyContent("");
+              <Text style={{ 
+                fontSize: 13,
+                color: '#65676b',
+                fontWeight: 600,
+                minWidth: 24,
+                textAlign: 'center'
+              }}>
+                {commentDetail.vote + (currentVotes[commentDetail.commentId] === true ? 1 : currentVotes[commentDetail.commentId] === false ? -1 : 0)}
+              </Text>
+              <Button
+                type="text"
+                size="small"
+                icon={<DownOutlined style={{ 
+                  fontSize: 14,
+                  color: currentVotes[commentDetail.commentId] === false ? '#7193ff' : '#65676b'
+                }} />}
+                onClick={() => handleVote(commentDetail.commentId, false)}
+              />
+              <Button 
+                type="text"
+                size="small"
+                style={{ fontSize: 13, fontWeight: 600, color: '#65676b', padding: 0, height: 'auto' }}
+                onClick={() => setReplyingTo(prev => prev === commentDetail.commentId ? null : commentDetail.commentId)}
+              >
+                Reply
+              </Button>
+            </div>
+
+            {replyingTo === commentDetail.commentId && (
+              <div style={{ 
+                display: 'flex',
+                gap: 8,
+                marginBottom: 12
+              }}>
+                <Avatar
+                  size={32}
+                  src={commentDetail.user?.avatar}
+                  style={{ flexShrink: 0 }}
+                />
+                <Input.TextArea
+                  rows={1}
+                  autoSize={{ minRows: 1, maxRows: 4 }}
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  placeholder="Viết phản hồi..."
+                  style={{
+                    background: '#fff',
+                    borderRadius: 18,
+                    border: '1px solid #ccd0d5'
                   }}
-                >
-                  Cancel
-                </Button>
+                />
                 <Button 
                   type="primary"
+                  shape="circle"
                   size="small"
-                  onClick={() => handleCreateReply(commentDetail.commentId)}
                   icon={<SendOutlined />}
-                >
-                </Button>
-              </Space>
-            </div>
-          )}
+                  onClick={() => handleCreateReply(commentDetail.commentId)}
+                  style={{ 
+                    alignSelf: 'flex-end',
+                    marginBottom: 4
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Nested replies */}
         {!isCollapsed && replies?.map(reply => (
-          // console.log(reply)
           <CommentItem
-            key={reply.comment ? reply.comment.commentId:reply.commentId}
+            key={reply.comment?.commentId || reply.commentId}
             comment={{
-              comment: reply.comment||reply,
-              replies: reply.replies|| []
+              comment: reply.comment || reply,
+              replies: reply.replies || []
             }}
             level={level + 1}
             handleVote={handleVote}
@@ -249,11 +226,9 @@ const CommentItem = React.memo(({
           />
         ))}
       </div>
-    </div>
     )
   );
 });
-
 const Post = ({ currentPost }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -300,21 +275,34 @@ const Post = ({ currentPost }) => {
     }
   };
 
-  const handleVote = async (commentId, voteValue) => {
+  const handleVote = async (commentId, isUpvote) => {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentVote = currentVotes[commentId];
+  
     try {
-      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      let newVoteValue = null;
+      if (currentVote === isUpvote) {
+        newVoteValue = null;
+      } else {
+        newVoteValue = isUpvote;
+      }
+  
+      setCurrentVotes(prev => ({
+        ...prev,
+        [commentId]: newVoteValue
+      }));
+  
       await dispatch(voteComment({ 
         commentId,
         userId: currentUser.id,
-        vote: voteValue 
-      }));
-      
+        isUpvote: newVoteValue ? (isUpvote ? 1 : -1) : 0
+      })).unwrap();
+    } catch (error) {
       setCurrentVotes(prev => ({
         ...prev,
-        [commentId]: (prev[commentId] || 0) + voteValue
+        [commentId]: currentVote
       }));
-    } catch (error) {
-      message.error("Vote thất bại");
+      message.error(error.message || "Vote thất bại");
     }
   };
 
