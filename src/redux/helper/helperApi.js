@@ -9,7 +9,7 @@ const cloudinary = new Cloudinary({
         cloudName: CLOUD_NAME,
     },
 });
-export async function uploadFile({file, folderName = "default-folder"}) {
+const uploadFile = async ({file, folderName = "default-folder"})=> {
     console.log("Uploading file:", file);
 
     const formData = new FormData();
@@ -35,3 +35,17 @@ export async function uploadFile({file, folderName = "default-folder"}) {
     }
 }
 
+//GENERATE QR
+
+const getPaymentLink = async (data) => {
+    try {
+        const response = await APIPrivate.post( "payment/create",data);
+        console.log("QR Code response:", response);
+        return response.data;
+    } catch (error) {
+        console.error("Error generating QR code:", error);
+        throw error;
+    }
+}
+const helperApi = { uploadFile, getPaymentLink};
+export default helperApi;

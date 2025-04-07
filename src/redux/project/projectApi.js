@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import { APIPrivate } from '../../config/API/api';
 
 const fetchProjects = async () => {
@@ -73,5 +74,59 @@ const moveOutProjectMember = async (memberId) => {
     }
 }
 
-const projectApi = { fetchProjects, createProject, fetchProjectById, addProjectMember, fetchProjectMembers,moveOutProjectMember};
+//project-request
+const getAllProjectRequest = async (projectId) => {
+    try {
+        const response = await APIPrivate.get(`projects/requests/${projectId}`);
+        console.log("Project requests:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get project requests:", err);
+        throw err.response.data;
+    }
+}
+const sendJoinRequest = async ({projectId,requestData}) => {
+    try {
+         console.log("Join request sentbb:", projectId, requestData);
+        const response = await APIPrivate.post(`projects/requests/${projectId}/join`, requestData);
+        console.log("Join request sent:", response.data);
+        message.success("Join request sent successfully");
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000); 
+        return response.data;
+    } catch (err) {
+        console.error("Error sending join request:", err);
+        message.error("Error sending join request");
+        throw err.response.data;
+    }
+}
+//donations
+const createDonation = async (donationData) => {
+    try {
+        const response = await APIPrivate.post('projects/donations/create', donationData);
+        console.log("Donation created:", response.data);
+        message.success("Donation created successfully");
+        return response.data;
+    }catch (err) {
+        console.error("Error creating donation:", err);
+        message.error("Error creating donation");
+        throw err.response.data;
+    }
+}
+const getDonationsOfProject = async (projectId) => {
+    try {
+        const response = await APIPrivate.get(`projects/donations/${projectId}`);
+        console.log("Project donations:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get project donations:", err);
+        throw err.response.data;
+    }
+}
+
+const projectApi = { fetchProjects, createProject, fetchProjectById, 
+    addProjectMember, fetchProjectMembers,moveOutProjectMember,
+    getAllProjectRequest, sendJoinRequest,
+     createDonation,getDonationsOfProject};
 export default projectApi;
