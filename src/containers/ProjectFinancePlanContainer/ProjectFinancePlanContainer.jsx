@@ -167,6 +167,7 @@ const ProjectFinancePlanContainer = () => {
         const updatedPlan = {
             ...currentSpendingPlan,
             approvalStatus: "SUBMITED",
+            estimatedTotalCost:spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0),
             projectId: currentProject.project.id,
         };
         dispatch(updateSpendingPlanThunk({ planId: updatedPlan.id, dto: updatedPlan }));

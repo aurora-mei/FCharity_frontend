@@ -5,7 +5,7 @@ import styled from "styled-components";
 import moment from "moment-timezone";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { sendJoinRequestThunk, fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
+import { sendJoinRequestThunk, fetchProjectRequests, fetchActiveProjectMembers,fetchSpendingPlansOfProject  } from "../../redux/project/projectSlice";
 import PropTypes from "prop-types";
 const { Title, Text } = Typography;
 const StyledWrapper = styled.div`
@@ -104,13 +104,15 @@ const StyledButton = styled(Button)`
         color: black !important;
     }
 `;
-const ProjectStatisticCard = ({project, projectRequests,projectMembers, donations, isOpenModal, setIsOpenModal }) => {
+const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donations, isOpenModal, setIsOpenModal }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const spendingPlans = useSelector((state) => state.project.spendingPlans);
+    const currentSpendingPlan = useSelector((state) => state.project.currentSpendingPlan);
     const [recentDonation, setRecentDonation] = useState([]);
     const [topDonation, setTopDonation] = useState([]);
     const [firstDonation, setFirstDonation] = useState([]);
-    
+
     const storedUser = localStorage.getItem("currentUser");
     let currentUser = {};
 
@@ -119,22 +121,25 @@ const ProjectStatisticCard = ({project, projectRequests,projectMembers, donation
     } catch (error) {
         console.error("Error parsing currentUser from localStorage:", error);
     }
-   
-    
+
+
     useEffect(() => {
         if (donations && donations.length > 0) {
             setRecentDonation(donations.filter((x) => (
                 moment().isSame(x.donationTime, 'day')
             )).sort((a, b) => moment(b.donationTime) - moment(a.donationTime)));
-    
+
             setTopDonation(donations.filter((x) => x.donationStatus === "VERIFIED")
                 .sort((a, b) => b.amount - a.amount));
-    
+
             setFirstDonation(donations.filter((x) => x.donationStatus === "VERIFIED")
                 .sort((a, b) => moment(a.donationTime) - moment(b.donationTime)));
         }
     }, [donations]);
-    
+
+    // useEffect(()=>{
+    //     dispatch(fetchSpendingPlansOfProject(project.id));
+    // }, [dispatch,project.id])
 
     const handleSendJoinRequest = () => {
         dispatch(
@@ -143,7 +148,7 @@ const ProjectStatisticCard = ({project, projectRequests,projectMembers, donation
                 requestData: { userId: currentUser.id }
             })
         );
-      
+
     };
     const showConfirm = () => {
         Modal.confirm({
@@ -170,7 +175,7 @@ const ProjectStatisticCard = ({project, projectRequests,projectMembers, donation
                                 .reduce((total, donation) => total + donation.amount, 0)
                                 .toLocaleString()
                         } VND raised</Title>
-                        <Text type="secondary">$200K goal · {donations.length} donations</Text>
+                        <Text type="secondary">{spendingPlans && spendingPlans.length ? spendingPlans[0].estimatedTotalCost : "0"} VND goal · {donations.length} donations</Text>
                     </div>
                     <div className="progress-container">
                         <Progress
@@ -268,7 +273,7 @@ const ProjectStatisticCard = ({project, projectRequests,projectMembers, donation
                         (() => {
                             console.log("Project Requests:", projectRequests);
                             const userRequests = projectRequests.filter(x => x.userId === currentUser.id);
-                            const userIsMember = projectMembers.some(x => x.user.id === currentUser.id )|| (project.leader.id === currentUser.id);
+                            const userIsMember = projectMembers.some(x => x.user.id === currentUser.id) || (project.leader.id === currentUser.id);
 
                             // Check if any relevant request exists (Join, Invitation, Leave)
                             const hasRelevantRequest = userRequests.some(x =>
@@ -276,7 +281,7 @@ const ProjectStatisticCard = ({project, projectRequests,projectMembers, donation
                                 (x.requestType === "INVITATION" && (x.status === "CANCELLED" || x.status === "REJECTED")) ||
                                 (x.requestType === "LEAVE_REQUEST" && x.status === "APPROVED")
                             );
-                            console.log(hasRelevantRequest,userRequests.length === 0)
+                            console.log(hasRelevantRequest, userRequests.length === 0)
                             if (userIsMember) {
                                 return (
                                     <div style={{ display: "flex", gap: 10, marginTop: 20 }} className="bottom-actions">
@@ -305,7 +310,7 @@ const ProjectStatisticCard = ({project, projectRequests,projectMembers, donation
                             }
 
                             // If the user is a project member
-                          
+
                             return (
                                 <Text type="secondary" style={{ fontSize: "0.8rem", marginTop: 20 }}>
                                     <FlagOutlined /> You have already made a request to this project. Please wait for leader to resolve that.
