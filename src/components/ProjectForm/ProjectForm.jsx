@@ -190,18 +190,6 @@ const ProjectForm = ({requestId,myOrganization}) => {
     setInitialLoading(false);
   };
   const onFinish = async (values) => {
-       // Lấy userId
-      //  let myOrganization = {};
-      //  const storedMyOrganization = localStorage.getItem("myOrganization");
-      //  if (storedMyOrganization) {
-      //    try {
-      //     myOrganization = JSON.parse(storedMyOrganization);
-      //    } catch (error) {
-      //      console.error("Error parsing myOrganization:", error);
-      //    }
-      //  }
-   
-       // Tạo object gửi lên API
        const projectData = {
          ...values,
          requestId:requestId,

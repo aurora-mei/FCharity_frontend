@@ -35,11 +35,22 @@ const StyledButton = styled(Button)`
         color: black !important;
     }
 `;
+const DepositButton = styled(Button)`
+    background-color: #8BD766 !important;
+    padding:1.4rem 0.7rem;
+    font-size: 1rem;
+    align-self: center;
+    &:hover{
+        box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px; 
+        background-color: #8BD766 !important;
+        border-color: #8BD766 !important;
+        color: black !important;
+    }
+`;
 const StyledCard = styled(Card)`
     background-color: #ffffff !important;
     border-radius: 0.5rem;
     height:7rem;
-    margin-bottom: 1rem;
      box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
     transition: all 0.3s ease; /* Smooth transition for hover effect */
     &:hover {
@@ -59,6 +70,10 @@ const MyWalletScreen = () => {
     const transactions = useSelector((state) => state.user.transactionHistory);
     const balance = useSelector((state) => state.user.currentBalance);
     const loading = useSelector((state) => state.user.loading);
+    const [totalDepositToday, setTotalDepositToday] = useState(0);
+    const [totalDepositYesterday, setTotalDepositYesterday] = useState(0);
+    const [totalSpendingToday, setTotalSpendingToday] = useState(0);
+    const [totalSpendingYesterday, setTotalSpendingYesterday] = useState(0);
     const [filteredTransactions, setFilteredTransactions] = useState([]);
 
     const [pageSize, setPageSize] = useState(5);
@@ -121,6 +136,56 @@ const MyWalletScreen = () => {
     useEffect(() => {
         setFilteredTransactions(transactions); // ban đầu gán toàn bộ
     }, [transactions]);
+
+    useEffect(() => {
+        const today = moment().startOf('day');
+        const yesterday = moment().subtract(1, 'days').startOf('day');
+
+        // Tính tổng deposit hôm nay
+        const totalDToday = transactions
+            .filter((transaction) =>
+                transaction.transactionType === "DEPOSIT" &&
+                moment(transaction.transactionDate).isSame(today, 'day')
+            )
+            .reduce((total, transaction) => total + transaction.amount, 0);
+
+        // Tính tổng deposit hôm qua
+        const totalDYesterday = transactions
+            .filter((transaction) =>
+                transaction.transactionType === "DEPOSIT" &&
+                moment(transaction.transactionDate).isSame(yesterday, 'day')
+            )
+            .reduce((total, transaction) => total + transaction.amount, 0);
+
+        // Tính tổng spending hôm nay
+        const totalSToday = transactions
+            .filter((transaction) =>
+                transaction.transactionType !== "DEPOSIT" &&
+                moment(transaction.transactionDate).isSame(today, 'day')
+            )
+            .reduce((total, transaction) => total + transaction.amount, 0);
+        // Tính tổng spending hôm qua
+        const totalSYesterday = transactions
+            .filter((transaction) =>
+                transaction.transactionType !== "DEPOSIT" &&
+                moment(transaction.transactionDate).isSame(yesterday, 'day')
+            )
+            .reduce((total, transaction) => total + transaction.amount, 0);
+
+        setTotalSpendingToday(totalSToday);
+        setTotalSpendingYesterday(totalSYesterday);
+        setTotalDepositToday(totalDToday);
+        setTotalDepositYesterday(totalDYesterday);
+        console.log("Total deposit today:", totalSToday);
+        console.log("Total deposit yesterday:", totalSYesterday);
+    }, [transactions]);
+
+    const depositChange = totalDepositYesterday > 0
+        ? ((totalDepositToday - totalDepositYesterday) / totalDepositYesterday) * 100
+        : 0;
+    const spendingChange = totalSpendingYesterday > 0
+        ? ((totalSpendingToday - totalSpendingYesterday) / totalSpendingYesterday) * 100
+        : 0;
     const onChange = (date) => {
         if (!date) {
             // Nếu user clear DatePicker
@@ -154,7 +219,11 @@ const MyWalletScreen = () => {
                     </Col>
                     <Col xs={24} md={6}>
                         <StyledCard >
-                            <b>Total deposit <span><Text type="success">+10.2%</Text></span></b>
+                            <b>Total deposit <span>
+                                <Text type={depositChange >= 0 ? "success" : "danger"}>
+                                    {depositChange >= 0 ? "+" : ""}{depositChange.toFixed(2)}%
+                                </Text></span>
+                                </b>
                             <Title level={3}>{transactions
                                 .filter((x) => x.transactionType === "DEPOSIT")
                                 .reduce((total, transaction) => total + transaction.amount, 0)
@@ -163,19 +232,22 @@ const MyWalletScreen = () => {
                     </Col>
                     <Col xs={24} md={6}>
                         <StyledCard>
-                            <b>Total spending <span> <Text type="danger">-16.4%</Text></span></b>
+                            <b>Total spending <span> 
+                                <Text type={spendingChange >= 0 ? "success" : "danger"}>
+                                    {spendingChange >= 0 ? "+" : ""}{spendingChange.toFixed(2)}%
+                                </Text></span></b>
                             <Title level={3}>{transactions
                                 .filter((x) => x.transactionType !== "DEPOSIT")
                                 .reduce((total, transaction) => total + transaction.amount, 0)
                                 .toLocaleString()} VND</Title>
                         </StyledCard>
                     </Col>
-                    <Col xs={24} md={6}>
-                        <StyledCard vertical gap={10} style={{ fontSize: "1rem", textAlign: "left" }}
+                    <Col xs={24} md={6} justify="center" align="center">
+                        <DepositButton vertical gap={10}
                             onClick={() => navigate(`/user/manage-profile/deposit/${currentUser.id}`)}
                         >
-                            <WalletOutlined style={{ fontSize: "1rem", alignSelf: "center", margin: "auto 0" }} /> <b> Make Deposit/Withdraw</b>
-                        </StyledCard>
+                            <WalletOutlined style={{ fontSize: "1rem" }} /> <b> Make Deposit</b>
+                        </DepositButton>
                     </Col>
                 </Row>
 

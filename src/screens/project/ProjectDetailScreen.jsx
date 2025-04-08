@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { Row, Input, Col, Modal, Form, Flex, Typography, Carousel, Button, Badge, Divider, Table, InputNumber, message, Breadcrumb, Skeleton, Card, Progress, Avatar, Space } from "antd";
+import { Row, Input, Col, Modal, Form, Flex, Typography, Carousel,Button, Badge, Divider, Table, InputNumber, message, Breadcrumb, Skeleton, Card, Progress, Avatar, Space } from "antd";
 import { UserOutlined, LeftCircleOutlined, HomeOutlined, FlagOutlined } from "@ant-design/icons";
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
 import { getOrganization } from "../../redux/organization/organizationSlice";
 import { getCurrentWalletThunk } from "../../redux/user/userSlice";
-import { fetchProjectRequests, fetchProjectMembers } from "../../redux/project/projectSlice";
+import { fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
 import {
@@ -376,7 +376,7 @@ const ProjectDetailScreen = () => {
         if (currentProject.project) {
             dispatch(getOrganization(currentProject.project.organizationId));
             dispatch(fetchProjectRequests(project.id));
-            dispatch(fetchProjectMembers(project.id));
+            dispatch(fetchActiveProjectMembers(project.id));
         }
     }, [dispatch, currentProject.project, donations]);
 
@@ -544,7 +544,13 @@ const ProjectDetailScreen = () => {
                                 <Divider />
                                 <strong>Members</strong>
                                 <Flex>
-                                    <StyledOverlappingAvatars>
+
+                                    <Avatar.Group>
+                                        {projectMembers.map((member) => (
+                                            <Avatar key={member.id} src={member.user.avatar || "https://via.placeholder.com/50"} size={40} icon={<UserOutlined />} />
+                                        ))}
+                                    </Avatar.Group>
+                                    {/* <StyledOverlappingAvatars>
                                         {projectMembers.map((member, index) => (
                                             <img
                                                 key={member.id}
@@ -554,7 +560,7 @@ const ProjectDetailScreen = () => {
                                                 style={{ left: `${index * 24}px`, zIndex: projectMembers.length - index }}
                                             />
                                         ))}
-                                    </StyledOverlappingAvatars>
+                                    </StyledOverlappingAvatars> */}
                                 </Flex>
                                 <Divider />
 
@@ -574,7 +580,7 @@ const ProjectDetailScreen = () => {
                     </Flex>
                 </Col>
                 <Col span={8} style={{ marginTop: "2rem" }}>
-                    <ProjectStatisticCard projectMembers={projectMembers} projectRequests={projectRequests} donations={donations} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
+                    <ProjectStatisticCard project={project} projectMembers={projectMembers} projectRequests={projectRequests} donations={donations} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
 
                     <StyledWrapper>
                         <Card className="donation-card">
