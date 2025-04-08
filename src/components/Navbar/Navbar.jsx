@@ -17,7 +17,7 @@ import {
   Popover, // **** ADD Popover ****
   Typography, // **** ADD Typography ****
 } from "antd";
-// import avatar from "../../assets/download (11).jpg";
+import avatar from "../../assets/download (11).jpg";
 import { logOut } from "../../redux/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next"; // Removed Trans as it wasn't used
@@ -188,12 +188,10 @@ const Navbar = () => {
     },
     {
       key: "3",
-      // Check for userRole existence before accessing
-      label: currentUser?.userRole === "Leader" && (
-          <Link to="/manage-project">
-            {t('myOwnerProject', 'My Owner Project')}
+      label:
+          <Link rel="noopener noreferrer" to="/manage-project">
+            My Project
           </Link>
-        )
     },
     {
       key: "4",
