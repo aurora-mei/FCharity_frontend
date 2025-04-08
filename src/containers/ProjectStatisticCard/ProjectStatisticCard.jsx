@@ -5,7 +5,7 @@ import styled from "styled-components";
 import moment from "moment-timezone";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { sendJoinRequestThunk, fetchProjectRequests, fetchProjectMembers } from "../../redux/project/projectSlice";
+import { sendJoinRequestThunk, fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
 import PropTypes from "prop-types";
 const { Title, Text } = Typography;
 const StyledWrapper = styled.div`
@@ -104,7 +104,7 @@ const StyledButton = styled(Button)`
         color: black !important;
     }
 `;
-const ProjectStatisticCard = ({ projectRequests,projectMembers, donations, isOpenModal, setIsOpenModal }) => {
+const ProjectStatisticCard = ({project, projectRequests,projectMembers, donations, isOpenModal, setIsOpenModal }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [recentDonation, setRecentDonation] = useState([]);
@@ -139,7 +139,7 @@ const ProjectStatisticCard = ({ projectRequests,projectMembers, donations, isOpe
     const handleSendJoinRequest = () => {
         dispatch(
             sendJoinRequestThunk({
-                projectId: donations[0].projectId,
+                projectId: project.id,
                 requestData: { userId: currentUser.id }
             })
         );
@@ -268,7 +268,7 @@ const ProjectStatisticCard = ({ projectRequests,projectMembers, donations, isOpe
                         (() => {
                             console.log("Project Requests:", projectRequests);
                             const userRequests = projectRequests.filter(x => x.userId === currentUser.id);
-                            const userIsMember = projectMembers.some(x => x.user.id === currentUser.id);
+                            const userIsMember = projectMembers.some(x => x.user.id === currentUser.id )|| (project.leader.id === currentUser.id);
 
                             // Check if any relevant request exists (Join, Invitation, Leave)
                             const hasRelevantRequest = userRequests.some(x =>
@@ -276,9 +276,21 @@ const ProjectStatisticCard = ({ projectRequests,projectMembers, donations, isOpe
                                 (x.requestType === "INVITATION" && (x.status === "CANCELLED" || x.status === "REJECTED")) ||
                                 (x.requestType === "LEAVE_REQUEST" && x.status === "APPROVED")
                             );
-                            console.log(projectMembers)
-                            // If no request exists or relevant request has been cancelled/rejected
-                            if (hasRelevantRequest || userRequests.length === 0) {
+                            console.log(hasRelevantRequest,userRequests.length === 0)
+                            if (userIsMember) {
+                                return (
+                                    <div style={{ display: "flex", gap: 10, marginTop: 20 }} className="bottom-actions">
+                                        <Button type="default" block style={{ flex: 1 }}
+                                            onClick={() => {
+                                                navigate(`/manage-project/${project.id}/home`);
+                                            }}
+                                        >
+                                            View manage project
+                                        </Button>
+                                    </div>
+                                );
+                            }
+                            if (hasRelevantRequest || projectRequests.length === 0) {
                                 return (
                                     <div style={{ display: "flex", gap: 10, marginTop: 20 }} className="bottom-actions">
                                         <Button type="default" block style={{ flex: 1 }}
@@ -293,19 +305,7 @@ const ProjectStatisticCard = ({ projectRequests,projectMembers, donations, isOpe
                             }
 
                             // If the user is a project member
-                            if (userIsMember) {
-                                return (
-                                    <div style={{ display: "flex", gap: 10, marginTop: 20 }} className="bottom-actions">
-                                        <Button type="default" block style={{ flex: 1 }}
-                                            onClick={() => {
-                                                navigate(`/user/manage-project/${project.id}`);
-                                            }}
-                                        >
-                                            View manage project
-                                        </Button>
-                                    </div>
-                                );
-                            }
+                          
                             return (
                                 <Text type="secondary" style={{ fontSize: "0.8rem", marginTop: 20 }}>
                                     <FlagOutlined /> You have already made a request to this project. Please wait for leader to resolve that.

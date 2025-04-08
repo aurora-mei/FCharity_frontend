@@ -16,7 +16,7 @@ import CreateRequestScreen from "../screens/request/CreateRequestScreen.jsx";
 import RequestListScreen from "../screens/request/RequestListScreen.jsx";
 import RequestDetailScreen from "../screens/request/RequestDetailScreen";
 import EditRequestScreen from "../screens/request/EditRequestScreen";
-import Layout from "./Layout";
+import GeneralLayout from "./Layout";
 
 //user
 import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
@@ -39,9 +39,11 @@ import OrganizationRequest from "../pages/manage/OrganizationRequest.jsx";
 import CreateProjectScreen from "../screens/project/CreateProjectScreen.jsx";
 import ProjectDetailScreen from "../screens/project/ProjectDetailScreen.jsx";
 import ProjectMoreDetailScreen from "../screens/project/ProjectMoreDetailsScreen.jsx";
-import Deposit from "../screens/user/Deposit.jsx";
-
-
+import ProjectDashboard from "../screens/project/ProjectDashboard.jsx";
+import ProjectHomeContainer from "../containers/ProjectHomeContainer/ProjectHomeContainer.jsx";
+import ProjectMemberContainer from "../containers/ProjectMemberContainer/ProjectMemberContainer.jsx";
+import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer.jsx";
+import ProjectDonationContainer from "../containers/ProjectDonationContainer/ProjectDonationContainer.jsx";
 const AppRoutes = () => {
   return (
     <Router>
@@ -52,7 +54,7 @@ const AppRoutes = () => {
           <Route path="otp-verification" element={<OtpVerificationScreen />} />
           <Route path="otp-reset-password" element={<ResetPwdScreen />} />
         </Route>
-        <Route path="/" element={<Layout />}>
+        <Route path="/" element={<GeneralLayout />}>
           <Route index element={<HomeScreen />} />
           <Route path="/forum" element={<ForumPage />} />
           <Route path="/posts/:id" element={<PostDetailPage />} />
@@ -63,7 +65,6 @@ const AppRoutes = () => {
               <Route path="mywallet" element={<MyWalletScreen />} />
               <Route path="myrequests" element={<MyRequestScreen />} />
               <Route path="deposit/:userId" element={<DepositScreen />} />
-              <Route path="deposit" element={<Deposit />} />
             </Route>
             <Route path="requests">
               <Route index element={<RequestListScreen />} />
@@ -87,8 +88,14 @@ const AppRoutes = () => {
               <Route path="projects/create/:requestId" element={<CreateProjectScreen />} />
               <Route path="requests" element={<OrganizationRequest />} />
             </Route>
-            <Route path="manage-project">
-              <Route index element={<CreateProjectScreen />} />
+            <Route path="manage-project" element={<ProjectDashboard />}/>
+            <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
+                <Route path="home" element={<ProjectHomeContainer />} />
+                <Route path="members" element={<ProjectMemberContainer />} />
+                <Route path="finance" element={<ProjectFinancePlanContainer />} />
+              <Route path="donations" element={<ProjectDonationContainer />} />
+
+                <Route path="*" element={<ProjectHomeContainer />} />
             </Route>
             <Route path="projects">
               <Route path=":projectId" element={<ProjectDetailScreen />} />
@@ -97,7 +104,6 @@ const AppRoutes = () => {
             <Route path="/organizations">
               <Route path="create" element={<CreateOrganization />} />
             </Route>
-
           </Route>
         </Route>
       </Routes>

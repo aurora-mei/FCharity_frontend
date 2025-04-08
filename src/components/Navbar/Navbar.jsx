@@ -72,11 +72,9 @@ const Navbar = () => {
     {
       key: "3",
       label:
-      currentUser.userRole === "Leader" &&  (
           <Link rel="noopener noreferrer" to="/manage-project">
-            My Owner Project
+            My Project
           </Link>
-        )
     },
     {
       key: "4",
