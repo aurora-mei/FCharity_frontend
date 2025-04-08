@@ -14,12 +14,11 @@ import {
   Line,
   ResponsiveContainer,
 } from "recharts";
-import ManagerLayout from "../../components/Layout/ManagerLayout";
 
 import {
-  getOrganizationMembers,
-  getOrganizationJoinRequests,
-  getOrganizationInviteRequests,
+  getAllInvitationRequestsByOrganizationId,
+  getAllJoinRequestsByOrganizationId,
+  getAllMembersInOrganization,
 } from "../../redux/organization/organizationSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { FaLink } from "react-icons/fa";
@@ -30,11 +29,15 @@ const OrganizationDashboard = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getOrganizationMembers(selectedOrganization?.organizationId));
-    // dispatch(getOrganizationJoinRequests(selectedOrganization?.organizationId));
-    // dispatch(
-    //   getOrganizationInviteRequests(selectedOrganization?.organizationId)
-    // );
+    dispatch(getAllMembersInOrganization(selectedOrganization?.organizationId));
+    dispatch(
+      getAllJoinRequestsByOrganizationId(selectedOrganization?.organizationId)
+    );
+    dispatch(
+      getAllInvitationRequestsByOrganizationId(
+        selectedOrganization?.organizationId
+      )
+    );
   }, [selectedOrganization, dispatch]);
 
   const { members, joinRequests, inviteRequests } = useSelector(
@@ -46,35 +49,38 @@ const OrganizationDashboard = () => {
   const joinRequestStatusData = [
     {
       name: "Pending",
-      value: joinRequests.filter((r) => r.status === "pending").length || 2,
+      value: joinRequests?.filter((r) => r.status === "pending")?.length || 2,
     },
     {
       name: "Approved",
-      value: joinRequests.filter((r) => r.status === "approved").length || 3,
+      value: joinRequests?.filter((r) => r.status === "approved")?.length || 3,
     },
     {
       name: "Rejected",
-      value: joinRequests.filter((r) => r.status === "rejected").length || 5,
+      value: joinRequests?.filter((r) => r.status === "rejected")?.length || 5,
     },
   ];
 
   const inviteRequestStatusData = [
     {
       name: "Pending",
-      value: inviteRequests.filter((r) => r.status === "pending").length || 21,
+      value:
+        inviteRequests?.filter((r) => r.status === "pending")?.length || 21,
     },
     {
       name: "Accepted",
-      value: inviteRequests.filter((r) => r.status === "accepted").length || 10,
+      value:
+        inviteRequests?.filter((r) => r.status === "accepted")?.length || 10,
     },
     {
       name: "Declined",
-      value: inviteRequests.filter((r) => r.status === "declined").length || 5,
+      value:
+        inviteRequests?.filter((r) => r.status === "declined")?.length || 5,
     },
   ];
 
   // Dữ liệu cho biểu đồ số lượng thành viên theo thời gian
-  const memberTrendData = members.reduce((acc, member) => {
+  const memberTrendData = members?.reduce((acc, member) => {
     const date = new Date(member.joinDate).toLocaleDateString();
     acc[date] = (acc[date] || 0) + 1;
     return acc;
@@ -100,7 +106,7 @@ const OrganizationDashboard = () => {
   const COLORS = ["#f1c40f", "#2ecc71", "#e74c3c", "#3498db"];
 
   return (
-    <ManagerLayout>
+    <div>
       <div className="pl-2">
         <div className="inline-flex gap-2 items-baseline">
           <FaLink />
@@ -129,7 +135,7 @@ const OrganizationDashboard = () => {
                 Total Members
               </h3>
               <p className="text-3xl font-semibold text-gray-800">
-                {members.length}
+                {members?.length}
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
@@ -137,7 +143,7 @@ const OrganizationDashboard = () => {
                 Join Requests
               </h3>
               <p className="text-3xl font-semibold text-gray-800">
-                {joinRequests.length}
+                {joinRequests?.length}
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
@@ -145,7 +151,7 @@ const OrganizationDashboard = () => {
                 Invite Requests
               </h3>
               <p className="text-3xl font-semibold text-gray-800">
-                {inviteRequests.length}
+                {inviteRequests?.length}
               </p>
             </div>
           </div>
@@ -173,7 +179,7 @@ const OrganizationDashboard = () => {
                     {joinRequestStatusData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+                        fill={COLORS[index % COLORS?.length]}
                       />
                     ))}
                   </Pie>
@@ -204,7 +210,7 @@ const OrganizationDashboard = () => {
                     {inviteRequestStatusData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+                        fill={COLORS[index % COLORS?.length]}
                       />
                     ))}
                   </Pie>
@@ -269,7 +275,7 @@ const OrganizationDashboard = () => {
           </div>
         </div>
       </div>
-    </ManagerLayout>
+    </div>
   );
 };
 

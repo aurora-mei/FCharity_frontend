@@ -29,7 +29,13 @@ import CreateOrganization from "../pages/manage/CreateOrganization.jsx";
 import OrganizationProject from "../pages/manage/OrganizationProject.jsx";
 import OrganizationMember from "../pages/manage/OrganizationMember.jsx";
 import OrganizationRequest from "../pages/manage/OrganizationRequest.jsx";
-
+import OrganizationsOverview from "../pages/guest/OrganizationsOverview.jsx";
+import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
+import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
+import UserRankings from "../pages/manage/components/UserRankings.jsx";
+import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
+import UserLayout from "../components/Layout/UserLayout.jsx";
+import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 
 const AppRoutes = () => {
   return (
@@ -58,21 +64,38 @@ const AppRoutes = () => {
               <Route path="create-post" element={<CreatePostPage />} />
             </Route>
             <Route path="user">
-              <Route path="manage-profile/:keyTab" element={<ManageProfileScreen />} />
+              <Route
+                path="manage-profile/:keyTab"
+                element={<ManageProfileScreen />}
+              />
               <Route path="change-profile" element={<ChangeProfileModal />} />
               <Route path="change-password" element={<ChangePasswordModal />} />
             </Route>
-            <Route path="manage-organization">
-              <Route index element={<MyOrganization />} />
-              <Route path="dashboard" element={<OrganizationDashboard />} />
-              <Route path="users" element={<OrganizationMember />} />
-              <Route path="projects" element={<OrganizationProject />} />
-              <Route path="projects/create/:requestId" element={<CreateProjectScreen />} />
-              <Route path="requests" element={<OrganizationRequest />} />
-            </Route>
-            <Route path="/organizations">
-              <Route path="create" element={<CreateOrganization />} />
-            </Route>
+          </Route>
+        </Route>
+        <Route path="/" element={<ManagerLayout />}>
+          <Route path="my-organization">
+            <Route index element={<MyOrganization />} />
+            <Route path="dashboard" element={<OrganizationDashboard />} />
+            <Route path="members" element={<OrganizationMember />} />
+            <Route path="projects" element={<OrganizationProject />} />
+            <Route
+              path="projects/create/:requestId"
+              element={<CreateProjectScreen />}
+            />
+            <Route path="requests" element={<OrganizationRequest />} />
+            <Route path="schedule" element={<OrganizationSchedule />} />
+          </Route>
+        </Route>
+        <Route path="/" element={<UserLayout />}>
+          <Route path="organizations">
+            <Route index element={<OrganizationsOverview />} />
+            <Route path=":organizationId" element={<OrganizationDetails />} />
+            <Route path="create" element={<CreateOrganization />} />
+          </Route>
+          <Route path="rankings">
+            <Route path="organizations" element={<OrganizationRankings />} />
+            <Route path="users" element={<UserRankings />} />
           </Route>
         </Route>
       </Routes>

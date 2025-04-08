@@ -6,7 +6,11 @@ import avatar from "../../assets/download (11).jpg";
 import { logOut } from "../../redux/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation, Trans } from "react-i18next";
-import { getManagedOrganizations, fetchMyOrganization } from "../../redux/organization/organizationSlice";
+import {
+  getManagedOrganizationByCeo,
+  getManagedOrganizationsByManager,
+  getJoinedOrganizations,
+} from "../../redux/organization/organizationSlice";
 
 const lngs = {
   en: { nativeName: "English" },
@@ -17,7 +21,6 @@ import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 const Navbar = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const myOrganization = useSelector((state) => state.organization.myOrganization);
 
   const token = useSelector((state) => state.auth.token);
   const storedUser = localStorage.getItem("currentUser");
@@ -38,14 +41,14 @@ const Navbar = () => {
     window.location.href = "/";
   };
 
-  useEffect(() => {
-    if (currentUser?.id && (!myOrganization || !myOrganization.id)) {
-        dispatch(fetchMyOrganization(currentUser.id));
-    }
-}, [currentUser.id, dispatch]);
- 
+  const { ownedOrganization, managedOrganizations, myOrganizations } =
+    useSelector((state) => state.organization);
 
-  const { managedOrganizations } = useSelector((state) => state.organization);
+  useEffect(() => {
+    dispatch(getManagedOrganizationByCeo());
+    dispatch(getManagedOrganizationsByManager());
+    dispatch(getJoinedOrganizations());
+  }, []);
 
   const items = [
     {
@@ -58,19 +61,31 @@ const Navbar = () => {
     },
     {
       key: "2",
+      label: ownedOrganization ? (
+        <Link rel="noopener noreferrer" to="/my-organization">
+          My Organization
+        </Link>
+      ) : (
+        <Link rel="noopener noreferrer" to="/organizations/create">
+          Create Your Organization
+        </Link>
+      ),
+    },
+    {
+      key: "3",
       label:
-      myOrganization && myOrganization.organizationId ? (
-          <Link rel="noopener noreferrer" to="/manage-organization">
-            My Organizations
+        managedOrganizations && managedOrganizations.length > 0 ? (
+          <Link rel="noopener noreferrer" to="/joined-organizations">
+            Joined Organizations
           </Link>
         ) : (
-          <Link rel="noopener noreferrer" to="/organizations/create">
-            Create Organization
+          <Link rel="noopener noreferrer" to="/organizations">
+            Discover Organizations
           </Link>
         ),
     },
     {
-      key: "3",
+      key: "4",
       label: (
         <Link to="/" onClick={logout}>
           Sign out

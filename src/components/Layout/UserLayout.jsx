@@ -1,16 +1,16 @@
 import React from "react";
 import Navbar from "../Navbar/Navbar";
-import ManagerSidebar from "../OrganizationManagement/ManagerSidebar";
 import { ToastContainer } from "react-toastify";
 import AppFooter from "../AppFooter/AppFooter";
 import { Outlet } from "react-router-dom";
+import UserSidebar from "../OrganizationManagement/UserSidebar";
 
-const ManagerLayout = ({ children }) => {
+const UserLayout = () => {
   return (
     <div>
       <Navbar />
       <div className="relative">
-        <ManagerSidebar />
+        <UserSidebar />
         <main className="flex-1 ml-64 pt-6">
           <Outlet />
           <AppFooter />
@@ -30,4 +30,4 @@ const ManagerLayout = ({ children }) => {
   );
 };
 
-export default ManagerLayout;
+export default UserLayout;
