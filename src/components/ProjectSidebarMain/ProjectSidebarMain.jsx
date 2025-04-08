@@ -27,10 +27,16 @@ const SideBarMain = () => {
     const location = useLocation();
     const currentProject = useSelector((state) => state.project.currentProject);
     const selectedTab = location.pathname.substring(1) || 'home';
+    const currentUser = useSelector((state) => state.auth.currentUser);
+    const [isLeader, setIsLeader] = React.useState(false);
 
     useEffect(() => {
         console.log(projectId)
         dispatch(fetchProjectById(projectId));
+        if (currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id) {
+            console.log(currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id)
+            setIsLeader(true);
+        }
     }, [projectId, dispatch]);
     return (
         <Sider width={250} theme="light">
@@ -38,8 +44,11 @@ const SideBarMain = () => {
                <div style={{ padding: 16 }}>
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                    <Text strong>{currentProject.project.projectName}</Text>
-                   <Button style={{ padding: "1rem" }} icon={<EditOutlined />} type="text"
+                  {isLeader &&
+                  (
+                    <Button style={{ padding: "1rem" }} icon={<EditOutlined />} type="text"
                     onClick={() => setIsOpenModal(true)} />
+                  )}
                </div>
                <div style={{ marginTop: 16, textAlign: 'center' }}>
                    <Flex gap="10px" justify="left" align="center">

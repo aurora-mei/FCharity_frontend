@@ -139,7 +139,7 @@ const ProjectMemberContainer = () => {
         dispatch(fetchProjectById(projectId));
         dispatch(fetchAllProjectMembersThunk(projectId));
         dispatch(fetchProjectRequests(projectId));
-    }, [ dispatch,allProjectMembers.length]);
+    }, [ dispatch,allProjectMembers.length,projectId]);
 
     useEffect(() => {
         if (currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id) {
@@ -158,11 +158,11 @@ const ProjectMemberContainer = () => {
                 </Col>
                 <Col span={8}>
                     <StyledCard title="Total Processing Invitation" bordered={false}>
-                        {projectRequests.filter(request => request.status === "PENDING" && request.requestType === "INVITATION").length}/{projectRequests.filter(request => request.requestType === "INVITATION").length}
+                        { projectRequests && projectRequests.filter(request => request.status === "PENDING" && request.requestType === "INVITATION").length}/{projectRequests.filter(request => request.requestType === "INVITATION").length}
                         </StyledCard>
                 </Col>
                 <Col span={8}>
-                    <StyledCard title="Total Processing Join Request" bordered={false}>{projectRequests.filter(request => request.status === "PENDING" && request.requestType === "JOIN_REQUEST").length}/{projectRequests.filter(request => request.requestType === "JOIN_REQUEST").length}</StyledCard>
+                    <StyledCard title="Total Processing Join Request" bordered={false}>{projectRequests && projectRequests.filter(request => request.status === "PENDING" && request.requestType === "JOIN_REQUEST").length}/{projectRequests.filter(request => request.requestType === "JOIN_REQUEST").length}</StyledCard>
                 </Col>
             </Row>
            <ProjectMemberList isLeader={isLeader} projectId={projectId} />

@@ -124,7 +124,7 @@ const ProjectFinancePlanContainer = () => {
         console.log("values", values);
         const newItem = {
             ...values,
-            spendingPlanId: currentSpendingPlan.id,
+            spendingPlanId: spendingPlans[0].id,
         };
         dispatch(createSpendingItemThunk(newItem))
         setIsOpenCreateItemModal(false);
@@ -145,7 +145,7 @@ const ProjectFinancePlanContainer = () => {
         if (values) {
             const updatedItem = {
                 ...values,
-                spendingPlanId: currentSpendingPlan.id,
+                spendingPlanId: spendingPlans[0].id,
             };
             console.log("updatedItem", updatedItem);
             dispatch(updateSpendingItemThunk({ itemId: updatedItem.id, dto: updatedItem }));
@@ -167,7 +167,7 @@ const ProjectFinancePlanContainer = () => {
         const updatedPlan = {
             ...currentSpendingPlan,
             approvalStatus: "SUBMITED",
-            estimatedTotalCost:spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0),
+            estimatedTotalCost: spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0),
             projectId: currentProject.project.id,
         };
         dispatch(updateSpendingPlanThunk({ planId: updatedPlan.id, dto: updatedPlan }));
@@ -236,37 +236,49 @@ const ProjectFinancePlanContainer = () => {
                 (spendingPlans && spendingPlans.length === 0) ? (
                     <>
                         <SpendingPlanFlex>
-                            <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreatePlanModal(true)} />
+                            {isLeader && (<StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreatePlanModal(true)} />)}
                         </SpendingPlanFlex>
                         <SpendingPlanModal form={form} project={currentProject} isOpenModal={isOpenCreatePlanModal} setIsOpenModal={setIsOpenCreatePlanModal} handleSubmit={handleAddSpendingPlan} title="Create" />
+
+
                     </>
                 ) : (
                     <SpendingPlanFlex>
                         <Header>
                             <TitleSection>
                                 <Title level={4}>{(currentSpendingPlan && currentSpendingPlan.planName) ? `${currentSpendingPlan.planName}` : ""}</Title>
-                                {isLeader && currentSpendingPlan.approvalStatus === "PREPARING"  && 
+                                {isLeader && currentSpendingPlan.approvalStatus === "PREPARING" &&
                                     <StyledButtonInvite icon={<EditOutlined
-                                    onClick={() => setIsOpenUpdatePlanModal(true)}
-                                    style={{ cursor: 'pointer', fontSize: "1rem" }} />}></StyledButtonInvite>}
+                                        onClick={() => setIsOpenUpdatePlanModal(true)}
+                                        style={{ cursor: 'pointer', fontSize: "1rem" }} />}></StyledButtonInvite>}
                             </TitleSection>
                             <SpendingPlanModal form={form} project={currentProject} isOpenModal={isOpenUpdatePlanModal} setIsOpenModal={setIsOpenUpdatePlanModal} spendingPlan={currentSpendingPlan} handleSubmit={handleUpdateSpendingPlan} title="Update" />
 
                             {currentSpendingPlan.approvalStatus !== "PREPARING" ? (
                                 <Tag color="orange">{currentSpendingPlan.approvalStatus}</Tag>
-                            ) : (
+                            ) : isLeader ? (
                                 <>
-                                    isLeader && (
-                                    <ButtonGroup>
-                                        <b style={{ alignSelf: "center" }}>Total: {spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0).toLocaleString()} VND</b>
-                                        <StyledButtonInvite type="primary" onClick={handleSubmit}>Submit</StyledButtonInvite>
-                                        <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreateItemModal(true)} />
-                                    </ButtonGroup>
-                                    <SpendingItemModal form={form} project={currentProject} isOpenModal={isOpenCreateItemModal} setIsOpenModal={setIsOpenCreateItemModal} handleSubmit={handleAddSpendingItem} title="Create" />
+                                    <div>
+                                        <ButtonGroup>
+                                            <b style={{ alignSelf: "center" }}>
+                                                Total: {spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0).toLocaleString()} VND
+                                            </b>
+                                            <StyledButtonInvite type="primary" onClick={handleSubmit}>Submit</StyledButtonInvite>
+                                            <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreateItemModal(true)} />
+                                        </ButtonGroup>
 
-                                    )
+                                        <SpendingItemModal
+                                            form={form}
+                                            project={currentProject}
+                                            isOpenModal={isOpenCreateItemModal}
+                                            setIsOpenModal={setIsOpenCreateItemModal}
+                                            handleSubmit={handleAddSpendingItem}
+                                            title="Create"
+                                        />
+                                    </div>
                                 </>
-                            )}
+                            ) : null}
+
                         </Header>
 
                         {spendingItems && spendingItems.length > 0 ? (

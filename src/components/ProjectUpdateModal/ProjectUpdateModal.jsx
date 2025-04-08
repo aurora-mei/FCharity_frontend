@@ -47,7 +47,7 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
             tagIds: projectData.projectTags.map(t => t.tag.id) || [],
             location: projectData.project.location || "",
             images: attachments.images || [],
-            videos: attachments.videos || [], // Nếu có trường videos trong project
+            videos: attachments.videos || [],
             projectStatus: projectData.project.projectStatus || "",
             email: projectData.project.email || "",
             phone: projectData.project.phoneNumber || "",
@@ -173,7 +173,7 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
             plannedEndTime: values.plannedEndTime.toISOString(),
             location: values.location,
             projectStatus: projectData.project.projectStatus,
-            imageUrls: attachments.images,
+            imageUrls: attachments.images.map((image) => image.imageUrl),
             videoUrls: attachments.videos,
             categoryId: projectData.project.categoryId,
             tagIds: values.tagIds

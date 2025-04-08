@@ -213,7 +213,7 @@ const CreateProjectScreen = () => {
         console.log("Project Members:", myProjectMembers);
         console.log("Organization Members:", organizationMembers);
         if (isFirstMount && organizationMembers?.length > 0) {
-            setAvailableMembers(organizationMembers.filter((member) => member.user.id !== myOrganization.organizationId));
+            setAvailableMembers(organizationMembers.filter((member) => member.user.id !== myOrganization.ceoId && newProject.project.leader.id !== member.user.id));
             setIsFirstMount(false); // Sau lần đầu, không gán lại nữa
         }
     }, [dispatch, newProject, myOrganization.organizationId]);
@@ -283,7 +283,7 @@ const CreateProjectScreen = () => {
                                                     <Title level={5}>{myOrganization.organizationName}'s Members</Title>
                                                     {selectedOrgMembers.length > 0 && (
                                                         <>
-                                                        <Select onChange={(value) => setMemberRole(value)} mode="multiple" style={{ width: '200px', marginRight: '1rem' }} placeholder="Select role">
+                                                        <Select onChange={(value) => setMemberRole(value)} style={{ width: '20rem', marginRight: '1rem' }} placeholder="Select role">
                                                             <Select.Option value="ACCOUNTANT">Accountant</Select.Option>
                                                             <Select.Option value="MEMBER">Member</Select.Option>
                                                             </Select>

@@ -40,18 +40,28 @@ const RequestDetailScreen = () => {
         console.error("Error parsing currentUser from localStorage:", error);
     }
     
-  useEffect(() => {
-    dispatch(fetchRequestById(id));
-     dispatch(fetchMyOrganization(currentUser.id));
-     if (myOrganization.organizationId) {
-           dispatch(fetchOrganizationMembers(myOrganization.organizationId));
-         }
-  }, [dispatch, id,myOrganization.organizationId]);
+  // useEffect cho fetchRequestById (giữ nguyên nếu id không thay đổi liên tục)
+useEffect(() => {
+  dispatch(fetchRequestById(id));
+}, [dispatch, id]);
 
-  useEffect(() => {
+// useEffect cho fetchMyOrganization (dựa trên currentUser.id)
+useEffect(() => {
+  console.log("currentUser",currentUser)
+  if (currentUser.id) {
+    dispatch(fetchMyOrganization(currentUser.id));
     window.scrollTo(0, 0);
-  }, []);
+  }
+}, [dispatch]); // Dependency là currentUser.id thay vì organizationId
 
+// useEffect riêng cho fetchOrganizationMembers (dựa trên organizationId)
+useEffect(() => {
+  if (myOrganization.organizationId) {
+    dispatch(fetchOrganizationMembers(myOrganization.organizationId));
+  }
+}, [dispatch, myOrganization.organizationId]); // Chỉ gọi khi organizationId có giá trị
+
+if (loading) return <LoadingModal />;
   if (loading) return <LoadingModal />;
 
   if (error) {

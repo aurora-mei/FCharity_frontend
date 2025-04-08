@@ -271,6 +271,19 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                     ) : (
                         // Handle Project Request and Member Logic
                         (() => {
+                            if(projectRequests === null || projectRequests === undefined){
+                                    return (
+                                        <div style={{ display: "flex", gap: 10, marginTop: 20 }} className="bottom-actions">
+                                            <Button type="default" block style={{ flex: 1 }}
+                                                onClick={() => {
+                                                    showConfirm();
+                                                }}
+                                            >
+                                                Send join request
+                                            </Button>
+                                        </div>
+                                    );
+                            }
                             console.log("Project Requests:", projectRequests);
                             const userRequests = projectRequests.filter(x => x.userId === currentUser.id);
                             const userIsMember = projectMembers.some(x => x.user.id === currentUser.id) || (project.leader.id === currentUser.id);

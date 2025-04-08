@@ -252,7 +252,7 @@ const ProjectForm = ({requestId,myOrganization}) => {
 
             <Form.Item label="Leader" name="leaderId" rules={[{ required: true, message: "Leader is required" }]}>
               <Select placeholder="Select a leader" disabled={createdSuccess}>
-                {orgMembers.filter((member)=>member.user.userRole !== "Leader").map(member => (
+                {orgMembers.filter((member)=>member.user.userRole !== "Leader" && member.memberRole !="CEO").map(member => (
                   <Option key={member.id} value={member.user.id}>{member.user.fullName}</Option>
                 ))}
               </Select>

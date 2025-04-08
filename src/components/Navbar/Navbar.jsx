@@ -149,12 +149,10 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    // Fetch organization only if user is logged in AND organization data is missing
     if (currentUser?.id && (!myOrganization || !myOrganization.id)) {
         dispatch(fetchMyOrganization(currentUser.id));
     }
-  // Add myOrganization to dependencies: re-run if user logs in/out OR org data arrives/changes
-  }, [currentUser?.id, myOrganization, dispatch]);
+}, [currentUser.id, dispatch]);
 
 
   // Removed unused managedOrganizations variable
