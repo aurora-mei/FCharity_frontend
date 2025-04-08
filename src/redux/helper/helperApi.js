@@ -21,7 +21,7 @@ const uploadFile = async ({file, folderName = "default-folder"})=> {
     const uploadUrl = isVideo
         ? `${CLOUDINARY_URL.replace("/image/", "/video/")}`
         : CLOUDINARY_URL;
-
+    console.log("up url", uploadUrl)
     try {
         const res = await axios.post(uploadUrl, formData, {
             headers: { "Content-Type": "multipart/form-data" },

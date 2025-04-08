@@ -65,7 +65,7 @@ const PostForm = () => {
     };
     const handleImageChange = async ({ fileList }) => {
         if (fileList.length === 0) return; // Nếu danh sách trống, không làm gì
-
+        console.log(fileList)
         setUploading(true);
         const latestFile = fileList[fileList.length - 1];
 
