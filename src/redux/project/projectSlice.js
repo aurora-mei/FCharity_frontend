@@ -34,6 +34,9 @@ export const updateProjectThunk = createAsyncThunk("project/update", async (proj
     return await projectApi.updateProject(projectData);
 }
 );
+export const fetchProjectsByOrgThunk = createAsyncThunk("project/fetch-by-org", async (orgId) => {
+    return await projectApi.fetchProjectsByOrg(orgId);
+});
 //members
 export const fetchUserNotInProjectThunk = createAsyncThunk("project/members/get-user-not-in-project", async (projectId) => {
     return await projectApi.getUserNotInProject(projectId);
@@ -136,6 +139,17 @@ const projectSlice = createSlice({
                 state.currentProject = action.payload;
             })
             .addCase(createProjectThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(fetchProjectsByOrgThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchProjectsByOrgThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.projects = action.payload;
+            })
+            .addCase(fetchProjectsByOrgThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             })

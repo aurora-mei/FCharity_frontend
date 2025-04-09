@@ -55,6 +55,16 @@ const fetchMyProjects = async (userId) => {
         throw err.response.data;
     }
 }
+const fetchProjectsByOrg = async (orgId) => {
+    try {
+        const response = await APIPrivate.get(`projects/org/${orgId}`);
+        console.log("My project:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get my project:", err);
+        throw err.response.data;
+    }
+}
 //members
 const fetchAllProjectMembers = async (projectId) => {
     try {
@@ -361,7 +371,7 @@ const getDonationsOfProject = async (projectId) => {
     }
 }
 
-const projectApi = { fetchProjects, createProject, fetchProjectById, fetchMyProjects,updateProject,
+const projectApi = { fetchProjects, createProject, fetchProjectById, fetchMyProjects,updateProject,fetchProjectsByOrg,
     getUserNotInProject, addProjectMember,fetchAllProjectMembers, fetchActiveProjectMembers,moveOutProjectMember,inviteProjectMember,
     getAllProjectRequest, sendJoinRequest, cancelProjectRequest,approveJoinRequest,rejectJoinRequest,
     approveLeaveRequest,rejectLeaveRequest,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { Row, Input, Col, Modal, Form, Flex, Typography, Carousel,Button, Badge, Divider, Table, InputNumber, message, Breadcrumb, Skeleton, Card, Progress, Avatar, Space } from "antd";
+import { Row, Input, Col, Modal, Form, Flex, Typography, Carousel,Button, Badge, Divider, Table, InputNumber, message, Breadcrumb, Skeleton, Card, Progress, Avatar, Space, Tag } from "antd";
 import { UserOutlined, LeftCircleOutlined, HomeOutlined, FlagOutlined } from "@ant-design/icons";
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
 import { getOrganization } from "../../redux/organization/organizationSlice";
@@ -459,6 +459,7 @@ const ProjectDetailScreen = () => {
                                 <UserOutlined style={{ fontSize: 24 }} />
                                 <div>
                                     <strong>{project.leader.fullName}</strong> lead this project <br />
+                                    <Tag color="green" style={{ fontSize: 12 }}>{project.projectStatus}</Tag>
                                 </div>
                             </div>
 
