@@ -85,14 +85,7 @@ const Navbar = () => {
         ),
     },
     {
-    key: "4",
-      label:
-          <Link rel="noopener noreferrer" to="/manage-project">
-            My Project
-          </Link>
-    },
-    {
-      key: "5",
+      key: "4",
       label: (
         <Link to="/" onClick={logout}>
           Sign out

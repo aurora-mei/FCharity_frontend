@@ -129,7 +129,7 @@ const RequestCard = ({ requestData, showActions = true }) => {
     return (
         <div>
             {/* Full Card */}
-            <Flex vertical gap={5} className="request-card" >
+            <Flex vertical gap={5} style={{ boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 8px 0px", borderRadius: "1rem" }}>
                 <div style={{ position: "relative" }}>
                     {requestData.attachments && requestData.attachments.length > 0 ? (
                         <img

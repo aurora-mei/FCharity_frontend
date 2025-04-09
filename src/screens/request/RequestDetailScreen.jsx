@@ -3,12 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { fetchRequestById } from "../../redux/request/requestSlice";
 import LoadingModal from "../../components/LoadingModal";
-import { Carousel, Typography, Alert, Tag, Button, Breadcrumb, Flex, message } from "antd";
+import { Carousel, Typography, Alert, Tag, Button, Breadcrumb, Flex } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
 import { Badge, Card } from "antd";
 import { CheckCircleOutlined, UserOutlined, HomeOutlined } from "@ant-design/icons";
-import {fetchMyOrganization,fetchOrganizationMembers} from "../../redux/organization/organizationSlice";
 import { useNavigate } from "react-router-dom";
 const { Title, Text, Paragraph } = Typography;
 const items =
@@ -25,10 +24,9 @@ const RequestDetailScreen = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const myOrganization = useSelector((state) => state.organization.myOrganization);
+
   const loading = useSelector((state) => state.request.loading);
   const requestData = useSelector((state) => state.request.currentRequest);
-  const orgMembers = useSelector((state) => state.organization.myOrganizationMembers);
   const error = useSelector((state) => state.request.error);
   const [expanded, setExpanded] = useState(false);
   const storedUser = localStorage.getItem("currentUser");
@@ -42,11 +40,7 @@ const RequestDetailScreen = () => {
     
   useEffect(() => {
     dispatch(fetchRequestById(id));
-     dispatch(fetchMyOrganization(currentUser.id));
-     if (myOrganization.organizationId) {
-           dispatch(fetchOrganizationMembers(myOrganization.organizationId));
-         }
-  }, [dispatch, id,myOrganization.organizationId]);
+  }, [dispatch, id]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -158,25 +152,25 @@ const RequestDetailScreen = () => {
           <a style={{ fontSize: "0.9rem", color: "gray" }} onClick={() => setExpanded(!expanded)}>
             {expanded ? "Read Less" : "Read More"}
           </a>
+          {/* <Paragraph
+            ellipsis={{ rows: 2, expandable: true, symbol: "Read more" }}
+          >
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada. Nam sagittis quam a ligula pharetra, sit amet dictum ex tristique.
+          </Paragraph> */}
+          {/* <p style={{ color: "#444" }}>
+            Churchtown Primary School, a vibrant and beloved community school in Southport, is raising funds for a new playground to honour the memory of two children, Alice and Bebe, who tragically lost their lives in the Southport stabbings in July 2024.
+          </p>
+
+          <p style={{ color: "#444" }}>
+            This new playground, which has been proposed by Alice’s parents as a way of honouring her memory, will serve as a joyful, healing space for all our pupils...
+          </p>
+
+          <a href="#">Read more</a> */}
 
           {/* Nút Donate & Share */}
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
           {currentUser.id !== requestData.helpRequest.user.id && (
-            <Button type="default" block style={{ flex: 1 }} onClick={()=>{
-              if(myOrganization){
-                if(myOrganization.organizationStatus === "APPROVED"){
-                  if(orgMembers.filter((member)=>member.user.userRole !== "Leader").length === 0){
-                    message.error("Your organization doesn't have any available member to be leader")
-                  }else{
-                    navigate(`/manage-organization/projects/create/${requestData.helpRequest.id}`)
-                  }
-                }else{
-                  message.error("Your organization is not approved yet")
-                }
-              }else{
-                message.error("You must be a ceo of an organization to register for request")
-              }
-              }}>
+            <Button type="default" block style={{ flex: 1 }} onClick={()=>{navigate(`/manage-organization/projects/create/${requestData.helpRequest.id}`)}}>
               Register
             </Button>
           )}

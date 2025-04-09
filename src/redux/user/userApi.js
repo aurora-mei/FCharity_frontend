@@ -1,4 +1,4 @@
-import { API,APIPrivate } from "../../config/API/api";
+import { API } from "../../config/API/api";
 import api from "../../services/api";
 const getCurrentUser = async () => {
   try {
@@ -17,26 +17,8 @@ const getCurrentUser = async () => {
     }
   }
 };
-const getTransactionHistoryOfUser = async (userId) => {
-  try {
-    const response = await APIPrivate.get(`users/${userId}/transaction-history`);
-    return response.data;
-  } catch (err) {
-    console.error("Error fetching transaction history:", err);
-    throw err;
-  }
-}
-const getCurrentWallet = async () => {
-  try {
-    const response = await APIPrivate.get("users/current-wallet");
-    return response.data;
-  } catch (err) {
-    console.error("Error fetching transaction history:", err);
-    throw err;
-  }
-}
 
 const getAllUsers = () => api.get("/users");
 
-const userApi = { getCurrentUser, getAllUsers, getTransactionHistoryOfUser,getCurrentWallet };
+const userApi = { getCurrentUser, getAllUsers };
 export default userApi;

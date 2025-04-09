@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { FaLink } from "react-icons/fa";
 import { IoCamera } from "react-icons/io5";
 import ColorThief from "colorthief";
-import helperApi from "../../redux/helper/helperApi";
+import { uploadFile } from "../../redux/helper/helperApi";
 
 import {
   showSuccess,
@@ -139,7 +139,7 @@ const MyOrganization = () => {
       showInfo("Cập nhật tổ chức...");
 
       if (avatarInputRef.current?.files[0]) {
-    const avatarUrl = await uploadFile({
+        const avatarUrl = await uploadFile({
           file: avatarInputRef.current.files[0],
           folderName: "organizations",
         });
@@ -147,7 +147,7 @@ const MyOrganization = () => {
       }
 
       if (backgroundInputRef.current?.files[0]) {
-   const backgroundUrl = await uploadFile({
+        const backgroundUrl = await uploadFile({
           file: backgroundInputRef.current.files[0],
           folderName: "organizations",
         });

@@ -1,14 +1,16 @@
 
 .request-card {
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
-    border-radius: 1rem;
-    transition: all 0.3s ease; /* Smooth transition for hover effect */
-    
-    &:hover {
-        cursor: pointer;
-        transform: translateY(-0.3rem); /* Move the card up by 10px */
-        box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 10px 0px; /* Enhance shadow on hover */
-    }
+    margin-bottom: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    /* Thêm các dòng dưới để cố định chiều cao */
+    min-height: 300px; /* hoặc giá trị tuỳ ý, ví dụ 400px */
+    display: flex;
+    flex-direction: column; /* chia card thành header/body/footer theo chiều dọc */
+    justify-content: space-between; /* footer (nút) đẩy xuống dưới */
 }
 
 

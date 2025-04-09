@@ -35,7 +35,6 @@ const organizationApi = {
   updateOrganizationMember: (organizationMemberData) =>
     api.put(`/organization-members`, organizationMemberData),
   deleteOrganizationMember: (membershipId) =>
-
     api.delete(`/organization-members/${membershipId}`),
 
   // ----------------------------   End OrganizationMember RestController -------------------------------
