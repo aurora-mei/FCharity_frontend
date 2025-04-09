@@ -47,7 +47,7 @@ const ProjectForm = ({requestId,myOrganization}) => {
   const categories = useSelector((state) => state.category.categories || []);
   const tags = useSelector((state) => state.tag.tags || []);
   const requestData = useSelector((state) => state.request.currentRequest);
-  const members = useSelector((state) => state.organization.myOrganizationMembers);
+  const orgMembers = useSelector((state) => state.organization.myOrganizationMembers);
   const [initialLoading, setInitialLoading] = useState(true);
   const [attachments, setAttachments] = useState({}); // Lưu danh sách file đã upload
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -55,8 +55,6 @@ const ProjectForm = ({requestId,myOrganization}) => {
   const [createdSuccess, setCreatedSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
   useEffect(() => {
-   
-   
     dispatch(fetchRequestById(requestId));
     dispatch(fetchCategories());
     dispatch(fetchTags());
@@ -70,7 +68,7 @@ const ProjectForm = ({requestId,myOrganization}) => {
   }, [dispatch,myOrganization.organizationId]);
  
   const initFormData = async () => {
-    console.log("myOrganizationmember", members);
+    console.log("myOrganizationmember", orgMembers);
     // Lấy user từ localStorage
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
@@ -192,18 +190,6 @@ const ProjectForm = ({requestId,myOrganization}) => {
     setInitialLoading(false);
   };
   const onFinish = async (values) => {
-       // Lấy userId
-      //  let myOrganization = {};
-      //  const storedMyOrganization = localStorage.getItem("myOrganization");
-      //  if (storedMyOrganization) {
-      //    try {
-      //     myOrganization = JSON.parse(storedMyOrganization);
-      //    } catch (error) {
-      //      console.error("Error parsing myOrganization:", error);
-      //    }
-      //  }
-   
-       // Tạo object gửi lên API
        const projectData = {
          ...values,
          requestId:requestId,
@@ -215,7 +201,9 @@ const ProjectForm = ({requestId,myOrganization}) => {
    
        console.log("Final Project Data:", projectData);
        try {
+        setUploading(true);
          await dispatch(createProjectThunk(projectData)).unwrap();
+         setUploading(false);
          setCreatedSuccess(true);
          message.success("Create project successfully!");
        } catch (error) {
@@ -264,7 +252,7 @@ const ProjectForm = ({requestId,myOrganization}) => {
 
             <Form.Item label="Leader" name="leaderId" rules={[{ required: true, message: "Leader is required" }]}>
               <Select placeholder="Select a leader" disabled={createdSuccess}>
-                {members.map(member => (
+                {orgMembers.filter((member)=>member.user.userRole !== "Leader" && member.memberRole !="CEO").map(member => (
                   <Option key={member.id} value={member.user.id}>{member.user.fullName}</Option>
                 ))}
               </Select>

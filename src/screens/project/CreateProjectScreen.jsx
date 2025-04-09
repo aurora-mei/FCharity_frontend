@@ -1,12 +1,12 @@
-import { Row, Col, Menu, Affix, Button, Empty, Flex, Card, Table, Checkbox, Avatar, Tag, Typography } from 'antd';
+import { Row, Col, Menu, Affix, Button, Empty, Flex, Card, Table, Checkbox, Avatar, Tag, Typography,Select } from 'antd';
 import ProjectForm from '../../components/ProjectForm/ProjectForm';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProjectMembers,addProjectMemberThunk, moveOutProjectMemberThunk  } from '../../redux/project/projectSlice';
+import { fetchActiveProjectMembers,addProjectMemberThunk, moveOutProjectMemberThunk  } from '../../redux/project/projectSlice';
 import { fetchOrganizationMembers, fetchMyOrganization } from '../../redux/organization/organizationSlice';
 import { useEffect, useState } from 'react';
-
+import LoadingModal from '../../components/LoadingModal';
 import moment from 'moment';
 const { Title } = Typography;
 const ScreenStyled = styled.div`
@@ -71,14 +71,15 @@ const CreateProjectScreen = () => {
     const { requestId } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const myProjectMembers = useSelector((state) => state.project.myProjectMembers);
+    const myProjectMembers = useSelector((state) => state.project.projectMembers);
     const newProject = useSelector((state) => state.project.currentProject);
     const myOrganization = useSelector((state) => state.organization.myOrganization);
     const organizationMembers = useSelector((state) => state.organization.myOrganizationMembers);
-    const [availableMembers, setAvailableMembers] = useState(organizationMembers);
+    const [availableMembers, setAvailableMembers] = useState([]);
     const [selectedOrgMembers, setSelectedOrgMembers] = useState([]);
     const [selectedProjectMembers, setSelectedProjectMembers] = useState([]);
     const [isFirstMount, setIsFirstMount] = useState(true);
+    const [memberRole, setMemberRole] = useState("MEMBER");
 
     let currentUser = {};
     const storedUser = localStorage.getItem("currentUser");
@@ -92,7 +93,7 @@ const CreateProjectScreen = () => {
     const handleAddMembers =  () => {
         console.log("selectedOrgMembers", selectedOrgMembers);
         for (const userId of selectedOrgMembers) {
-             dispatch(addProjectMemberThunk({ projectId: newProject.project.id, userId }));
+             dispatch(addProjectMemberThunk({ projectId: newProject.project.id, userId,role: memberRole }));
         }
         setAvailableMembers((prev) =>
             prev.filter((member) => !selectedOrgMembers.includes(member.user.id))
@@ -208,14 +209,15 @@ const CreateProjectScreen = () => {
         console.log("New Project:", newProject);
         dispatch(fetchMyOrganization(currentUser.id));
         dispatch(fetchOrganizationMembers(myOrganization.organizationId));
-        if(newProject && newProject.project) dispatch(fetchProjectMembers(newProject.project.id));
+        if(newProject && newProject.project) dispatch(fetchActiveProjectMembers(newProject.project.id));
         console.log("Project Members:", myProjectMembers);
         console.log("Organization Members:", organizationMembers);
         if (isFirstMount && organizationMembers?.length > 0) {
-            setAvailableMembers(organizationMembers);
+            setAvailableMembers(organizationMembers.filter((member) => member.user.id !== myOrganization.ceoId && newProject.project.leader.id !== member.user.id));
             setIsFirstMount(false); // Sau lần đầu, không gán lại nữa
         }
     }, [dispatch, newProject, myOrganization.organizationId]);
+   
     return (
         <ScreenStyled>
             <Row
@@ -278,11 +280,17 @@ const CreateProjectScreen = () => {
                                         {organizationMembers && organizationMembers.length > 0 && (
                                             <>
                                                 <Flex gap={10} justify='space-between' style={{marginBottom:'0.5rem'}}>
-                                                    <Title level={5}>Organization Members</Title>
+                                                    <Title level={5}>{myOrganization.organizationName}'s Members</Title>
                                                     {selectedOrgMembers.length > 0 && (
-                                                        <StyledButton onClick={handleAddMembers}>
-                                                            Add to project
-                                                        </StyledButton>
+                                                        <>
+                                                        <Select onChange={(value) => setMemberRole(value)} style={{ width: '20rem', marginRight: '1rem' }} placeholder="Select role">
+                                                            <Select.Option value="ACCOUNTANT">Accountant</Select.Option>
+                                                            <Select.Option value="MEMBER">Member</Select.Option>
+                                                            </Select>
+                                                            <StyledButton onClick={handleAddMembers}>
+                                                                Add to project
+                                                            </StyledButton>
+                                                            </>
                                                     )}
                                                 </Flex>
                                                {availableMembers && availableMembers.length > 0 ? (

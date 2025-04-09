@@ -20,9 +20,9 @@ const ForumBoard = () => {
                     <Flex vertical gap='20px'>
                         <img src="./src/assets/communicate.jpg" alt="" className="img-forum" />
                         <Flex gap="10px" justify="space-between" align="center">
+                            {/* <ProjectCard />
                             <ProjectCard />
-                            <ProjectCard />
-                            <ProjectCard />
+                            <ProjectCard /> */}
                         </Flex>
                     </Flex>
                 </Col>

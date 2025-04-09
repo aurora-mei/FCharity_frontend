@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Carousel, Form, Input, Select,Flex } from "antd";
+import { Carousel, Form, Input, Select,Flex, Skeleton,Empty } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -186,7 +186,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
     }
   });
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Skeleton/>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
@@ -245,19 +245,20 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
           ))}
         </Carousel>
       ) : (
-        <p>No active requests found.</p>
+        <Empty description="No active requests found"/>
       )}
 
       {/* Hiển thị map nếu map = true */}
       {map && (
         <div style={{ marginTop: "2rem" }}>
            <Flex vertical='true'>
-        <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Active requests</b>
+        <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Map of requests</b>
       </Flex>
           <MapContainer 
               center={[16.0471, 108.2062]} // Trung tâm VN (Đà Nẵng)
               zoom={8} 
-              style={{ height: "500px", width: "100%" }}
+              className="map-container"
+             
               maxBounds={[[8.0, 102.0], [34.5, 110.5]]} // Giới hạn phạm vi VN
               maxBoundsViscosity={1.0} // Ngăn kéo bản đồ ra khỏi VN
             > 
