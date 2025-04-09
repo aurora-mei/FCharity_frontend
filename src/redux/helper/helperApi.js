@@ -70,9 +70,7 @@ export async function uploadFile({
         );
         onProgress(percentCompleted);
       };
-    }
-
-    const res = await axios.post(uploadUrl, formData, config);
+         const res = await axios.post(uploadUrl, formData, config);
 
     console.log("Upload successful:", res.data);
     return res.data.secure_url;
@@ -80,4 +78,18 @@ export async function uploadFile({
     console.error("Upload failed:", error.response?.data || error.message);
     throw new Error(error.response?.data?.message || "Upload failed");
   }
+
+//GENERATE QR
+
+const getPaymentLink = async (data) => {
+    try {
+        const response = await APIPrivate.post( "payment/create",data);
+        console.log("QR Code response:", response);
+        return response.data;
+    } catch (error) {
+        console.error("Error generating QR code:", error);
+        throw error;
+    }
 }
+const helperApi = { uploadFile, getPaymentLink};
+export default helperApi;

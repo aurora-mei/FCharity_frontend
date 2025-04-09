@@ -56,9 +56,7 @@ const ProjectForm = ({ requestId, myOrganization }) => {
   const categories = useSelector((state) => state.category.categories || []);
   const tags = useSelector((state) => state.tag.tags || []);
   const requestData = useSelector((state) => state.request.currentRequest);
-  const { currentOrganizationMembers } = useSelector(
-    (state) => state.organization
-  );
+const orgMembers = useSelector((state) => state.organization.myOrganizationMembers);
   const [initialLoading, setInitialLoading] = useState(true);
   const [attachments, setAttachments] = useState({}); // Lưu danh sách file đã upload
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -79,7 +77,7 @@ const ProjectForm = ({ requestId, myOrganization }) => {
   }, [dispatch, myOrganization.organizationId]);
 
   const initFormData = async () => {
-    console.log("myOrganizationmember", currentOrganizationMembers);
+console.log("myOrganizationmember", orgMembers);
     // Lấy user từ localStorage
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
@@ -214,36 +212,26 @@ const ProjectForm = ({ requestId, myOrganization }) => {
     setInitialLoading(false);
   };
   const onFinish = async (values) => {
-    // Lấy userId
-    //  let myOrganization = {};
-    //  const storedMyOrganization = localStorage.getItem("myOrganization");
-    //  if (storedMyOrganization) {
-    //    try {
-    //     myOrganization = JSON.parse(storedMyOrganization);
-    //    } catch (error) {
-    //      console.error("Error parsing myOrganization:", error);
-    //    }
-    //  }
-
-    // Tạo object gửi lên API
-    const projectData = {
-      ...values,
-      requestId: requestId,
-      organizationId: myOrganization.organizationId,
-      tagIds: values.tagIds,
-      imageUrls: attachments.images,
-      videoUrls: attachments.videos,
-    };
-
-    console.log("Final Project Data:", projectData);
-    try {
-      await dispatch(createProjectThunk(projectData)).unwrap();
-      setCreatedSuccess(true);
-      message.success("Create project successfully!");
-    } catch (error) {
-      console.error("Error creating Project:", error);
-      message.error("Failed to create project");
-    }
+           const projectData = {
+         ...values,
+         requestId:requestId,
+         organizationId: myOrganization.organizationId,
+         tagIds: values.tagIds,
+         imageUrls: attachments.images,
+         videoUrls: attachments.videos,
+       };
+   
+       console.log("Final Project Data:", projectData);
+       try {
+        setUploading(true);
+         await dispatch(createProjectThunk(projectData)).unwrap();
+         setUploading(false);
+         setCreatedSuccess(true);
+         message.success("Create project successfully!");
+       } catch (error) {
+         console.error("Error creating Project:", error);
+         message.error("Failed to create project");
+       }
   };
   if (loadingUI || loading || initialLoading) {
     return <LoadingModal />;
@@ -322,27 +310,20 @@ const ProjectForm = ({ requestId, myOrganization }) => {
                 <DatePicker showTime disabled={createdSuccess} />
               </Form.Item>
 
-              <Form.Item
+             <Form.Item
                 label="Planned End Time"
                 name="plannedEndTime"
                 rules={[{ required: true, message: "End Time is required" }]}
               >
                 <DatePicker showTime disabled={createdSuccess} />
               </Form.Item>
-
-              <Form.Item
-                label="Leader"
-                name="leaderId"
-                rules={[{ required: true, message: "Leader is required" }]}
-              >
-                <Select placeholder="Select a leader" disabled={createdSuccess}>
-                  {currentOrganizationMembers.map((member) => (
-                    <Option key={member.id} value={member.user.id}>
-                      {member.user.fullName}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
+              <Form.Item label="Leader" name="leaderId" rules={[{ required: true, message: "Leader is required" }]}>
+              <Select placeholder="Select a leader" disabled={createdSuccess}>
+                {orgMembers.filter((member)=>member.user.userRole !== "Leader").map(member => (
+                  <Option key={member.id} value={member.user.id}>{member.user.fullName}</Option>
+                ))}
+              </Select>
+            </Form.Item>
 
               <Form.Item
                 label="Category"

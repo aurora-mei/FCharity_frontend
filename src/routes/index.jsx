@@ -16,19 +16,25 @@ import CreateRequestScreen from "../screens/request/CreateRequestScreen.jsx";
 import RequestListScreen from "../screens/request/RequestListScreen.jsx";
 import RequestDetailScreen from "../screens/request/RequestDetailScreen";
 import EditRequestScreen from "../screens/request/EditRequestScreen";
-import Layout from "./Layout";
+import GeneralLayout from "./Layout";
+
+//user
 import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
 import ManageProfileScreen from "../screens/user/ManageProfileScreen.jsx";
 import ChangeProfileModal from "../components/ChangeProfileForm/ChangeProfileModal.jsx";
 import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
-import CreateProjectScreen from "../screens/project/CreateProjectScreen.jsx";
+import DepositScreen from "../screens/user/DepositScreen.jsx";
+import MyWalletScreen from "../screens/user/MyWalletScreen.jsx";
+import MyProfileScreen from "../screens/user/MyProfileScreen.jsx";
 
+//organization
 import MyOrganization from "../pages/manage/MyOrganization.jsx";
 import OrganizationDashboard from "../pages/manage/OrganizationDashboard.jsx";
 import CreateOrganization from "../pages/manage/CreateOrganization.jsx";
 import OrganizationProject from "../pages/manage/OrganizationProject.jsx";
 import OrganizationMember from "../pages/manage/OrganizationMember.jsx";
 import OrganizationRequest from "../pages/manage/OrganizationRequest.jsx";
+
 import OrganizationsOverview from "../pages/guest/OrganizationsOverview.jsx";
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
@@ -36,7 +42,15 @@ import UserRankings from "../pages/manage/components/UserRankings.jsx";
 import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
 import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
-
+//project
+import CreateProjectScreen from "../screens/project/CreateProjectScreen.jsx";
+import ProjectDetailScreen from "../screens/project/ProjectDetailScreen.jsx";
+import ProjectMoreDetailScreen from "../screens/project/ProjectMoreDetailsScreen.jsx";
+import ProjectDashboard from "../screens/project/ProjectDashboard.jsx";
+import ProjectHomeContainer from "../containers/ProjectHomeContainer/ProjectHomeContainer.jsx";
+import ProjectMemberContainer from "../containers/ProjectMemberContainer/ProjectMemberContainer.jsx";
+import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer.jsx";
+import ProjectDonationContainer from "../containers/ProjectDonationContainer/ProjectDonationContainer.jsx";
 const AppRoutes = () => {
   return (
     <Router>
@@ -47,13 +61,18 @@ const AppRoutes = () => {
           <Route path="otp-verification" element={<OtpVerificationScreen />} />
           <Route path="otp-reset-password" element={<ResetPwdScreen />} />
         </Route>
-        <Route path="/" element={<Layout />}>
+        <Route path="/" element={<GeneralLayout />}>
           <Route index element={<HomeScreen />} />
           <Route path="/forum" element={<ForumPage />} />
           <Route path="/posts/:id" element={<PostDetailPage />} />
           <Route path="/requests/:id" element={<RequestDetailScreen />} />
           <Route element={<PrivateRoute />}>
-            <Route path="donate" element={<LoadingModal />} />
+            <Route path="/user/manage-profile" element={<ManageProfileScreen />}>
+              <Route path="profile" element={<MyProfileScreen />} />
+              <Route path="mywallet" element={<MyWalletScreen />} />
+              <Route path="myrequests" element={<MyRequestScreen />} />
+              <Route path="deposit/:userId" element={<DepositScreen />} />
+            </Route>
             <Route path="requests">
               <Route index element={<RequestListScreen />} />
               <Route path="create" element={<CreateRequestScreen />} />
@@ -96,6 +115,29 @@ const AppRoutes = () => {
           <Route path="rankings">
             <Route path="organizations" element={<OrganizationRankings />} />
             <Route path="users" element={<UserRankings />} />
+
+            <Route path="manage-organization">
+              <Route index element={<MyOrganization />} />
+              <Route path="dashboard" element={<OrganizationDashboard />} />
+              <Route path="users" element={<OrganizationMember />} />
+              <Route path="projects" element={<OrganizationProject />} />
+              <Route path="projects/create/:requestId" element={<CreateProjectScreen />} />
+              <Route path="requests" element={<OrganizationRequest />} />
+            </Route>
+            <Route path="manage-project" element={<ProjectDashboard />}/>
+            <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
+                <Route path="home" element={<ProjectHomeContainer />} />
+                <Route path="members" element={<ProjectMemberContainer />} />
+                <Route path="finance" element={<ProjectFinancePlanContainer />} />
+              <Route path="donations" element={<ProjectDonationContainer />} />
+
+                <Route path="*" element={<ProjectHomeContainer />} />
+            </Route>
+            <Route path="projects">
+              <Route path=":projectId" element={<ProjectDetailScreen />} />
+              <Route path=":projectId/details" element={<ProjectMoreDetailScreen />} />
+            </Route>
+
           </Route>
         </Route>
       </Routes>
