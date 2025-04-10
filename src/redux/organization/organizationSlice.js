@@ -574,20 +574,15 @@ export const getOrganizationVerificationDocuments = createAsyncThunk(
   }
 );
 
-export const createVerificationDocuments = createAsyncThunk(
-  "organizations/createVerificationDocuments",
+export const uploadFileLocal = createAsyncThunk(
+  "organizations/uploadFileLocal",
   async (dataInfo, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.createVerificationDocuments(
-        dataInfo.organizationId,
-        dataInfo.docUrls
-      );
-      console.log("dockUrls response: ", response.data);
+      const response = await organizationApi.uploadFileLocal(dataInfo);
+      console.log("file saved response: ", response.data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error createVerificationDocuments"
-      );
+      return rejectWithValue(error.response?.data || "Error uploading file");
     }
   }
 );
@@ -606,18 +601,6 @@ export const getAllUsersNotInOrganization = createAsyncThunk(
       return rejectWithValue(
         error.response?.data || "Error fetching users not in organization"
       );
-    }
-  }
-);
-
-export const uploadFileLocal = createAsyncThunk(
-  "organizations/uploadFileLocal",
-  async (file, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.uploadFileLocal(file);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Error uploading file");
     }
   }
 );
@@ -1206,19 +1189,6 @@ export const organizationSlice = createSlice({
           state.error = action.payload;
         }
       )
-
-      .addCase(createVerificationDocuments.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(createVerificationDocuments.fulfilled, (state, action) => {
-        state.loading = false;
-        state.verificationDocuments.push(action.payload);
-      })
-      .addCase(createVerificationDocuments.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
 
       .addCase(uploadFileLocal.pending, (state) => {
         state.loading = true;

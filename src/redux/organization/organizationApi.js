@@ -1,5 +1,4 @@
-import axios from "axios";
-import { APIPrivate } from "../../config/API/api";
+import { data } from "react-router-dom";
 import api from "../../services/api";
 
 const organizationApi = {
@@ -87,24 +86,21 @@ const organizationApi = {
     api.delete(`/events/${organizationEventId}`),
 
   getOrganizationVerificationDocuments: (organizationId) =>
-    api.get(`/organizations/${organizationId}/verification-documents`),
-  createVerificationDocuments: (organizationId, docUrls) =>
-    api.post(
-      `/organizations/${organizationId}/verification-documents`,
-      docUrls
-    ),
+    api.get(`/files/organizations/${organizationId}`),
 
-  uploadFileLocal: (file) => {
+  uploadFileLocal: async (dataInfo) => {
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", dataInfo.file);
     try {
-      const response = axios.post("/api/files", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      console.log("upload file response: 🍎🍎🍎 ", response);
-      return response.data;
+      return await api.post(
+        `/files/organizations/${dataInfo.organizationId}/save`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
     } catch (error) {
       throw error.response?.data || error.message;
     }

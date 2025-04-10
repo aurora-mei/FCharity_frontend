@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { FaFileWord } from "react-icons/fa";
 
 import {
-  createVerificationDocuments,
   getManagedOrganizationByCeo,
   getOrganizationVerificationDocuments,
   updateOrganization,
@@ -50,6 +49,8 @@ const MyOrganization = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [newDocuments, setNewDocuments] = useState([]);
+  const [deletedDocuments, setDeletedDocuments] = useState([]);
+
   const [activeTab, setActiveTab] = useState("Basic Information");
 
   useEffect(() => {
@@ -87,6 +88,8 @@ const MyOrganization = () => {
 
   const triggerAvatarUpload = () => avatarInputRef.current.click();
   const triggerBackgroundUpload = () => backgroundInputRef.current.click();
+
+  console.log("🍎🍎🍎new documents:", newDocuments);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -131,11 +134,31 @@ const MyOrganization = () => {
     }
   };
 
+  const handleSubmitFile = async () => {
+    if (newDocuments.length > 0) {
+      const newDocUrls = await Promise.all(
+        newDocuments.map(
+          async (docFile) =>
+            await dispatch(
+              uploadFileLocal({
+                file: docFile,
+                organizationId: ownedOrganization.organizationId,
+              })
+            ).unwrap()
+        )
+      );
+
+      console.log("newDocUrls 🦔🦔🦔: ", newDocUrls);
+
+      setNewDocuments([]);
+    } else {
+      showWarning("Chưa chon file");
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       let updatedOrgInfo = { ...orgInfo };
-      let newDocUrls = [];
-
       showInfo("Cập nhật tổ chức...");
 
       if (avatarInputRef.current?.files[0]) {
@@ -153,41 +176,6 @@ const MyOrganization = () => {
         });
         updatedOrgInfo = { ...updatedOrgInfo, backgroundUrl };
       }
-
-      // if (newDocuments.length > 0) {
-      //   newDocUrls = await Promise.all(
-      //     newDocuments.map(async (docFile) => ({
-      //       docUrl: await uploadFile({
-      //         file: docFile,
-      //         folderName: "VerificationDocuments",
-      //         onProgress: (percent) => {
-      //           console.log(`Upload progress: ${percent}%`);
-      //         },
-      //       }),
-      //     }))
-      //   );
-
-      //   console.log("newDocUrls 🦔🦔", newDocUrls);
-      // }
-
-      if (newDocuments.length > 0) {
-        newDocUrls = await Promise.all(
-          newDocuments.map(async (docFile) => ({
-            docUrl: dispatch(uploadFileLocal(docFile))?.fileUrl,
-          }))
-        );
-      }
-
-      console.log("newDocUrls 🦔🦔🦔: ", newDocUrls);
-
-      dispatch(
-        createVerificationDocuments({
-          organizationId: ownedOrganization.organizationId,
-          docUrls: newDocUrls,
-        })
-      );
-
-      //TODO: update verification documents
 
       setOrgInfo(updatedOrgInfo);
 
@@ -216,11 +204,37 @@ const MyOrganization = () => {
     rgb ? `rgb(${rgb[0]},${rgb[1]},${rgb[2]})` : "bg-gray-300";
 
   const getFileColor = (type) => {
-    if (type.startsWith("image/")) return "text-black";
-    if (type.includes("pdf")) return "text-red-500";
-    if (type.includes("word")) return "text-blue-500";
-    if (type.includes("excel")) return "text-green-500";
-    return "border-gray-200 bg-gray-50";
+    switch (type) {
+      case "excel":
+        return "#00B050";
+      case "pdf":
+        return "#E81123";
+      case "word":
+        return "#0070C0";
+      case "powerpoint":
+        return "#FF6600";
+    }
+  };
+
+  const getFileType = (type) => {
+    switch (type) {
+      case "text/csv":
+      case "application/vnd.ms-excel":
+      case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+      case "application/vnd.oasis.opendocument.spreadsheet":
+        return "excel";
+
+      case "application/pdf":
+        return "pdf";
+
+      case "application/msword":
+      case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        return "word";
+
+      case "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+      case "application/vnd.ms-powerpoint":
+        return "powerpoint";
+    }
   };
 
   return (
@@ -541,7 +555,7 @@ const MyOrganization = () => {
         {activeTab === "Verification Documents" &&
           (isEditing ? (
             <div className="flex flex-col gap-10">
-              <div className="flex gap-3 items-start min-h-[200px]">
+              <div className="flex gap-3 items-start min-h-[50px]">
                 <label
                   htmlFor="verificationDocs"
                   className="w-[160px] font-semibold text-gray-700 mt-3"
@@ -553,44 +567,29 @@ const MyOrganization = () => {
                     id="verificationDocs"
                     type="file"
                     multiple
-                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
                     onChange={handleFileChange}
                     className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition duration-200"
-                    // Các thuộc tính bổ sung
-                    // maxSize={10 * 1024 * 1024} // Giới hạn 10MB/file (có thể điều chỉnh)
                     maxLength={10 * 1024 * 1024}
                   />
                   {newDocuments.length > 0 && (
-                    <div className="mt-2 flex gap-2 flex-wrap">
+                    <div className="mt-2 flex gap-2 flex-wrap hover:cursor-pointer">
                       {newDocuments.map((file, index) => (
                         <div
                           key={index}
                           className="relative w-24 h-24 border border-gray-300 rounded-md flex flex-col items-center justify-center p-2 bg-gray-50"
                         >
-                          {/* Hiển thị preview hoặc icon */}
-                          {file.type.startsWith("image/") ? (
-                            <img
-                              src={URL.createObjectURL(file)}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-full object-contain"
+                          <div className={`flex flex-col items-center gap-1 `}>
+                            <FaFileWord
+                              className="w-12 h-12"
+                              style={{
+                                color: getFileColor(getFileType(file.type)),
+                              }}
                             />
-                          ) : (
-                            <div
-                              className={`flex flex-col items-center gap-1 ${getFileColor(
-                                file.type
-                              )}`}
-                            >
-                              <FaFileWord
-                                type={file.type}
-                                className="w-12 h-12"
-                              />
-                              <p className="text-xs mt-1 text-center truncate w-[80px]">
-                                {file.name}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Nút xóa */}
+                            <p className="text-xs mt-1 text-center truncate w-[80px]">
+                              {file.name}
+                            </p>
+                          </div>
                           <button
                             onClick={() =>
                               setNewDocuments(
@@ -602,7 +601,6 @@ const MyOrganization = () => {
                             ×
                           </button>
 
-                          {/* Hiển thị kích thước file */}
                           <span className="absolute bottom-1 right-1 text-xs text-gray-500">
                             {(file.size / 1024).toFixed(1)}KB
                           </span>
@@ -612,6 +610,77 @@ const MyOrganization = () => {
                   )}
                 </div>
               </div>
+
+              {verificationDocuments?.length > 0 ? (
+                <div className="flex gap-4 flex-wrap">
+                  {verificationDocuments
+                    .filter(
+                      (v) =>
+                        !deletedDocuments.some(
+                          (d) => d.organizationImageId == v.organizationImageId
+                        )
+                    )
+                    .map((file, index) => (
+                      <div
+                        key={index}
+                        className="relative w-24 h-24 border border-gray-300 rounded-md flex flex-col items-center justify-center p-2 bg-gray-50 hover:cursor-pointer"
+                      >
+                        {/* Hiển thị preview hoặc icon */}
+                        {String(file.imageUrl).includes("docx") ? (
+                          <img
+                            src={file.imageUrl}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div
+                            className={`flex flex-col items-center gap-1 ${getFileColor(
+                              String(file.imageUrl)
+                            )}`}
+                          >
+                            <FaFileWord
+                              className="w-12 h-12"
+                              style={{
+                                color: getFileColor(getFileType(file.fileType)),
+                              }}
+                            />
+                            <p className="text-xs mt-1 text-center truncate w-[80px]">
+                              {String(file.fileName).substring(
+                                String(file.fileName).lastIndexOf("_") + 1
+                              )}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Nút xóa */}
+                        <button
+                          onClick={() => {
+                            if (
+                              !deletedDocuments.some(
+                                (d) =>
+                                  d.organizationImageId ==
+                                  file.organizationImageId
+                              )
+                            )
+                              setDeletedDocuments((prev) => [...prev, file]);
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+
+                        <span className="absolute bottom-1 right-1 text-xs text-gray-500">
+                          {(file.fileSize / 1024).toFixed(1)}KB
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center">
+                  No verification documents uploaded yet.
+                </p>
+              )}
+
               <div className="flex flex-row-reverse mt-8 gap-3">
                 <button
                   type="button"
@@ -619,6 +688,7 @@ const MyOrganization = () => {
                   onClick={() => {
                     dispatch(getManagedOrganizationByCeo());
                     setIsEditing(false);
+                    setNewDocuments([]);
                   }}
                 >
                   <span className="text-white">Cancel</span>
@@ -628,10 +698,10 @@ const MyOrganization = () => {
                   className="bg-green-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-green-700 hover:shadow-md  hover:cursor-pointer  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
                   onClick={() => {
                     setIsEditing(false);
-                    handleSubmit();
+                    handleSubmitFile();
                   }}
                 >
-                  <span className="text-white">Save</span>
+                  <span className="text-white">Save files</span>
                 </button>
               </div>
             </div>
@@ -642,23 +712,43 @@ const MyOrganization = () => {
                   Verification Documents
                 </h2>
                 {verificationDocuments?.length > 0 ? (
-                  <div className="flex gap-4 flex-wrap">
-                    {verificationDocuments.map((doc, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={doc}
-                          alt={`Verification Document ${index + 1}`}
-                          className="w-32 h-32 object-cover rounded-md border border-gray-300 transition-transform duration-300 group-hover:scale-105"
-                        />
-                        <a
-                          href={doc}
-                          download
-                          className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-md text-white font-semibold"
+                  <div className="flex gap-4 flex-wrap hover:cursor-pointer">
+                    {verificationDocuments
+                      .filter(
+                        (v) =>
+                          !deletedDocuments.some(
+                            (d) =>
+                              d.organizationImageId == v.organizationImageId
+                          )
+                      )
+                      .map((file, index) => (
+                        <div
+                          key={index}
+                          className="relative w-24 h-24 border border-gray-300 rounded-md flex flex-col items-center justify-center p-2 bg-gray-50"
                         >
-                          Download
-                        </a>
-                      </div>
-                    ))}
+                          <div
+                            className={`flex flex-col items-center gap-1 ${getFileColor(
+                              String(file.imageUrl)
+                            )}`}
+                          >
+                            <FaFileWord
+                              className="w-12 h-12"
+                              style={{
+                                color: getFileColor(getFileType(file.fileType)),
+                              }}
+                            />
+                            <p className="text-xs mt-1 text-center truncate w-[80px]">
+                              {String(file.fileName).substring(
+                                String(file.fileName).lastIndexOf("_") + 1
+                              )}
+                            </p>
+                          </div>
+
+                          <span className="absolute bottom-1 right-1 text-xs text-gray-500">
+                            {(file.fileSize / 1024).toFixed(1)}KB
+                          </span>
+                        </div>
+                      ))}
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center">
@@ -673,7 +763,7 @@ const MyOrganization = () => {
                   }}
                   className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-green-500 hover:bg-green-600`}
                 >
-                  Update
+                  Edit
                 </button>
               </div>
             </div>

@@ -126,6 +126,8 @@ const OrganizationSchedule = () => {
       summary: info.event.extendedProps.summary,
       fullDescription: info.event.extendedProps.fullDescription,
     });
+
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
