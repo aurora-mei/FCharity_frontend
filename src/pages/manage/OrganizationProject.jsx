@@ -10,49 +10,39 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts";
 
+} from "recharts";
+import { fetchProjectsByOrgThunk, fetchSpendingPlansOfProject, fetchSpendingItemOfPlan } from "../../redux/project/projectSlice";
+import { useDispatch, useSelector } from "react-redux";
 import ManagerLayout from "../../components/Layout/ManagerLayout";
 import { FaLink } from "react-icons/fa";
 import { Link } from "react-router-dom";
-
+import ProjectCard from "../../components/ProjectCard/ProjectCard";
+import { Col, Row, Button, Flex, Modal, Skeleton, Empty ,Typography } from "antd";
+const { Title } = Typography;
+import { Table } from "antd";
 const OrganizationProject = () => {
+  const myOrganization = useSelector((state) => state.organization.myOrganization);
+
   const { organizationId } = useParams();
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isOpenModal, setIsOpenModal] = useState(false);
   const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const spendingPlans = useSelector((state) => state.project.spendingPlans);
+  const spendingItems = useSelector((state) => state.project.spendingItems);
+  const [loading, setLoading] = useState(false);
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
     status: "Active",
   });
-
+  const projectByOrg = useSelector(state => state.project.projects);
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await apiService.getAllProjects(organizationId);
-        setProjects(response.data);
-      } catch (err) {
-        console.error("Failed to fetch projects:", err);
-      }
-    };
-    fetchProjects();
-  }, [organizationId]);
-
-  const handleCreateProject = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await apiService.createProject(
-        organizationId,
-        newProject
-      );
-      setProjects([...projects, response.data]);
-      setNewProject({ name: "", description: "", status: "Active" });
-      alert("Project created successfully!");
-    } catch (err) {
-      console.error("Failed to create project:", err);
-      alert("Failed to create project");
-    }
-  };
+    console.log("Organization ID:", organizationId);
+    dispatch(fetchProjectsByOrgThunk(myOrganization.organizationId));
+  }, [myOrganization]);
 
   const projectStatusData = [
     {
@@ -75,88 +65,93 @@ const OrganizationProject = () => {
     { id: "tasks", label: "Tasks" },
     { id: "reports", label: "Reports" },
   ];
+  const columns = [
+    {
+      title: "Item Name",
+      dataIndex: "itemName",
+      key: "itemName",
+    },
+    {
+      title: "Estimated Cost",
+      dataIndex: "estimatedCost",
+      key: "estimatedCost",
+    },
+    {
+      title: "Note",
+      dataIndex: "note",
+      key: "note",
+    },
+
+  ];
 
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
         return (
-          <div>
-            <h3 className="text-xl font-medium text-gray-700 mb-4">
-              Projects Overview
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-                <p className="text-gray-600">Total Projects</p>
-                <p className="text-2xl font-semibold text-blue-600">
-                  {projects.length}
-                </p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg shadow-sm">
-                <p className="text-gray-600">Active Projects</p>
-                <p className="text-2xl font-semibold text-green-600">
-                  {projectStatusData[0].value}
-                </p>
-              </div>
-              <div className="bg-yellow-50 p-4 rounded-lg shadow-sm">
-                <p className="text-gray-600">Pending Projects</p>
-                <p className="text-2xl font-semibold text-yellow-600">
-                  {projectStatusData[2].value}
-                </p>
-              </div>
-            </div>
-            <div className="mb-6">
-              <h4 className="text-lg font-medium text-gray-700 mb-2">
-                Project Status Distribution
-              </h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={projectStatusData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="value" fill="#3498db" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <form onSubmit={handleCreateProject} className="space-y-4">
-              <input
-                type="text"
-                value={newProject.name}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, name: e.target.value })
-                }
-                placeholder="Project Name"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <textarea
-                value={newProject.description}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, description: e.target.value })
-                }
-                placeholder="Description"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <select
-                value={newProject.status}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, status: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Active">Active</option>
-                <option value="Pending">Pending</option>
-                <option value="Completed">Completed</option>
-              </select>
-              <button
-                type="submit"
-                className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Create Project
-              </button>
-            </form>
-          </div>
+          <>
+
+            <Row gutter={[16, 16]}>
+              {
+                projectByOrg &&
+                Array.isArray(projectByOrg) &&
+                projectByOrg.length > 1 && projectByOrg.map(project => (
+                  <Col key={project.project.id} span='8' style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
+                    {project.project.projectStatus === "PLANNING"
+                      ?
+                      (
+                        <Flex vertical='true' gap='1rem' style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
+                          <ProjectCard key={project.project.id} projectData={project} only={false} />
+                          <Button onClickCapture={() => {
+                            setIsOpenModal(true)
+                            setSelectedProject(project)
+                            setLoading(true);
+                            console.log("Selected Project:", project);
+                            if (selectedProject && selectedProject.project) {
+                              console.log(selectedProject.project.id);
+                              dispatch(fetchSpendingPlansOfProject(selectedProject.project.id));
+                            }
+                            if (spendingPlans && spendingPlans.length > 0) {
+                              dispatch(fetchSpendingItemOfPlan(spendingPlans[0].id));
+                            }
+                          }
+                          } type="primary" style={{ marginTop: '10px' }} onClick={() => { }}>View Spending plan</Button>
+                        </Flex>
+                      ) : <ProjectCard key={project.project.id} projectData={project} only={false} />}
+                  </Col>
+                ))
+              }
+            </Row>
+            <Modal open={isOpenModal} onCancel={() => setIsOpenModal(false)} footer={null} width={1000}>
+              {loading ? (
+                <>
+                  <Flex justify="space-between" align="center" style={{ padding: '20px' }}>
+                    <Title level={4}>
+                      {(spendingPlans && spendingPlans.length) ? spendingPlans[0].planName : ""}
+                    </Title>
+                    <Button>Approve</Button>
+                  </Flex>
+
+                  {spendingItems && spendingItems.length > 0 ? (
+                    <Table
+                      rowKey={(record, index) => index}
+                      columns={columns.filter(Boolean)}
+                      dataSource={spendingItems}
+                      pagination={false}
+                    />
+                  ) : (
+                    <Empty
+                      title="No spending items found"
+                      description="Please add a spending item."
+                      style={{ marginTop: '20px' }}
+                    />
+                  )}
+                </>
+              ) : (
+                <Skeleton active paragraph={{ rows: 4 }} />
+              )}
+            </Modal>
+
+          </>
         );
       case "members":
         return (
@@ -209,11 +204,10 @@ const OrganizationProject = () => {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                className={`py-2 px-4 text-sm font-medium transition-colors duration-200 ${
-                  activeTab === tab.id
-                    ? "border-b-2 border-blue-500 text-blue-600"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
+                className={`py-2 px-4 text-sm font-medium transition-colors duration-200 ${activeTab === tab.id
+                  ? "border-b-2 border-blue-500 text-blue-600"
+                  : "text-gray-600 hover:text-blue-500"
+                  }`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}

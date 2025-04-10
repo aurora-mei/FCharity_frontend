@@ -1,4 +1,4 @@
-import { API } from "../../config/API/api";
+import { API, APIPrivate } from "../../config/API/api";
 import api from "../../services/api";
 const getCurrentUser = async () => {
   try {
@@ -17,8 +17,42 @@ const getCurrentUser = async () => {
     }
   }
 };
+const getTransactionHistoryOfUser = async (userId) => {
+  try {
+    const response = await APIPrivate.get(`users/${userId}/transaction-history`);
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching transaction history:", err);
+    throw err;
+  }
+}
+const getCurrentWallet = async () => {
+  try {
+    const response = await APIPrivate.get("users/current-wallet");
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching transaction history:", err);
+    throw err;
+  }
+}
 
 const getAllUsers = () => api.get("/users");
 
-const userApi = { getCurrentUser, getAllUsers };
+const updateProfile = async (profileData) => {
+  try {
+    console.log("Gửi request cập nhật profile:", profileData);
+    const response = await APIPrivate.put("users/update-profile", profileData);
+    console.log("Response update profile:", response?.data);
+    return response?.data;
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    if (err.response) {
+      throw err.response.data;
+    } else {
+      throw new Error("Lỗi kết nối đến server.");
+    }
+  }
+};
+
+const userApi = { getCurrentUser, getAllUsers, getTransactionHistoryOfUser,getCurrentWallet, updateProfile };
 export default userApi;

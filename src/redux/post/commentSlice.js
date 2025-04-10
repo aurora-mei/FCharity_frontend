@@ -9,7 +9,7 @@ const initialState = {
     currentPage: 0,
 };
 
-// Lấy comments theo post (phân trang)
+// Fetch comments by post (pagination)
 export const fetchCommentsByPost = createAsyncThunk(
     "comments/fetchByPost",
     async ({ postId, page = 0, size = 5 }) => {
@@ -22,7 +22,7 @@ export const fetchCommentsByPost = createAsyncThunk(
     }
 );
 
-// Tạo comment mới
+// Create new comment
 export const createComment = createAsyncThunk(
     "comments/create",
     async (commentData) => {
@@ -31,7 +31,7 @@ export const createComment = createAsyncThunk(
     }
 );
 
-// Cập nhật comment
+// Update comment
 export const updateComment = createAsyncThunk(
     "comments/update",
     async ({ commentId, commentData }, { rejectWithValue }) => {
@@ -44,7 +44,7 @@ export const updateComment = createAsyncThunk(
     }
 );
 
-// Xóa comment
+// Delete comment
 export const deleteComment = createAsyncThunk(
     "comments/delete",
     async (commentId, { rejectWithValue }) => {
@@ -57,25 +57,25 @@ export const deleteComment = createAsyncThunk(
     }
 );
 
+// Vote comment
 export const voteComment = createAsyncThunk(
-    'comments/vote',
-    async ({ commentId, userId, vote }, { rejectWithValue }) => {
+    "comments/vote",
+    async ({ commentId, userId, isUpvote }, { rejectWithValue }) => {
         try {
-            // Gửi vote (1 hoặc -1), backend tự xử lý unvote nếu trùng
-            const response = await commentApi.voteComment(commentId, userId, vote);
-            return response.data; // { commentId, newVote }
+            const response = await commentApi.voteComment(commentId, userId, isUpvote);
+            return response.data; // { commentId, upvotes, downvotes }
         } catch (error) {
-            return rejectWithValue(error.response?.data || { message: 'Vote failed' });
+            return rejectWithValue(error.response?.data || "Lỗi không xác định");
         }
     }
 );
 
-// Tạo reply
+// Create reply
 export const createReply = createAsyncThunk(
     "comments/createReply",
-    async ({commentId, replyData}, { rejectWithValue }) => {
+    async ({ commentId, replyData }, { rejectWithValue }) => {
         try {
-            const response = await commentApi.createReply({commentId,replyData});
+            const response = await commentApi.createReply({ commentId, replyData });
             return response;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -161,19 +161,17 @@ const commentSlice = createSlice({
             })
 
             // Vote comment
-            .addCase(voteComment.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
             .addCase(voteComment.fulfilled, (state, action) => {
-                state.loading = false;
-                const { commentId, newVote } = action.payload;
-                const comment = state.comments.find(c => c.commentId === commentId);
-                if (comment) comment.vote = newVote; // Cập nhật tổng vote từ server
-            })
+                const { commentId, totalVote } = action.payload;
+                const comment = state.comments.find(c => c.comment.commentId === commentId);
+                if (comment) {
+                  comment.comment.vote = totalVote;
+                }
+              })
+            
             .addCase(voteComment.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error = action.payload?.message || "Vote failed";
             })
 
             // Create reply
@@ -195,7 +193,7 @@ const commentSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             });
-    },
+    }
 });
 
 export const { clearError } = commentSlice.actions;

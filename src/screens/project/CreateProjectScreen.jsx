@@ -92,20 +92,17 @@ const CreateProjectScreen = () => {
   const { requestId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const myProjectMembers = useSelector(
-    (state) => state.project.myProjectMembers
-  );
+  const myProjectMembers = useSelector((state) => state.project.projectMembers);
   const newProject = useSelector((state) => state.project.currentProject);
-  const myOrganization = useSelector(
-    (state) => state.organization.myOrganization
+  const { ownedOrganization } = useSelector((state) => state.organization);
+  const { currentOrganizationMembers } = useSelector(
+    (state) => state.organization
   );
-  const organizationMembers = useSelector(
-    (state) => state.organization.myOrganizationMembers
-  );
-  const [availableMembers, setAvailableMembers] = useState(organizationMembers);
+  const [availableMembers, setAvailableMembers] = useState([]);
   const [selectedOrgMembers, setSelectedOrgMembers] = useState([]);
   const [selectedProjectMembers, setSelectedProjectMembers] = useState([]);
   const [isFirstMount, setIsFirstMount] = useState(true);
+  const [memberRole, setMemberRole] = useState("MEMBER");
 
   let currentUser = {};
   const storedUser = localStorage.getItem("currentUser");
@@ -234,8 +231,8 @@ const CreateProjectScreen = () => {
   ];
   useEffect(() => {
     console.log("New Project:", newProject);
-    dispatch(getManagedOrganizationByCeo());
-    dispatch(getAllMembersInOrganization(myOrganization.organizationId));
+    dispatch(getManagedOrganizationByCeo()); // tự động lấy id người dùng phía backend
+    dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
     if (newProject && newProject.project)
       dispatch(fetchProjectMembers(newProject.project.id));
     console.log("Project Members:", myProjectMembers);

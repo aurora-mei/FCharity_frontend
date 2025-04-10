@@ -214,36 +214,37 @@ const ProjectForm = ({ requestId, myOrganization }) => {
     setInitialLoading(false);
   };
   const onFinish = async (values) => {
-    // Lấy userId
-    //  let myOrganization = {};
-    //  const storedMyOrganization = localStorage.getItem("myOrganization");
-    //  if (storedMyOrganization) {
-    //    try {
-    //     myOrganization = JSON.parse(storedMyOrganization);
-    //    } catch (error) {
-    //      console.error("Error parsing myOrganization:", error);
-    //    }
-    //  }
-
-    // Tạo object gửi lên API
-    const projectData = {
-      ...values,
-      requestId: requestId,
-      organizationId: myOrganization.organizationId,
-      tagIds: values.tagIds,
-      imageUrls: attachments.images,
-      videoUrls: attachments.videos,
-    };
-
-    console.log("Final Project Data:", projectData);
-    try {
-      await dispatch(createProjectThunk(projectData)).unwrap();
-      setCreatedSuccess(true);
-      message.success("Create project successfully!");
-    } catch (error) {
-      console.error("Error creating Project:", error);
-      message.error("Failed to create project");
-    }
+       // Lấy userId
+      //  let myOrganization = {};
+      //  const storedMyOrganization = localStorage.getItem("myOrganization");
+      //  if (storedMyOrganization) {
+      //    try {
+      //     myOrganization = JSON.parse(storedMyOrganization);
+      //    } catch (error) {
+      //      console.error("Error parsing myOrganization:", error);
+      //    }
+      //  }
+   
+       // Tạo object gửi lên API
+       const projectData = {
+         ...values,
+         requestId:requestId,
+         organizationId: myOrganization.organizationId,
+         tagIds: values.tagIds,
+         imageUrls: attachments.images,
+         videoUrls: attachments.videos,
+       };
+   
+       console.log("Final Project Data:", projectData);
+       try {
+         await dispatch(createProjectThunk(projectData)).unwrap();
+         setCreatedSuccess(true);
+         message.success("Create project successfully!");
+       } catch (error) {
+         console.error("Error creating Project:", error);
+         message.error("Failed to create project");
+       }
+    
   };
   if (loadingUI || loading || initialLoading) {
     return <LoadingModal />;

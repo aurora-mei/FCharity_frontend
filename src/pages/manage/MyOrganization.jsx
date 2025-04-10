@@ -14,7 +14,7 @@ import { Link } from "react-router-dom";
 import { FaLink } from "react-icons/fa";
 import { IoCamera } from "react-icons/io5";
 import ColorThief from "colorthief";
-import { uploadFile } from "../../redux/helper/helperApi";
+import helperApi from "../../redux/helper/helperApi";
 
 import {
   showSuccess,

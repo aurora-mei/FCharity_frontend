@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Layout, Card, Avatar, Button, Spin, Typography, Tabs, Space, message } from "antd";
+import { Layout, Card, Avatar, Button, Spin, Typography, Tabs, Space, message,Flex  } from "antd";
 import { UserOutlined, EditOutlined } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
 import { getCurrentUser, updateProfile } from "../../redux/user/userSlice";
@@ -59,35 +59,36 @@ const MyProfileScreen = () => {
   const handleAvatarFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
+    
     setUploading(true);
+
     try {
-      // Sử dụng uploadFileHelper với đối tượng chứa file và folderName
-      const result = await dispatch(
-        uploadFileHelper({ file, folderName: "images" })
-      ).unwrap();
-      
-      // Nếu helper trả về URL trực tiếp
-      const newAvatarUrl = result; 
-      
-      console.log("Sending update profile request with:", { ...currentUser, avatar: newAvatarUrl });
-  
-      await dispatch(updateProfile({ ...currentUser, avatar: newAvatarUrl })).unwrap();
-  
-      message.success("Avatar updated successfully!");
-  
-      // Cập nhật localStorage với avatar mới
-      const updatedUser = { ...currentUser, avatar: newAvatarUrl };
-      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-  
-      // Refresh UI (có thể thay bằng setCurrentUser(updatedUser) nếu muốn tránh reload toàn trang)
-      setCurrentUser(updatedUser);
+        // Gọi `uploadFileHelper` giống như `handleImageChange`
+        const response = await dispatch(uploadFileHelper({ file, folderName: "images" })).unwrap();
+        const newAvatarUrl = response.url || response; // Kiểm tra nếu API trả về object có `url`
+
+        console.log("Sending update profile request with:", { ...currentUser, avatar: newAvatarUrl });
+
+        // Gửi request cập nhật avatar
+        await dispatch(updateProfile({ ...currentUser, avatar: newAvatarUrl })).unwrap();
+
+        message.success("Avatar updated successfully!");
+
+        // ✅ Cập nhật localStorage
+        const updatedUser = { ...currentUser, avatar: newAvatarUrl };
+        localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+        // 🔄 **Cập nhật state để re-render**
+        setCurrentUser(updatedUser);
+        
     } catch (error) {
-      console.error("Error updating avatar:", error);
-      message.error("Failed to update avatar");
+        console.error("Error updating avatar:", error);
+        message.error("Failed to update avatar");
     } finally {
-      setUploading(false);
+        setUploading(false);
     }
-  };
+};
+
 
   // Hàm kiểm tra xem user có mật khẩu hay không: trả về true nếu mật khẩu hợp lệ (khác null, undefined hoặc chuỗi rỗng)
   const userHasPassword = currentUser && currentUser.password && currentUser.password.trim() !== "";
@@ -105,41 +106,38 @@ const MyProfileScreen = () => {
   }
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Header
-        style={{
-          padding: "0 24px",
-          background: "#fff",
-          borderBottom: "1px solid #f0f0f0",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <Title level={3} style={{ margin: 0 }}>
-          My Profile
-        </Title>
-      </Header>
-      <Content style={{ margin: "24px", padding: 24 }}>
+    <>
+     <Content style={{ }}>
         <Card
-          style={{ maxWidth: 800, margin: "0 auto" }}
+          style={{ maxWidth: "100%", margin: "0 auto",padding:"1rem" }}
           bodyStyle={{ display: "flex", gap: "2rem" }}
           bordered={false}
           actions={[
-            <Space key="actions">
-              <Button
-                type="primary"
-                className="continue-button"
-                onClick={() => setProfileModalVisible(true)}
-              >
-                <EditOutlined /> Edit Profile
-              </Button>,
-              <Button
-                className="continue-button"
-                onClick={() => setPwdModalVisible(true)}
-              >
-                {userHasPassword ? "Change Password" : "Set Password"}
-              </Button>
-            </Space>,
+              <Flex key="action" vertical gap={10} justify="flex-start" align="flex-start" style={{ width: "100%", padding:"1rem", borderRadius:"1rem" }} >
+                <Title level={5} style={{ marginBottom: 0 }}>Privacy</Title>
+                <hr style={{ width: "100%", margin: "0.5rem 0" }} />
+                <Flex vertical gap={10} style={{ width: "100%" }} >
+                  <Flex justify="space-between">
+                    <Text strong>Edit Profile</Text>
+                    <Button
+                      type="primary"
+                      className="continue-button"
+                      onClick={() => setProfileModalVisible(true)}
+                    >
+                      <EditOutlined /> Edit Profile
+                    </Button>
+                  </Flex>
+                  <Flex justify="space-between">
+                  <Text strong>Modify password</Text>
+                    <Button
+                      className="continue-button"
+                      onClick={() => setPwdModalVisible(true)}
+                    >
+                      {userHasPassword ? "Change Password" : "Set Password"}
+                    </Button>
+                  </Flex>
+                </Flex>
+              </Flex>
           ]}
         >
           {/* Avatar and Basic Info */}
@@ -181,9 +179,6 @@ const MyProfileScreen = () => {
                   </div>
                 </Space>
               </TabPane>
-              <TabPane tab="Settings" key="settings">
-                <Text>Here goes user settings ...</Text>
-              </TabPane>
             </Tabs>
           </div>
         </Card>
@@ -201,7 +196,7 @@ const MyProfileScreen = () => {
         onCancel={() => setPwdModalVisible(false)}
         userHasPassword={userHasPassword}
       />
-    </Layout>
+    </>
   );
 };
 

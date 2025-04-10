@@ -40,4 +40,16 @@
 .request-active-carousel .slick-next {
     z-index: 10 !important;
 }
-
+.map-container{
+  height: 500px;
+  width: 100%;
+  z-index: 1;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
+  transition: all 0.3s ease; /* Smooth transition for hover effect */
+  &:hover {
+      cursor: pointer;
+      transform: translateY(-0.3rem); /* Move the card up by 10px */
+      box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 10px 0px; /* Enhance shadow on hover */
+  }
+}

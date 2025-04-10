@@ -37,13 +37,15 @@ const deleteComment = async (commentId) => {
     }
 };
 
-// Trong file commentApi.js
-const voteComment = (commentId, userId, vote) => {
-    return api.post(`/comments/${commentId}/vote`, null, {
-        params: { userId, vote }
+export const voteComment = (commentId, userId, vote) => {
+    return APIPrivate.post(`/comments/${commentId}/vote`, null, {
+      params: { userId, vote }
+    }).catch(err => {
+      const errorMessage = err.response?.data?.error || err.message || "Unknown error";
+      console.error("Vote comment error:", errorMessage);
+      throw new Error(errorMessage); // Ném một Error với thông điệp rõ ràng
     });
-};
-
+  };
 const createReply = async ({commentId,replyData}) => {
     try {
         const response = await APIPrivate.post(`comments/${commentId}/reply`, replyData);

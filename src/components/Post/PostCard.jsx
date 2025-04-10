@@ -2,14 +2,53 @@ import React, { useRef } from "react";
 import { Card, Typography, Space, Button, Tag, Avatar, Carousel } from "antd";
 import { useNavigate } from "react-router-dom";
 import { UpOutlined, DownOutlined, MessageOutlined, ShareAltOutlined, UserOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
-
+import { Dropdown, Menu, Radio, Input, Modal } from "antd";
+import { EllipsisOutlined } from "@ant-design/icons";
 const { Title, Text } = Typography;
 
 const PostCard = ({ postResponse }) => {
     const navigate = useNavigate();
     const carouselRef = useRef(null); // Dùng ref để điều khiển Carousel
     const taggables = postResponse?.taggables || [];
+    const [reportVisible, setReportVisible] = useState(false);
+    const [reportReason, setReportReason] = useState('');
+    const [reportDetails, setReportDetails] = useState('');  
+    // Menu dropdown
+    const menu = (
+        <Menu>
+            <Menu.Item 
+                key="delete" 
+                onClick={(e) => e.domEvent.stopPropagation()}
+            >
+                Delete
+            </Menu.Item>
+            <Menu.Item 
+                key="update" 
+                onClick={(e) => e.domEvent.stopPropagation()}
+            >
+                Update
+            </Menu.Item>
+            <Menu.Item 
+                key="report"
+                onClick={(e) => {
+                    e.domEvent.stopPropagation();
+                    setReportVisible(true);
+                }}
+            >
+                Report
+            </Menu.Item>
+        </Menu>
+    );
 
+    const handleReportSubmit = () => {
+        // Xử lý report ở đây
+        console.log({
+            reason: reportReason,
+            details: reportDetails,
+            postId: postResponse.post.id
+        });
+        setReportVisible(false);
+    };
     const handleCommentClick = (e) => {
         e.stopPropagation();
         navigate(`/posts/${postResponse.post.id}#comment-section`);
@@ -28,6 +67,7 @@ const PostCard = ({ postResponse }) => {
                 padding: "15px",
             }}
         >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}></div>
             {/* Thông tin người đăng và tag */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
                 <Space>
@@ -53,8 +93,17 @@ const PostCard = ({ postResponse }) => {
         </Tag>
     ))}
 </Space>
-
-            </div>
+<Space>
+        {taggables.map(/* ... */)}
+        <Dropdown overlay={menu} trigger={['click']}>
+            <Button 
+                shape="circle" 
+                icon={<EllipsisOutlined />} 
+                onClick={(e) => e.stopPropagation()}
+            />
+        </Dropdown>
+    </Space>
+</div>
 
             {/* Nếu có ảnh/video */}
             {postResponse.attachments?.length > 0 && (
