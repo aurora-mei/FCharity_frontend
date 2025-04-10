@@ -64,7 +64,7 @@ const StyledCard = styled(Card)`
  
     }
 `;
-const MyWalletScreen = () => {
+const MyDonationScreen = () => {
 
     const dispatch = useDispatch();
     const transactions = useSelector((state) => state.user.transactionHistory);
@@ -134,7 +134,7 @@ const MyWalletScreen = () => {
     }, [dispatch, balance, currentUser.id]);
 
     useEffect(() => {
-        setFilteredTransactions(transactions); // ban đầu gán toàn bộ
+        setFilteredTransactions(transactions); 
     }, [transactions]);
 
     useEffect(() => {
@@ -210,16 +210,9 @@ const MyWalletScreen = () => {
         <Container>
             <Card>
                 <Row gutter={16} style={{ marginBottom: 24 }}>
-                    <Col xs={24} md={6}>
-                        <StyledCard>
-                            {/* <Text type="success">+8.8%</Text> */}
-                            <b>Balance</b>
-                            <Title level={3}>{balance.toLocaleString()} VND</Title>
-                        </StyledCard>
-                    </Col>
-                    <Col xs={24} md={6}>
+                    <Col xs={24} md={12}>
                         <StyledCard >
-                            <b>Total deposit <span>
+                            <b>Total donations <span>
                                 <Text type={depositChange >= 0 ? "success" : "danger"}>
                                     {depositChange >= 0 ? "+" : ""}{depositChange.toFixed(2)}%
                                 </Text></span>
@@ -229,25 +222,6 @@ const MyWalletScreen = () => {
                                 .reduce((total, transaction) => total + transaction.amount, 0)
                                 .toLocaleString()} VND</Title>
                         </StyledCard>
-                    </Col>
-                    <Col xs={24} md={6}>
-                        <StyledCard>
-                            <b>Total spending <span> 
-                                <Text type={spendingChange >= 0 ? "success" : "danger"}>
-                                    {spendingChange >= 0 ? "+" : ""}{spendingChange.toFixed(2)}%
-                                </Text></span></b>
-                            <Title level={3}>{transactions
-                                .filter((x) => x.transactionType !== "DEPOSIT")
-                                .reduce((total, transaction) => total + transaction.amount, 0)
-                                .toLocaleString()} VND</Title>
-                        </StyledCard>
-                    </Col>
-                    <Col xs={24} md={6} justify="center" align="center">
-                        <DepositButton vertical gap={10}
-                            onClick={() => navigate(`/user/manage-profile/deposit/${currentUser.id}`)}
-                        >
-                            <WalletOutlined style={{ fontSize: "1rem" }} /> <b> Make Deposit</b>
-                        </DepositButton>
                     </Col>
                 </Row>
 
@@ -289,4 +263,4 @@ const MyWalletScreen = () => {
     );
 };
 
-export default MyWalletScreen;
+export default MyDonationScreen;

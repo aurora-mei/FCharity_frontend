@@ -8,8 +8,7 @@ const { Title, Text } = Typography;
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { TeamOutlined, EditOutlined } from '@ant-design/icons';
-import { fetchProjectRequests,fetchAllProjectMembersThunk } from '../../redux/project/projectSlice';
-import LoadingModal from '../../components/LoadingModal';
+import { fetchProjectRequests, fetchAllProjectMembersThunk } from '../../redux/project/projectSlice';
 import ProjectMemberList from '../../components/ProjectMemberList/ProjectMemberList';
 import ProjectRequestList from '../../components/ProjectRequestList/ProjectRequestList';
 const StyledCard = styled(Card)`
@@ -139,34 +138,52 @@ const ProjectMemberContainer = () => {
         dispatch(fetchProjectById(projectId));
         dispatch(fetchAllProjectMembersThunk(projectId));
         dispatch(fetchProjectRequests(projectId));
-    }, [ dispatch,allProjectMembers.length,projectId]);
+    }, [dispatch, projectId]);
 
     useEffect(() => {
         if (currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id) {
             console.log(currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id)
             setIsLeader(true);
         }
-    }, [currentProject]);
- 
+    }, [currentProject, allProjectMembers.length, currentUser.id, projectRequests.length]);
+
     return (
-        <Flex vertical gap={10} style={{overflowY: "auto", height: "100vh", padding: "1rem 2rem",scrollbarWidth: "none" }}>
+        <Flex vertical gap={10} style={{ overflowY: "auto", height: "100vh", padding: "1rem 2rem", scrollbarWidth: "none" }}>
             <Row gutter={16} style={{ marginTop: 16 }}>
                 <Col span={8}>
                     <StyledCard icon={<TeamOutlined />} title="Total Active Members" bordered={false}>
-                    {allProjectMembers.filter(member => member.leaveDate === null).length}/{allProjectMembers.length}
+                        {allProjectMembers.filter(member => member.leaveDate === null).length}/{allProjectMembers.length}
                     </StyledCard>
                 </Col>
                 <Col span={8}>
                     <StyledCard title="Total Processing Invitation" bordered={false}>
-                        { projectRequests && projectRequests.filter(request => request.status === "PENDING" && request.requestType === "INVITATION").length}/{projectRequests.filter(request => request.requestType === "INVITATION").length}
-                        </StyledCard>
+                        {(() => {
+                            if (projectRequests && projectRequests.length > 0) {
+                                const invitations = projectRequests.filter(request => request.requestType === "INVITATION");
+                                const pendingInvitations = invitations.filter(request => request.status === "PENDING");
+                                return `${pendingInvitations.length}/${invitations.length}`;
+                            }
+                            return "0/0"; // Return default when no requests are present
+                        })()}
+                    </StyledCard>
                 </Col>
                 <Col span={8}>
-                    <StyledCard title="Total Processing Join Request" bordered={false}>{projectRequests && projectRequests.filter(request => request.status === "PENDING" && request.requestType === "JOIN_REQUEST").length}/{projectRequests.filter(request => request.requestType === "JOIN_REQUEST").length}</StyledCard>
+                    <StyledCard title="Total Processing Join Request" bordered={false}>
+                        {(() => {
+                            if (projectRequests && projectRequests.length > 0) {
+                                const joinRequests = projectRequests.filter(request => request.requestType === "JOIN_REQUEST");
+                                const pendingJoinRequests = joinRequests.filter(request => request.status === "PENDING");
+                                return `${pendingJoinRequests.length}/${joinRequests.length}`;
+                            }
+                            return "0/0"; // Return default when no requests are present
+                        })()}
+                    </StyledCard>
                 </Col>
+
+
             </Row>
-           <ProjectMemberList isLeader={isLeader} projectId={projectId} />
-           <ProjectRequestList isLeader={isLeader} projectId={projectId}/>
+            <ProjectMemberList isLeader={isLeader} projectId={projectId} />
+            <ProjectRequestList isLeader={isLeader} projectId={projectId} />
         </Flex>
     );
 }

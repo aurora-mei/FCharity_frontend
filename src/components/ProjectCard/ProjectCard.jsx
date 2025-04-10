@@ -1,84 +1,149 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { EditOutlined, EllipsisOutlined, SettingOutlined } from '@ant-design/icons';
-import { Avatar, Flex, Typography } from 'antd';
-import LoadingModal from "../../components/LoadingModal";
-import { Card, Progress, Badge } from "antd";
+import { Typography, Skeleton, Progress } from 'antd';
+import { fetchDonationsOfProject, fetchSpendingPlansOfProject } from "../../redux/project/projectSlice";
+import { Card } from "antd";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from 'react-redux';
+
 const StyledCard = styled(Card)`
     width: 100%;
-    // height: 100%;
     border-radius: 1rem !important;
-    transition: all 0.3s ease; /* Smooth transition for hover effect */
-    
+    transition: all 0.3s ease;
+
     &:hover {
         cursor: pointer;
-        transform: translateY(-0.3rem); /* Move the card up by 10px */
-        box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 10px 0px; /* Enhance shadow on hover */
+        transform: translateY(-0.3rem);
+        box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 10px 0px;
     }
+
     .ant-card-cover {
-       position: relative;
+        position: relative;
     }
+
     .ant-card-body {
         height: ${(props) => (props.$only ? "8rem" : "auto")};
         padding: 1rem 0.5rem !important;
-        background-color: #ffffff !important; /* Fixed the extra # */
+        background-color: #ffffff !important;
         border-radius: 1rem !important;
     }
 `;
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
+
 const ProjectCard = ({ projectData, only }) => {
-    const [loading, setLoading] = useState(true);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    const [donations, setDonations] = useState([]);
+    const [spendingPlans, setSpendingPlans] = useState([]);
+    const [currentDonationValue, setCurrentDonationValue] = useState(0);
+    const [estimatedTotalCost, setEstimatedTotalCost] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    const projectId = projectData?.project?.id;
+
     useEffect(() => {
-        console.log(projectData)
-        if (projectData && projectData.project.id) {
-            setLoading(false);
-        }
-    }, [projectData])
-    if (loading) {
-        return <LoadingModal />;
-    }
-    return (
-        <StyledCard
-            hoverable
-            onClick={()=>navigate(`/projects/${projectData.project.id}`)}
-            $only={only}
-            cover={
-                <>
-                    <img 
-                        alt="A young boy and a woman sitting together in a hospital room"
-                        src={(projectData.attachments && projectData.attachments[0].imageUrl) ?? "https://storage.googleapis.com/a1aa/image/qQQjl4qj7DHlqXa_8HW9b_jbVC0DSVZlMwQjUJA78VU.jpg"}
-                        style={{ width: "100%",height: `${only===true ? "28.2rem" : "9rem"}`, objectFit: "cover", borderRadius: "1rem 1rem 0 0 ",position: "relative" }}
-                    />
-                    <div
-                        style={{
-                            position: "absolute",
-                            bottom: 10,
-                            padding: "0.1rem 0.5rem",
-                            left: 10,
-                            backgroundColor: "rgba(0, 0, 0, 0.5)",
-                            color: "white",
-                            border: "none", // Ensure the border is removed
-                            borderRadius: "1rem",
-                            width: "fit-content",
-                            fontSize: "0.9rem",
-                        }}
-                    >6.9K donations</div>
-                </>
+        const fetchData = async () => {
+            try {
+                const [donationRes, spendingPlanRes] = await Promise.all([
+                    dispatch(fetchDonationsOfProject(projectId)).unwrap(),
+                    dispatch(fetchSpendingPlansOfProject(projectId)).unwrap()
+                ]);
+                setDonations(donationRes);
+                setSpendingPlans(spendingPlanRes);
+
+                const verifiedAmount = donationRes
+                    .filter((x) => x.donationStatus === "COMPLETED")
+                    .reduce((sum, d) => sum + d.amount, 0);
+                setCurrentDonationValue(verifiedAmount);
+
+                if (spendingPlanRes.length > 0) {
+                    setEstimatedTotalCost(spendingPlanRes[0].estimatedTotalCost);
+                }
+            } catch (error) {
+                console.error("Error loading project data:", error);
+            } finally {
+                setLoading(false);
             }
-        >
-            <Title level={5}>
-                {projectData.project.projectName} Campaña para Ayuda y Solidaridad con las Niñas IAPs
-            </Title>
-            <Progress percent={75} showInfo={false} strokeColor="#00A458" style={{ marginTop: `${only ? "2.4rem":"0.9rem"}` }} />
-            <Text type="primary" style={{ display: "block", fontWeight: "bold" }}>
-                $535,708 raised
-            </Text>
-        </StyledCard>
-    )
+        };
+
+        if (projectId) {
+            fetchData();
+        }
+        console.log("donations", projectData.project.projectName);
+        console.log("currentDonationValue", currentDonationValue);
+        console.log("estimatedTotalCost", estimatedTotalCost);
+    }, [projectId]);
+
+    return (
+        <>
+            {!loading ? (
+                <StyledCard
+                    hoverable
+                    onClick={() => navigate(`/projects/${projectId}`)}
+                    $only={only}
+                    cover={
+                        <>
+                            <img
+                                alt="project cover"
+                                src={
+                                    (projectData.attachments?.[0]?.imageUrl) ??
+                                    "https://storage.googleapis.com/a1aa/image/qQQjl4qj7DHlqXa_8HW9b_jbVC0DSVZlMwQjUJA78VU.jpg"
+                                }
+                                style={{
+                                    width: "100%",
+                                    height: `${only ? "28.2rem" : "9rem"}`,
+                                    objectFit: "cover",
+                                    borderRadius: "1rem 1rem 0 0",
+                                    position: "relative",
+                                }}
+                            />
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    bottom: 10,
+                                    padding: "0.1rem 0.5rem",
+                                    left: 10,
+                                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                    color: "white",
+                                    borderRadius: "1rem",
+                                    width: "fit-content",
+                                    fontSize: "0.9rem",
+                                }}
+                            >
+                                {donations.filter((x) => x.donationStatus === "COMPLETED").length} donations
+                            </div>
+                        </>
+                    }
+                >
+                    <Title level={5}>{projectData.project.projectName}</Title>
+                    <Progress
+                        percent={(currentDonationValue / estimatedTotalCost) * 100}
+                        showInfo={false}
+                        strokeColor="#00A458"
+                        style={{ marginTop: only ? "1.2rem" : "0.9rem" }}
+                    />
+                    <Text type="primary" style={{ fontWeight: "bold" }}>
+                        {currentDonationValue.toLocaleString()} VND raised
+                    </Text>
+                </StyledCard>
+            ) : (
+                <Skeleton
+                    active
+                    paragraph={{ rows: 2 }}
+                    title={{ width: "100%" }}
+                    style={{
+                        width: "100%",
+                        height: `${only ? "28.2rem" : "9rem"}`,
+                        borderRadius: "1rem",
+                        marginTop: "1rem",
+                    }}
+                />
+            )}
+        </>
+    );
 };
 
 ProjectCard.propTypes = {
