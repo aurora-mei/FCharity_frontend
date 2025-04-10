@@ -58,12 +58,13 @@ export const deleteComment = createAsyncThunk(
 );
 
 // Vote comment
+// Sửa action voteComment
 export const voteComment = createAsyncThunk(
     "comments/vote",
-    async ({ commentId, userId, isUpvote }, { rejectWithValue }) => {
+    async ({ commentId, userId, vote }, { rejectWithValue }) => {
         try {
-            const response = await commentApi.voteComment(commentId, userId, isUpvote);
-            return response.data; // { commentId, upvotes, downvotes }
+            const response = await commentApi.voteComment(commentId, userId, vote);
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data || "Lỗi không xác định");
         }

@@ -277,34 +277,55 @@ const Post = ({ currentPost }) => {
 
   const handleVote = async (commentId, isUpvote) => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (!currentUser?.id) {
+      message.error("Vui lòng đăng nhập trước khi vote");
+      return;
+    }
+  
     const currentVote = currentVotes[commentId];
+    let newVoteValue = 0;
+  
+    if (currentVote === 1) {
+      newVoteValue = isUpvote ? 0 : -1;
+    } else if (currentVote === -1) {
+      newVoteValue = isUpvote ? 1 : 0;
+    } else {
+      newVoteValue = isUpvote ? 1 : -1;
+    }
+  
+    // ✅ Bảo vệ dữ liệu gửi đi
+    if (![1, 0, -1].includes(newVoteValue)) {
+      console.warn("Vote không hợp lệ", { commentId, vote: newVoteValue });
+      return;
+    }
   
     try {
-      let newVoteValue = null;
-      if (currentVote === isUpvote) {
-        newVoteValue = null;
-      } else {
-        newVoteValue = isUpvote;
-      }
-  
       setCurrentVotes(prev => ({
         ...prev,
         [commentId]: newVoteValue
       }));
   
-      await dispatch(voteComment({ 
+      await dispatch(voteComment({
         commentId,
         userId: currentUser.id,
-        isUpvote: newVoteValue ? (isUpvote ? 1 : -1) : 0
+        vote: newVoteValue
       })).unwrap();
+  
     } catch (error) {
       setCurrentVotes(prev => ({
         ...prev,
         [commentId]: currentVote
       }));
-      message.error(error.message || "Vote thất bại");
+  
+      const safeMessage = typeof error.message === 'string' ? error.message : "Vote thất bại";
+      if (safeMessage.includes("User not found") || safeMessage.includes("Comment not found")) {
+        message.error("Thông tin không hợp lệ. Vui lòng thử lại.");
+      } else {
+        message.error(safeMessage);
+      }
     }
   };
+  
 
   const handleCreateReply = async (parentCommentId) => {
     if (!replyContent.trim()) {
