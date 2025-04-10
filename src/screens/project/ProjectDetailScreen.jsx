@@ -6,7 +6,8 @@ import { UserOutlined, LeftCircleOutlined, HomeOutlined, FlagOutlined } from "@a
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
 import { getOrganization } from "../../redux/organization/organizationSlice";
 import { getCurrentWalletThunk } from "../../redux/user/userSlice";
-import { fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
+import { getPaymentLinkThunk } from "../../redux/helper/helperSlice";
+import { fetchProjectRequests, fetchActiveProjectMembers} from "../../redux/project/projectSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
 import {
@@ -346,7 +347,7 @@ const ProjectDetailScreen = () => {
     const navigate = useNavigate();
     const { projectId } = useParams();
     const [form] = Form.useForm();  // Khởi tạo form instance
-
+    const checkoutURL = useSelector((state) => state.helper.checkoutURL);
     const currentProject = useSelector((state) => state.project.currentProject);
     const donations = useSelector((state) => state.project.donations);
     const projectRequests = useSelector((state) => state.project.projectRequests);
@@ -372,13 +373,18 @@ const ProjectDetailScreen = () => {
         dispatch(getCurrentWalletThunk());
 
     }, [dispatch, projectId, donations.length]);
+    const { project, projectTags } = currentProject;
+
     useEffect(() => {
+        if (checkoutURL) {
+            window.location.href = checkoutURL;
+        }
         if (currentProject.project) {
             dispatch(getOrganization(currentProject.project.organizationId));
             dispatch(fetchProjectRequests(project.id));
             dispatch(fetchActiveProjectMembers(project.id));
         }
-    }, [dispatch, currentProject.project, donations]);
+    }, [dispatch, currentProject.project, donations,checkoutURL,projectId]);
 
     // Lọc ảnh/video (nếu backend trả về attachments)
     const imageUrls = currentProject.attachments?.filter((url) =>
@@ -396,10 +402,9 @@ const ProjectDetailScreen = () => {
         slidesToShow: 1,
         slidesToScroll: 1,
     };
-    if (loading || !currentProject.project) {
-        return <LoadingModal />;
+    if ( !currentProject.project) {
+        return <LoadingModal/>
     }
-    const { project, projectTags } = currentProject;
     const items = [
         {
             href: '/',
@@ -415,12 +420,18 @@ const ProjectDetailScreen = () => {
     ];
     const handleDonate = async (values) => {
         console.log(values);
-        dispatch(createDonationThunk({
-            projectId: project.id,
-            userId: currentUser.id,
-            amount: values.amount,
-            message: values.message,
-        }));
+        console.log("currentUser", currentUser.id);
+        dispatch(
+            getPaymentLinkThunk({
+                itemContent: `${currentUser.email}'s deposit`,
+                userId: currentUser.id,
+                objectId: project.id,
+                amount: values.amount,
+                paymentContent: values.message,
+                objectType: "PROJECT",
+                returnUrl:`projects/${project.id}`,
+            })
+        );
         setIsOpenModal(false);
         form.resetFields();
         dispatch(getCurrentWalletThunk());
@@ -600,7 +611,7 @@ const ProjectDetailScreen = () => {
                                     columns={columns}
                                     size="small"
                                     scroll={{ y: 300 }}
-                                    dataSource={donations}
+                                    dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
                                     rowKey="id"
                                     className="custom-table"
                                 />
@@ -621,7 +632,7 @@ const ProjectDetailScreen = () => {
                                     columns={columns}
                                     size="small"
                                     scroll={{ y: 300 }}
-                                    dataSource={donations}
+                                    dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
                                     rowKey="id"
                                     className="custom-table"
                                 />

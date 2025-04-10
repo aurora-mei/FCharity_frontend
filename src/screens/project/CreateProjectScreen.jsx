@@ -310,7 +310,7 @@ const CreateProjectScreen = () => {
                                         )}
                                     </div>
                                 </StyledContainer>
-                                <StyledButton onClick={()=>{navigate("/manage-organization/projects")}}>Save changes</StyledButton>
+                                <StyledButton onClick={()=>{navigate("/manage-organization/projects")}}>Navigate to organization:{myOrganization.organizationName}</StyledButton>
                             </Flex>
                         ) : <Empty >No project created.</Empty>
                     }

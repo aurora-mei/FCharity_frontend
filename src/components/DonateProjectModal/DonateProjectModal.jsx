@@ -20,7 +20,6 @@ const StyledButton = styled(Button)`
 `;
 
 const DonateProjectModal = ({ form, isOpenModal, setIsOpenModal, project, handleDonate, balance }) => {
-
     const showConfirm = (values) => {
         Modal.confirm({
             title: "Confirm your donation",
@@ -65,27 +64,18 @@ const DonateProjectModal = ({ form, isOpenModal, setIsOpenModal, project, handle
                         },
                         {
                             type: 'number',
-                            min: 1000,
-                            max: balance,
-                            message: balance < 1000 ? (
-                                <>You don't have enough balance to donate. Please <a href="/user/manage-profile/mywallet">make a deposit</a> to continue</>
-                            ) : (
-                                <>Amount must be between 1000 and {balance}</>
-                            )
+                            min: 2000,
+                            message: "Amount must be greater than 2000 VND"
                         }
                     ]}
                 >
                     <InputNumber
                         placeholder="Enter amount"
-                        min={1000}
-                        max={balance}
+                        min={2000}
                         style={{ width: '100%' }}
                         value={form.getFieldValue('amount')}
                         onChange={(value) => form.setFieldsValue({ amount: value })}
                     />
-                    <div style={{ marginTop: 8, fontSize: '0.8rem', color: '#8c8c8c' }}>
-                        * Minimum amount: {"1000".toLocaleString()} VND, Maximum amount: {balance.toLocaleString()} VND
-                    </div>
                 </Form.Item>
 
                 <Form.Item
@@ -97,14 +87,14 @@ const DonateProjectModal = ({ form, isOpenModal, setIsOpenModal, project, handle
                             message: "Message is optional"
                         },
                         {
-                            max: 50,
-                            message: "Message cannot be more than 50 characters."
+                            max: 25,
+                            message: "Message cannot be more than 25 characters."
                         }
                     ]}
                 >
                     <Input
                         type="text"
-                        maxLength={50}
+                        maxLength={25}
                         placeholder="Enter message"
                     />
                 </Form.Item>

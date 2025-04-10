@@ -1,0 +1,4 @@
+VITE_CLOUD_NAME=dfoq1dvce
+VITE_CLOUDINARY_PRESET_NAME=preset1
+VITE_CLOUDINARY_URL=https://api.cloudinary.com/v1_1/dfoq1dvce/image/upload
+VITE_GEMINI_API=AIzaSyCEb80QPV2ofG9xAGbhyKn6Y3j1psKytyc

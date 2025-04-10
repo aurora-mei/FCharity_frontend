@@ -5,16 +5,17 @@ import { Row, Input, Col, Modal, Form, Flex, Typography, Carousel, Button, Badge
 import { UserOutlined, LeftCircleOutlined, HomeOutlined, FlagOutlined } from "@ant-design/icons";
 import { getOrganization } from "../../redux/organization/organizationSlice";
 import { getCurrentWalletThunk } from "../../redux/user/userSlice";
+import { getPaymentLinkThunk } from "../../redux/helper/helperSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
 import {
-    ShareAltOutlined,
-    DollarOutlined,
-    RiseOutlined,
-    StarOutlined,
-    UnorderedListOutlined
+  ShareAltOutlined,
+  DollarOutlined,
+  RiseOutlined,
+  StarOutlined,
+  UnorderedListOutlined
 } from '@ant-design/icons';
-import { fetchProjectById, createDonationThunk, fetchDonationsOfProject } from "../../redux/project/projectSlice";
+import { fetchProjectById , fetchDonationsOfProject,fetchProjectRequests,fetchActiveProjectMembers } from "../../redux/project/projectSlice";
 import styled from "styled-components";
 import LoadingModal from "../../components/LoadingModal";
 import ProjectDonationBoard from "../../containers/ProjectDonationBoard/ProjectDonationBoard";
@@ -154,24 +155,24 @@ const StyledScreen = styled.div`
 
 
 const StyledSection = {
-    Container: styled.div`
+  Container: styled.div`
       background-color: #fff;
       color: #333;
     `,
 
-    ProfileSection: styled.div`
+  ProfileSection: styled.div`
       display: flex;
       align-items: center;
       margin-top:1rem;
       margin-bottom: 16px;
     `,
-    Avatar: styled.img`
+  Avatar: styled.img`
       width: 40px;
       height: 40px;
       border-radius: 50%;
       margin-right: 16px;
     `,
-    Info: styled.div`
+  Info: styled.div`
     display:flex;
     flex-direction:column;
        gap:1rem;
@@ -187,12 +188,12 @@ const StyledSection = {
       }
         }
     `,
-    ContactButton: styled(Button)`
+  ContactButton: styled(Button)`
       border-radius: 0.5rem;
       padding:1rem 0.5rem !important;
       font-size:1rem !important;
     `,
-    Meta: styled.p`
+  Meta: styled.p`
       color: #666;
       margin: 16px 0;
   
@@ -200,7 +201,7 @@ const StyledSection = {
         color: #1677ff;
       }
     `,
-    ReportLink: styled.a`
+  ReportLink: styled.a`
       display: flex;
       align-items: center;
       color: #666;
@@ -212,139 +213,150 @@ const StyledSection = {
 };
 
 const ProjectMoreDetailScreen = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const { projectId } = useParams();
-    const [form] = Form.useForm();  // Khởi tạo form instance
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { projectId } = useParams();
+  const [form] = Form.useForm();  // Khởi tạo form instance
 
-    const currentProject = useSelector((state) => state.project.currentProject);
-    const donations = useSelector((state) => state.project.donations);
-    const currentOrganization = useSelector((state) => state.organization.currentOrganization);
-    const loading = useSelector((state) => state.project.loading);
-   
-    const [expanded, setExpanded] = useState(false);
-    const [isOpenModal, setIsOpenModal] = useState(false);
-    const balance = useSelector((state) => state.user.currentBalance);
+  const currentProject = useSelector((state) => state.project.currentProject);
+  const donations = useSelector((state) => state.project.donations);
+  const checkoutURL = useSelector((state) => state.helper.checkoutURL);
+    const projectRequests = useSelector((state) => state.project.projectRequests);
+    const projectMembers = useSelector((state) => state.project.projectMembers);
+  const loading = useSelector((state) => state.project.loading);
 
-    const storedUser = localStorage.getItem("currentUser");
-    let currentUser = {};
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const balance = useSelector((state) => state.user.currentBalance);
 
-    try {
-        currentUser = storedUser ? JSON.parse(storedUser) : {};
-    } catch (error) {
-        console.error("Error parsing currentUser from localStorage:", error);
+  const storedUser = localStorage.getItem("currentUser");
+  let currentUser = {};
+
+  try {
+    currentUser = storedUser ? JSON.parse(storedUser) : {};
+  } catch (error) {
+    console.error("Error parsing currentUser from localStorage:", error);
+  }
+  useEffect(() => {
+    dispatch(fetchProjectById(projectId));
+    dispatch(fetchDonationsOfProject(projectId));
+    dispatch(getCurrentWalletThunk());
+  }, [dispatch, projectId, donations.length]);
+  useEffect(() => {
+    if (checkoutURL) {
+      window.location.href = checkoutURL;
     }
-    useEffect(() => {
-        dispatch(fetchProjectById(projectId));
-        dispatch(fetchDonationsOfProject(projectId));
-        dispatch(getCurrentWalletThunk());
-    }, [dispatch, projectId, donations.length]);
-    useEffect(() => {
-        if (currentProject.project) {
-            dispatch(getOrganization(currentProject.project.organizationId));
-        }
-    }, [dispatch, currentProject.project, donations]);
-
-    // Lọc ảnh/video (nếu backend trả về attachments)
-    const imageUrls = currentProject.attachments?.filter((url) =>
-        url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
-    ) || [];
-    const videoUrls = currentProject.attachments?.filter((url) =>
-        url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
-    ) || [];
-    console.log("imageUrls", imageUrls);
-    console.log("videoUrls", videoUrls);
-    const carouselSettings = {
-        arrows: true,
-        infinite: true,
-        speed: 500,
-        slidesToShow: 1,
-        slidesToScroll: 1,
-    };
-    if (loading || !currentProject.project) {
-        return <LoadingModal />;
+    if (currentProject.project) {
+      dispatch(getOrganization(currentProject.project.organizationId));
+      dispatch(fetchProjectRequests(project.id));
+      dispatch(fetchActiveProjectMembers(project.id));
     }
-    const { project, projectTags } = currentProject;
+    console.log("currentProject", currentProject);
+  }, [dispatch, currentProject.project, donations]);
 
-    const items = [
-        {
-            href: '/',
-            title: (
-                <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }} /> // Increase icon size
-            ),
-        },
-        {
-            title: (
-                <a style={{ fontSize: "1rem", color: "green" }} onClick={() => { navigate(-1) }}>Project {project.projectName}</a> // Increase text size
-            ),
-        },
-        {
-            title: (
-                <p style={{ fontSize: "1rem", color: "green" }}>Details</p> // Increase text size
-            ),
-        },
-    ];
-    const handleDonate = async (values) => {
-        console.log(values);
-        dispatch(createDonationThunk({
-            projectId: project.id,
-            userId: currentUser.id,
-            amount: values.amount,
-            message: values.message,
-        }));
-        setIsOpenModal(false);
-        form.resetFields();
-        dispatch(getCurrentWalletThunk());
-    }
+  // Lọc ảnh/video (nếu backend trả về attachments)
+  const imageUrls = currentProject.attachments?.filter((url) =>
+    url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
+  ) || [];
+  const videoUrls = currentProject.attachments?.filter((url) =>
+    url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
+  ) || [];
+  const carouselSettings = {
+    arrows: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+  };
+  if (!currentProject.project) {
+    return <LoadingModal />;
+  }
+  const { project, projectTags } = currentProject;
 
-    return (
-        // <div>   </div>
-        <StyledScreen>
-            <Row gutter={8} justify="center" style={{ margin: "0 auto" }}>
-                <Col span={13} >
-                    <Breadcrumb items={items} style={{ marginLeft: "1rem" }} />
-                    {/* <LeftCircleOutlined  onClick={()=>navigate(-1)} style={{ fontWeight: "bold", fontSize: "1.5rem" }}/> */}
-                    <Flex gap={0} vertical className="request-detail-page" >
-                        <Flex vertical gap={0} className="request-detail">
-                            <Title level={3} className="request-title">{project.projectName}</Title>
-
-                            {(imageUrls.length > 0 || videoUrls.length > 0) && (
-                                <div className="request-carousel" style={{ position: 'relative' }}>
-                                    <Carousel arrows  {...carouselSettings} style={{ position: 'relative', borderRadius: 10 }}>
-                                        {imageUrls.map((url, index) => (
-                                            <div key={`img-${index}`} className="media-slide">
-                                                <img src={url.imageUrl} alt={`request-img-${index}`} />
-                                            </div>
-                                        ))}
-                                        {videoUrls.map((url, index) => (
-                                            <div key={`vid-${index}`} className="media-slide">
-                                                <video src={url.imageUrl} controls />
-                                            </div>
-                                        ))}
-                                    </Carousel>
-                                </div>
-                            )}
-
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <UserOutlined style={{ fontSize: 24 }} />
-                                <div>
-                                    <strong>{project.leader.fullName}</strong> lead this project <br />
-                                </div>
-                            </div>
-                        </Flex>
-
-                    </Flex>
-                </Col>
-                <Col span={8} style={{ marginTop: "2rem" }}>
-                   <ProjectStatisticCard project={project}  donations={donations} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
-                </Col>
-            </Row>
-            <Flex vertical gap={0} className="details-containter" style={{ margin: "0 auto", width: "100%" }}>
-            <ProjectDonationBoard donations={donations} />
-            <ProjectDonationBoard donations={donations} />
-    </Flex>
-            <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} balance={balance} />
-        </StyledScreen>
+  const items = [
+    {
+      href: '/',
+      title: (
+        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }} /> // Increase icon size
+      ),
+    },
+    {
+      title: (
+        <a style={{ fontSize: "1rem", color: "green" }} onClick={() => { navigate(-1) }}>Project {project.projectName}</a> // Increase text size
+      ),
+    },
+    {
+      title: (
+        <p style={{ fontSize: "1rem", color: "green" }}>Details</p> // Increase text size
+      ),
+    },
+  ];
+  const handleDonate = async (values) => {
+    console.log(values);
+    console.log("currentUser", currentUser.id);
+    dispatch(
+      getPaymentLinkThunk({
+        itemContent: `${currentUser.email}'s deposit`,
+        userId: currentUser.id,
+        objectId: project.id,
+        amount: values.amount,
+        paymentContent: values.message,
+        objectType: "PROJECT",
+        returnUrl: `projects/${project.id}/details`,
+      })
     );
+    setIsOpenModal(false);
+    form.resetFields();
+    dispatch(getCurrentWalletThunk());
+  }
+
+  return (
+    // <div>   </div>
+    <StyledScreen>
+      <Row gutter={8} justify="center" style={{ margin: "0 auto" }}>
+        <Col span={13} >
+          <Breadcrumb items={items} style={{ marginLeft: "1rem" }} />
+          {/* <LeftCircleOutlined  onClick={()=>navigate(-1)} style={{ fontWeight: "bold", fontSize: "1.5rem" }}/> */}
+          <Flex gap={0} vertical className="request-detail-page" >
+            <Flex vertical gap={0} className="request-detail">
+              <Title level={3} className="request-title">{project.projectName}</Title>
+
+              {(imageUrls.length > 0 || videoUrls.length > 0) && (
+                <div className="request-carousel" style={{ position: 'relative' }}>
+                  <Carousel arrows  {...carouselSettings} style={{ position: 'relative', borderRadius: 10 }}>
+                    {imageUrls.map((url, index) => (
+                      <div key={`img-${index}`} className="media-slide">
+                        <img src={url.imageUrl} alt={`request-img-${index}`} />
+                      </div>
+                    ))}
+                    {videoUrls.map((url, index) => (
+                      <div key={`vid-${index}`} className="media-slide">
+                        <video src={url.imageUrl} controls />
+                      </div>
+                    ))}
+                  </Carousel>
+                </div>
+              )}
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <UserOutlined style={{ fontSize: 24 }} />
+                <div>
+                  <strong>{project.leader.fullName}</strong> lead this project <br />
+                </div>
+              </div>
+            </Flex>
+
+          </Flex>
+        </Col>
+        <Col span={8} style={{ marginTop: "2rem" }}>
+          <ProjectStatisticCard project={project} projectMembers={projectMembers} projectRequests={projectRequests} donations={donations} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
+        </Col>
+      </Row>
+      <Flex vertical gap={0} className="details-containter" style={{ margin: "0 auto", width: "100%" }}>
+        <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
+        <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
+      </Flex>
+      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} balance={balance} />
+    </StyledScreen>
+  );
 }
 export default ProjectMoreDetailScreen;
