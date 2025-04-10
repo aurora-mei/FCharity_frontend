@@ -179,9 +179,6 @@ const MyProfileScreen = () => {
                   </div>
                 </Space>
               </TabPane>
-              <TabPane tab="Settings" key="settings">
-                <Text>Here goes user settings ...</Text>
-              </TabPane>
             </Tabs>
           </div>
         </Card>

@@ -26,6 +26,7 @@ import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
 import DepositScreen from "../screens/user/DepositScreen.jsx";
 import MyWalletScreen from "../screens/user/MyWalletScreen.jsx";
 import MyProfileScreen from "../screens/user/MyProfileScreen.jsx";
+import InviteRequestScreen from "../screens/user/InviteRequestScreen.jsx";
 
 //organization
 import MyOrganization from "../pages/manage/MyOrganization.jsx";
@@ -44,6 +45,8 @@ import ProjectHomeContainer from "../containers/ProjectHomeContainer/ProjectHome
 import ProjectMemberContainer from "../containers/ProjectMemberContainer/ProjectMemberContainer.jsx";
 import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer.jsx";
 import ProjectDonationContainer from "../containers/ProjectDonationContainer/ProjectDonationContainer.jsx";
+
+
 const AppRoutes = () => {
   return (
     <Router>
@@ -65,6 +68,7 @@ const AppRoutes = () => {
               <Route path="mywallet" element={<MyWalletScreen />} />
               <Route path="myrequests" element={<MyRequestScreen />} />
               <Route path="deposit/:userId" element={<DepositScreen />} />
+              <Route path="invitations" element={<InviteRequestScreen />} /> 
             </Route>
             <Route path="requests">
               <Route index element={<RequestListScreen />} />

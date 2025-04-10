@@ -36,6 +36,11 @@ const ManageProfileScreen = () => {
       icon: <HistoryOutlined />,
       label: "My Requests",
     },
+    {
+      key: "invitations",
+      icon: <HistoryOutlined />,
+      label: "Invitations",
+    },
   ];
 
   // Lấy tab hiện tại từ URL
