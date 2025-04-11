@@ -355,7 +355,7 @@ const ProjectMoreDetailScreen = () => {
         <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
         <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
       </Flex>
-      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} balance={balance} />
+      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
     </StyledScreen>
   );
 }

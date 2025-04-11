@@ -393,8 +393,6 @@ const ProjectDetailScreen = () => {
     const videoUrls = currentProject.attachments?.filter((url) =>
         url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
     ) || [];
-    console.log("imageUrls", imageUrls);
-    console.log("videoUrls", videoUrls);
     const carouselSettings = {
         arrows: true,
         infinite: true,
@@ -644,7 +642,7 @@ const ProjectDetailScreen = () => {
                     </StyledWrapper>
                 </Col>
             </Row>
-            <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} balance={balance} />
+            <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
         </StyledScreen>
     );
 }

@@ -19,7 +19,7 @@ const StyledButton = styled(Button)`
     }
 `;
 
-const DonateProjectModal = ({ form, isOpenModal, setIsOpenModal, project, handleDonate, balance }) => {
+const DonateProjectModal = ({ form, isOpenModal, setIsOpenModal, project, handleDonate }) => {
     const showConfirm = (values) => {
         Modal.confirm({
             title: "Confirm your donation",
