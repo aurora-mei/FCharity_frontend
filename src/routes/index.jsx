@@ -23,8 +23,7 @@ import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
 import ManageProfileScreen from "../screens/user/ManageProfileScreen.jsx";
 import ChangeProfileModal from "../components/ChangeProfileForm/ChangeProfileModal.jsx";
 import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
-import DepositScreen from "../screens/user/DepositScreen.jsx";
-import MyWalletScreen from "../screens/user/MyWalletScreen.jsx";
+import MyDonationScreen from "../screens/user/MyDonationScreen.jsx";
 import MyProfileScreen from "../screens/user/MyProfileScreen.jsx";
 import InviteRequestScreen from "../screens/user/InviteRequestScreen.jsx";
 
@@ -75,10 +74,9 @@ const AppRoutes = () => {
               element={<ManageProfileScreen />}
             >
               <Route path="profile" element={<MyProfileScreen />} />
-              <Route path="mywallet" element={<MyWalletScreen />} />
+              <Route path="mydonations" element={<MyDonationScreen />} />
               <Route path="myrequests" element={<MyRequestScreen />} />
-              <Route path="deposit/:userId" element={<DepositScreen />} />
-              <Route path="invitations" element={<InviteRequestScreen />} />
+              <Route path="invitations" element={<InviteRequestScreen />} /> 
             </Route>
             <Route path="requests">
               <Route index element={<RequestListScreen />} />

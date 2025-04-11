@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchAllProjectMembersThunk, moveOutProjectMemberThunk,inviteProjectMemberThunk,fetchUserNotInProjectThunk } from '../../redux/project/projectSlice';
 import { useState } from 'react';
 import styled from 'styled-components';
+import LoadingModal from '../../components/LoadingModal';
+
 const { Title, Text } = Typography;
 const { Search } = Input;
 const StyledSearch = styled.div`
@@ -93,13 +95,14 @@ const ProjectMemberList = ({isLeader, projectId }) => {
     const dispatch = useDispatch();
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const {userNotInProject, allProjectMembers} =useSelector((state) => state.project);
-    const [userToInvite, setUserToInvite] = useState([]);
+    const [userToInvite, setUserToInvite] = useState(userNotInProject);
     const [dataSource, setDataSource] = useState([]);
     const [filerOption, setFilterOption] = useState("all");
+    
     useEffect(() => {
-        // dispatch(fetchAllProjectMembersThunk(projectId));
-        dispatch(fetchUserNotInProjectThunk(projectId));
-    }, [projectId, dispatch]);
+        // dispatch(fetchUserNotInProjectThunk(projectId));
+    }, [dispatch, projectId]);
+   
     useEffect(() => {
         if (allProjectMembers && allProjectMembers.length > 0) {
             switch (filerOption) {
@@ -128,7 +131,7 @@ const ProjectMemberList = ({isLeader, projectId }) => {
               }
         ));
         setIsInviteModalOpen(false);
-        dispatch(fetchUserNotInProjectThunk(projectId));
+        // dispatch(fetchUserNotInProjectThunk(projectId));
     };
     const onSearch = (value) => {
         if (value && value.length > 0) {
@@ -229,7 +232,10 @@ const ProjectMemberList = ({isLeader, projectId }) => {
                         </StyledSelect>
                     </Space>
                    { isLeader &&  <StyledButtonInvite icon={<TeamOutlined />} bordered={false}  
-                    onClick={()=> setIsInviteModalOpen(true)} 
+                    onClick={()=> {
+                        setIsInviteModalOpen(true);
+                        dispatch(fetchUserNotInProjectThunk(projectId));
+                    }} 
                     >Invite</StyledButtonInvite>}
                 </Flex>
             </Flex>
