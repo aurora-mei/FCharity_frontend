@@ -9,6 +9,7 @@ import LoadingModal from "../../components/LoadingModal";
 import useLoading from "../../hooks/useLoading";
 import Post from "../../components/Post/Post";
 import { HomeOutlined } from "@ant-design/icons";
+import { addToRecentPosts } from '../../redux/post/postSlice';
 
 const { Content } = Layout;
 
@@ -26,9 +27,14 @@ const PostDetailPage = () => {
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchPostsById(id));
+      dispatch(fetchPostsById(id)).then((res) => {
+        if (res.payload) {
+          dispatch(addToRecentPosts(res.payload));
+        }
+      });
     }
   }, [dispatch, id]);
+  
 
   return (
     <Layout style={{ minHeight: "100vh", display: "flex", padding: "20px" }}>

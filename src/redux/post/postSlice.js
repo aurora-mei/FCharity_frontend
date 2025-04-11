@@ -6,6 +6,8 @@
         posts: [],
         currentPost :{},
         error: null,
+        recentPosts: []
+
     };
 
     export const fetchPosts = createAsyncThunk("posts/fetch", async () => {
@@ -36,11 +38,37 @@
         await postApi.deletePost(id);
         return id;
     });
-
+    export const votePostThunk = createAsyncThunk(
+        "posts/vote",
+        async ({ postId, userId, vote }, { rejectWithValue }) => {
+            try {
+                const result = await postApi.votePost(postId, userId, vote);
+                return { postId, vote, totalVote: result.totalVote };
+            } catch (error) {
+                return rejectWithValue(error.message || "Vote failed");
+            }
+        }
+    );
+    
     const postSlice = createSlice({
         name: 'Post',
         initialState,
-        reducers: {},
+        reducers: {
+            addToRecentPosts: (state, action) => {
+              const post = action.payload;
+          
+              // Nếu post đã tồn tại thì bỏ ra
+              state.recentPosts = state.recentPosts.filter(p => p.post.id !== post.post.id);
+          
+              // Thêm post mới vào đầu danh sách
+              state.recentPosts.unshift(post);
+          
+              // Giới hạn 10 post gần nhất
+              if (state.recentPosts.length > 10) {
+                state.recentPosts.pop();
+              }
+            }
+          },          
         extraReducers: (builder) => {
             builder
                 .addCase(fetchPosts.pending, (state) => {
@@ -102,8 +130,24 @@
                 .addCase(deletePosts.rejected, (state, action) => {
                     state.loading = false;
                     state.error = action.error;
+                })
+                .addCase(votePostThunk.fulfilled, (state, action) => {
+                    const { postId, vote, totalVote } = action.payload;
+                    const found = state.posts.find(p => p.post.id === postId);
+                    if (found) {
+                        found.post.vote = totalVote;
+                    }
+                
+                    if (state.currentPost?.post?.id === postId) {
+                        state.currentPost.post.vote = totalVote;
+                    }
+                })
+                .addCase(votePostThunk.rejected, (state, action) => {
+                    state.error = action.payload;
                 });
+                
         },
     });
 
-    export default postSlice.reducer;
+    export const { addToRecentPosts } = postSlice.actions;
+export default postSlice.reducer;
