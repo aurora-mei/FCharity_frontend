@@ -45,9 +45,7 @@ const RequestDetailScreen = () => {
   );
   const loading = useSelector((state) => state.request.loading);
   const requestData = useSelector((state) => state.request.currentRequest);
-  const orgMembers = useSelector(
-    (state) => state.organization.myOrganizationMembers
-  );
+
   const error = useSelector((state) => state.request.error);
   const [expanded, setExpanded] = useState(false);
   const storedUser = localStorage.getItem("currentUser");
@@ -235,10 +233,10 @@ const RequestDetailScreen = () => {
                 block
                 style={{ flex: 1 }}
                 onClick={() => {
-                  if (myOrganization) {
-                    if (myOrganization.organizationStatus === "APPROVED") {
+                  if (ownedOrganization) {
+                    if (ownedOrganization.organizationStatus === "APPROVED") {
                       if (
-                        orgMembers.filter(
+                        currentOrganizationMembers.filter(
                           (member) => member.user.userRole !== "Leader"
                         ).length === 0
                       ) {

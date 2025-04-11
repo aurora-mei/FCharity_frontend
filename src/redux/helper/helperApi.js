@@ -41,7 +41,38 @@ const uploadFile = async ({ file, folderName = "default-folder" }) => {
     return null;
   }
 };
+const uploadFileMedia = async ({ file, folderName = "default-folder",resourceType }) => {
+  console.log("Uploading file:", file);
 
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", PRESET_NAME);
+  formData.append("folder", folderName); // 🌟 Thêm folder tùy chỉnh
+  formData.append("resource_type", resourceType);
+
+  if (resourceType === "video") {
+    uploadUrl = CLOUDINARY_URL.replace("/image/", "/video/");
+  } else if (resourceType === "raw") {
+    uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw");
+  }
+
+  const isVideo = file.type.startsWith("video/");
+  const uploadUrl = isVideo
+    ? `${CLOUDINARY_URL.replace("/image/", "/video/")}`
+    : CLOUDINARY_URL;
+  console.log("up url", uploadUrl);
+  try {
+    const res = await axios.post(uploadUrl, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    console.log("Upload successful:", res.data);
+    return res.data.secure_url; // Trả về URL file đã upload
+  } catch (error) {
+    console.error("Upload failed:", error);
+    return null;
+  }
+};
 //GENERATE QR
 
 const getPaymentLink = async (data) => {
@@ -54,5 +85,5 @@ const getPaymentLink = async (data) => {
     throw error;
   }
 };
-const helperApi = { uploadFile, getPaymentLink };
+const helperApi = { uploadFile, getPaymentLink,uploadFileMedia };
 export default helperApi;

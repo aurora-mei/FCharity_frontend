@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import ManagerLayout from "../../components/Layout/ManagerLayout";
 import { FaLink } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { getManagedOrganizationByCeo } from "../../redux/organization/organizationSlice";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
 import { Col, Row, Button, Flex, Modal, Skeleton, Empty ,Typography } from "antd";
 const { Title } = Typography;
@@ -39,6 +40,9 @@ const OrganizationProject = () => {
     status: "Active",
   });
   const projectByOrg = useSelector(state => state.project.projects);
+  useEffect(()=>{
+    dispatch(getManagedOrganizationByCeo());
+  },[dispatch])
   useEffect(() => {
     // console.log("Organization ID:", organizationId);
     dispatch(fetchProjectsByOrgThunk(myOrganization.organizationId));

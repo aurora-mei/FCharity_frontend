@@ -14,7 +14,7 @@ import { fetchCategories } from "../../redux/category/categorySlice";
 import { getAllMembersInOrganization } from "../../redux/organization/organizationSlice";
 import { createProjectThunk } from "../../redux/project/projectSlice";
 import { fetchRequestById } from "../../redux/request/requestSlice";
-import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { uploadFileMedia } from "../../redux/helper/helperSlice";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -106,9 +106,10 @@ const ProjectForm = ({ requestId, myOrganization }) => {
 
     try {
       const response = await dispatch(
-        uploadFileHelper({
+        uploadFileMedia({
           file: latestFile.originFileObj,
           folderName: "images",
+          resourceType:"image"
         })
       ).unwrap();
       console.log("response", response);
@@ -141,9 +142,10 @@ const ProjectForm = ({ requestId, myOrganization }) => {
 
     try {
       const response = await dispatch(
-        uploadFileHelper({
+        uploadFileMedia({
           file: latestFile.originFileObj,
           folderName: "videos",
+          resourceType:"video"
         })
       ).unwrap();
       console.log("response", response);
@@ -214,17 +216,6 @@ const ProjectForm = ({ requestId, myOrganization }) => {
     setInitialLoading(false);
   };
   const onFinish = async (values) => {
-       // Lấy userId
-      //  let myOrganization = {};
-      //  const storedMyOrganization = localStorage.getItem("myOrganization");
-      //  if (storedMyOrganization) {
-      //    try {
-      //     myOrganization = JSON.parse(storedMyOrganization);
-      //    } catch (error) {
-      //      console.error("Error parsing myOrganization:", error);
-      //    }
-      //  }
-   
        // Tạo object gửi lên API
        const projectData = {
          ...values,
@@ -246,7 +237,7 @@ const ProjectForm = ({ requestId, myOrganization }) => {
        }
     
   };
-  if (loadingUI || loading || initialLoading) {
+  if (loadingUI ) {
     return <LoadingModal />;
   }
   return (
@@ -337,7 +328,7 @@ const ProjectForm = ({ requestId, myOrganization }) => {
                 rules={[{ required: true, message: "Leader is required" }]}
               >
                 <Select placeholder="Select a leader" disabled={createdSuccess}>
-                  {currentOrganizationMembers.map((member) => (
+                  {currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER").map((member) => (
                     <Option key={member.id} value={member.user.id}>
                       {member.user.fullName}
                     </Option>
