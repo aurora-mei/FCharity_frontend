@@ -18,9 +18,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchProjectMembers,
   addProjectMemberThunk,
   moveOutProjectMemberThunk,
+  fetchAllProjectMembersThunk,
 } from "../../redux/project/projectSlice";
 import {
   getAllMembersInOrganization,
@@ -234,7 +234,7 @@ const CreateProjectScreen = () => {
     dispatch(getManagedOrganizationByCeo()); // tự động lấy id người dùng phía backend
     dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
     if (newProject && newProject.project)
-      dispatch(fetchProjectMembers(newProject.project.id));
+      dispatch(fetchAllProjectMembersThunk(newProject.project.id));
     console.log("Project Members:", myProjectMembers);
     console.log("Organization Members:", organizationMembers);
     if (isFirstMount && organizationMembers?.length > 0) {
