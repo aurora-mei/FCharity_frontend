@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTransactionHistoryOfUser, getCurrentWalletThunk } from '../../redux/user/userSlice';
+import { getTransactionHistoryOfUser } from '../../redux/user/userSlice';
 import moment from 'moment-timezone';
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -129,7 +129,6 @@ const MyDonationScreen = () => {
         console.error("Error parsing currentUser from localStorage:", error);
     }
     useEffect(() => {
-        dispatch(getCurrentWalletThunk()).unwrap();
         dispatch(getTransactionHistoryOfUser(currentUser.id))
     }, [dispatch, balance, currentUser.id]);
 

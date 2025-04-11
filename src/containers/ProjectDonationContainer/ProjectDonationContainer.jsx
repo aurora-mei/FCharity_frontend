@@ -31,7 +31,6 @@ import {
   FlagOutlined,
 } from "@ant-design/icons";
 import { getOrganizationById } from "../../redux/organization/organizationSlice";
-import { getCurrentWalletThunk } from "../../redux/user/userSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
 import {
@@ -256,7 +255,6 @@ const ProjectDonationContainer = () => {
 
   const [expanded, setExpanded] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const balance = useSelector((state) => state.user.currentBalance);
 
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -269,7 +267,6 @@ const ProjectDonationContainer = () => {
   useEffect(() => {
     dispatch(fetchProjectById(projectId));
     dispatch(fetchDonationsOfProject(projectId));
-    dispatch(getCurrentWalletThunk());
   }, [dispatch, projectId, donations.length]);
   useEffect(() => {
     if (currentProject.project) {
@@ -340,7 +337,6 @@ const ProjectDonationContainer = () => {
     );
     setIsOpenModal(false);
     form.resetFields();
-    dispatch(getCurrentWalletThunk());
   };
 
   return (

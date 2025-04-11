@@ -30,7 +30,6 @@ import {
   FlagOutlined,
 } from "@ant-design/icons";
 import { getOrganizationById } from "../../redux/organization/organizationSlice";
-import { getCurrentWalletThunk } from "../../redux/user/userSlice";
 import { getPaymentLinkThunk } from "../../redux/helper/helperSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
@@ -251,7 +250,6 @@ const ProjectMoreDetailScreen = () => {
   const loading = useSelector((state) => state.project.loading);
 
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const balance = useSelector((state) => state.user.currentBalance);
 
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -264,14 +262,13 @@ const ProjectMoreDetailScreen = () => {
   useEffect(() => {
     dispatch(fetchProjectById(projectId));
     dispatch(fetchDonationsOfProject(projectId));
-    dispatch(getCurrentWalletThunk());
   }, [dispatch, projectId, donations.length]);
   useEffect(() => {
     if (checkoutURL) {
       window.location.href = checkoutURL;
     }
     if (currentProject.project) {
-      dispatch(getOrganization(currentProject.project.organizationId));
+      dispatch(getOrganizationById(currentProject.project.organizationId));
       dispatch(fetchProjectRequests(project.id));
       dispatch(fetchActiveProjectMembers(project.id));
     }
@@ -331,7 +328,6 @@ const ProjectMoreDetailScreen = () => {
     );
     setIsOpenModal(false);
     form.resetFields();
-    dispatch(getCurrentWalletThunk());
   }
 
   return (
@@ -380,7 +376,7 @@ const ProjectMoreDetailScreen = () => {
         <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
         <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
       </Flex>
-      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} balance={balance} />
+      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
     </StyledScreen>
   );
 }

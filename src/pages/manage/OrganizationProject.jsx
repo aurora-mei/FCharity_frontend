@@ -22,9 +22,9 @@ import { Col, Row, Button, Flex, Modal, Skeleton, Empty ,Typography } from "antd
 const { Title } = Typography;
 import { Table } from "antd";
 const OrganizationProject = () => {
-  const myOrganization = useSelector((state) => state.organization.myOrganization);
+  const myOrganization = useSelector((state) => state.organization.ownedOrganization);
 
-  const { organizationId } = useParams();
+  // const { organizationId } = useParams();
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("overview");
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -40,7 +40,7 @@ const OrganizationProject = () => {
   });
   const projectByOrg = useSelector(state => state.project.projects);
   useEffect(() => {
-    console.log("Organization ID:", organizationId);
+    // console.log("Organization ID:", organizationId);
     dispatch(fetchProjectsByOrgThunk(myOrganization.organizationId));
   }, [myOrganization]);
 

@@ -96,6 +96,13 @@ const AppRoutes = () => {
               <Route path="change-password" element={<ChangePasswordModal />} />
             </Route>
           </Route>
+          <Route path="projects">
+          <Route path=":projectId" element={<ProjectDetailScreen />} />
+          <Route
+            path=":projectId/details"
+            element={<ProjectMoreDetailScreen />}
+          />
+        </Route>
         </Route>
         <Route path="/" element={<ManagerLayout />}>
           <Route path="my-organization">
@@ -120,13 +127,7 @@ const AppRoutes = () => {
 
           <Route path="*" element={<ProjectHomeContainer />} />
         </Route>
-        <Route path="projects">
-          <Route path=":projectId" element={<ProjectDetailScreen />} />
-          <Route
-            path=":projectId/details"
-            element={<ProjectMoreDetailScreen />}
-          />
-        </Route>
+       
         <Route path="/" element={<UserLayout />}>
           <Route path="organizations">
             <Route index element={<OrganizationsOverview />} />
