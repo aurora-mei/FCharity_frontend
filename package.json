@@ -12,6 +12,7 @@
     "sync": "locize sync --path ./public/locales --project-id 13a4e68e-3014-438f-abe9-ebb6fbf43641 --api-key 00a9e48a-6850-40c1-9ed8-31d264fc907c --reference-language-only false"
   },
   "dependencies": {
+    "@ant-design/charts": "^2.2.7",
     "@ant-design/icons": "^5.6.1",
     "@cloudinary/react": "^1.14.1",
     "@cloudinary/url-gen": "^1.21.0",
@@ -28,6 +29,7 @@
     "@reduxjs/toolkit": "^2.5.1",
     "@tailwindcss/vite": "^4.0.17",
     "antd": "^5.23.4",
+    "apexcharts": "^4.5.0",
     "axios": "^0.24.0",
     "chart.js": "^4.4.8",
     "colorthief": "^2.6.0",
@@ -45,6 +47,7 @@
     "postcss-nesting": "^13.0.1",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
+    "react-apexcharts": "^1.7.0",
     "react-chartjs-2": "^5.3.0",
     "react-datepicker": "^8.2.1",
     "react-dom": "^18.3.1",
@@ -64,6 +67,7 @@
     "styled-components": "^6.1.16",
     "tailwindcss": "^4.0.17",
     "tailwinds": "^0.0.0",
+    "tslib": "^2.8.1",
     "web3": "^4.16.0"
   },
   "devDependencies": {
