@@ -45,9 +45,13 @@ import ProjectMemberContainer from "../containers/ProjectMemberContainer/Project
 import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer.jsx";
 import ProjectDonationContainer from "../containers/ProjectDonationContainer/ProjectDonationContainer.jsx";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 const AppRoutes = () => {
   return (
+    <QueryClientProvider client={queryClient}>
     <Router>
       <Routes>
         <Route path="/auth">
@@ -109,6 +113,7 @@ const AppRoutes = () => {
         </Route>
       </Routes>
     </Router>
+    </QueryClientProvider>
   );
 };
 

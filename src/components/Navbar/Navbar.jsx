@@ -23,6 +23,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next"; // Removed Trans as it wasn't used
 import { fetchMyOrganization } from "../../redux/organization/organizationSlice"; // Removed unused getManagedOrganizations
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
+import NotificationBell from "./NotificationBell";
 
 // **** Import your CSS/PCSS file ****
 // Make sure the path is correct relative to this component file
@@ -268,6 +269,8 @@ const Navbar = () => {
           <Flex justify="flex-end" align="center" gap="10px" wrap="wrap"> {/* Added wrap */}
             {token ? (
               // Use the renamed user menu items
+              <Flex align="center" gap="16px">
+                <NotificationBell />
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                 {/* Added specific class for potential user button styling */}
                 <Button className="btn-custom btn-user" type="text">
@@ -280,6 +283,7 @@ const Navbar = () => {
                     <span className="user-name">{currentUser?.fullName}</span>
                 </Button>
               </Dropdown>
+              </Flex>
             ) : (
               <Button
                 className="btn-custom"
