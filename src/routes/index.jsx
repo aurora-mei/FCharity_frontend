@@ -66,7 +66,6 @@ const AppRoutes = () => {
               <Route path="profile" element={<MyProfileScreen />} />
               <Route path="mydonations" element={<MyDonationScreen />} />
               <Route path="myrequests" element={<MyRequestScreen />} />
-              <Route path="deposit/:userId" element={<DepositScreen />} />
               <Route path="invitations" element={<InviteRequestScreen />} /> 
             </Route>
             <Route path="requests">
