@@ -425,8 +425,6 @@ const ProjectDetailScreen = () => {
     currentProject.attachments?.filter((url) =>
       url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
     ) || [];
-    console.log("imageUrls", imageUrls);
-    console.log("videoUrls", videoUrls);
     const carouselSettings = {
         arrows: true,
         infinite: true,

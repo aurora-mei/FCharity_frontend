@@ -76,7 +76,7 @@ const AppRoutes = () => {
               <Route path="profile" element={<MyProfileScreen />} />
               <Route path="mydonations" element={<MyDonationScreen />} />
               <Route path="myrequests" element={<MyRequestScreen />} />
-              <Route path="invitations" element={<InviteRequestScreen />} /> 
+              <Route path="invitations" element={<InviteRequestScreen />} />
             </Route>
             <Route path="requests">
               <Route index element={<RequestListScreen />} />
@@ -97,12 +97,21 @@ const AppRoutes = () => {
             </Route>
           </Route>
           <Route path="projects">
-          <Route path=":projectId" element={<ProjectDetailScreen />} />
-          <Route
-            path=":projectId/details"
-            element={<ProjectMoreDetailScreen />}
-          />
-        </Route>
+            <Route path=":projectId" element={<ProjectDetailScreen />} />
+            <Route
+              path=":projectId/details"
+              element={<ProjectMoreDetailScreen />}
+            />
+          </Route>
+          <Route path="manage-project" element={<ProjectDashboard />} />
+          <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
+            <Route path="home" element={<ProjectHomeContainer />} />
+            <Route path="members" element={<ProjectMemberContainer />} />
+            <Route path="finance" element={<ProjectFinancePlanContainer />} />
+            <Route path="donations" element={<ProjectDonationContainer />} />
+
+            <Route path="*" element={<ProjectHomeContainer />} />
+          </Route>
         </Route>
         <Route path="/" element={<ManagerLayout />}>
           <Route path="my-organization">
@@ -118,16 +127,8 @@ const AppRoutes = () => {
             <Route path="schedule" element={<OrganizationSchedule />} />
           </Route>
         </Route>
-        <Route path="manage-project" element={<ProjectDashboard />} />
-        <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
-          <Route path="home" element={<ProjectHomeContainer />} />
-          <Route path="members" element={<ProjectMemberContainer />} />
-          <Route path="finance" element={<ProjectFinancePlanContainer />} />
-          <Route path="donations" element={<ProjectDonationContainer />} />
 
-          <Route path="*" element={<ProjectHomeContainer />} />
-        </Route>
-       
+
         <Route path="/" element={<UserLayout />}>
           <Route path="organizations">
             <Route index element={<OrganizationsOverview />} />

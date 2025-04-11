@@ -147,14 +147,14 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
         }
         
         console.log("plan", spendingPlans)
-    }, [dispatch, projectRequests, currentDonationValue,spendingPlans.length]);
+    }, [dispatch, currentDonationValue,spendingPlans.length]);
     useEffect(() => {
         if (project ) {
             dispatch(fetchProjectRequests(project.id));
             dispatch(fetchActiveProjectMembers(project.id));
         }
         console.log("projectRequests", projectRequests);
-    }, [dispatch, projectRequests, donations]);
+    }, [dispatch, donations]);
 
     const handleSendJoinRequest = () => {
         dispatch(
