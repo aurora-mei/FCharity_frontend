@@ -28,7 +28,7 @@ import {
 } from "../../redux/organization/organizationSlice";
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
 import "./Navbar.pcss";
-
+import { fetchMyProjectsThunk } from "../../redux/project/projectSlice"; // Import your thunk action
 const lngs = {
   en: { nativeName: "English" },
   ja: { nativeName: "Japan" },
@@ -146,6 +146,7 @@ const Navbar = () => {
   const token = useSelector((state) => state.auth.token);
   const storedUser = localStorage.getItem("currentUser");
   const dispatch = useDispatch();
+  const myProjects = useSelector((state) => state.project.myProjects);
 
   let currentUser = {};
   try {
@@ -161,10 +162,13 @@ const Navbar = () => {
     navigate("/");
   };
 
-  const { ownedOrganization, managedOrganizations, myOrganizations } =
+  const { ownedOrganization, managedOrganizations } =
     useSelector((state) => state.organization);
 
   useEffect(() => {
+    if (currentUser && currentUser.id !== undefined) {
+      dispatch(fetchMyProjectsThunk(currentUser.id));
+    }
     dispatch(getManagedOrganizationByCeo());
     dispatch(getManagedOrganizationsByManager());
     dispatch(getJoinedOrganizations());
@@ -210,11 +214,16 @@ const Navbar = () => {
     },
     {
       key: "4",
-      label: (
-        <Link rel="noopener noreferrer" to="/manage-project">
-          My Project
-        </Link>
-      ),
+      label:
+        myProjects && myProjects.length > 0 ? (
+          <Link rel="noopener noreferrer" to="/manage-project">
+            My Project
+          </Link>
+        ) : (
+          <Link rel="noopener noreferrer" to="/manage-project">
+            Discover Project
+          </Link>
+        ),
     },
     {
       key: "5",
@@ -260,7 +269,7 @@ const Navbar = () => {
               trigger="click"
               placement="bottomLeft"
               overlayClassName="fundraise-popover-panel" // Class for styling the panel
-              // arrow={false} // Optionally hide the arrow pointer
+            // arrow={false} // Optionally hide the arrow pointer
             >
               <Button className="btn-custom" type="text">
                 <Space>
@@ -341,15 +350,14 @@ const Navbar = () => {
                 <button
                   key={lng}
                   // Add classes for styling from pcss
-                  className={`language-button ${
-                    i18n.resolvedLanguage === lng ? "active" : ""
-                  }`}
+                  className={`language-button ${i18n.resolvedLanguage === lng ? "active" : ""
+                    }`}
                   // *** Use type="button" for non-submitting buttons ***
                   type="button"
                   onClick={() => {
                     i18n.changeLanguage(lng);
                   }}
-                  // Remove inline style if handled by CSS/PCSS
+                // Remove inline style if handled by CSS/PCSS
                 >
                   {lngs[lng].nativeName}
                 </button>

@@ -5,7 +5,7 @@ import styled from "styled-components";
 import moment from "moment-timezone";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { sendJoinRequestThunk, fetchProjectRequests, fetchActiveProjectMembers, fetchSpendingPlansOfProject } from "../../redux/project/projectSlice";
+import { sendJoinRequestThunk, fetchProjectRequests, fetchActiveProjectMembers, fetchSpendingPlanOfProject } from "../../redux/project/projectSlice";
 import PropTypes from "prop-types";
 const { Title, Text } = Typography;
 const StyledWrapper = styled.div`
@@ -107,7 +107,7 @@ const StyledButton = styled(Button)`
 const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donations, isOpenModal, setIsOpenModal }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const spendingPlans = useSelector((state) => state.project.spendingPlans);
+    const currentSpendingPlan = useSelector((state) => state.project.currentSpendingPlan);
     const [currentDonationValue, setCurrentDonationValue] = useState(0);
     const [estimatedTotalCost, setEstimatedTotalCost] = useState(0);
     const [recentDonation, setRecentDonation] = useState([]);
@@ -139,15 +139,15 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
     }, [donations]);
 
     useEffect(() => {
-        dispatch(fetchSpendingPlansOfProject(project.id));
-        if (spendingPlans && spendingPlans.length > 0) {
+        dispatch(fetchSpendingPlanOfProject(project.id));
+        if (currentSpendingPlan && currentSpendingPlan.id) {
             setCurrentDonationValue(donations.filter((x) => x.donationStatus === "COMPLETED")
             .reduce((total, donation) => total + donation.amount, 0))
-        setEstimatedTotalCost(spendingPlans[0].estimatedTotalCost);
+        setEstimatedTotalCost(currentSpendingPlan.estimatedTotalCost);
         }
         
-        console.log("plan", spendingPlans)
-    }, [dispatch, currentDonationValue,spendingPlans.length]);
+        console.log("plan", currentSpendingPlan)
+    }, [dispatch, currentDonationValue,currentSpendingPlan]);
     useEffect(() => {
         if (project ) {
             dispatch(fetchProjectRequests(project.id));

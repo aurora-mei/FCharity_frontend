@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Typography, Skeleton, Progress } from 'antd';
-import { fetchDonationsOfProject, fetchSpendingPlansOfProject } from "../../redux/project/projectSlice";
+import { fetchDonationsOfProject, fetchSpendingPlanOfProject } from "../../redux/project/projectSlice";
 import { Card } from "antd";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -49,7 +49,7 @@ const ProjectCard = ({ projectData, only }) => {
             try {
                 const [donationRes, spendingPlanRes] = await Promise.all([
                     dispatch(fetchDonationsOfProject(projectId)).unwrap(),
-                    dispatch(fetchSpendingPlansOfProject(projectId)).unwrap()
+                    dispatch(fetchSpendingPlanOfProject(projectId)).unwrap()
                 ]);
                 setDonations(donationRes);
                 setSpendingPlans(spendingPlanRes);
@@ -60,7 +60,7 @@ const ProjectCard = ({ projectData, only }) => {
                 setCurrentDonationValue(verifiedAmount);
 
                 if (spendingPlanRes.length > 0) {
-                    setEstimatedTotalCost(spendingPlanRes[0].estimatedTotalCost);
+                    setEstimatedTotalCost(spendingPlanRes.estimatedTotalCost);
                 }
             } catch (error) {
                 console.error("Error loading project data:", error);

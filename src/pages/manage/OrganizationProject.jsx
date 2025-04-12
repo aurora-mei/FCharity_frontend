@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 
 } from "recharts";
-import { fetchProjectsByOrgThunk, fetchSpendingPlansOfProject, fetchSpendingItemOfPlan } from "../../redux/project/projectSlice";
+import { fetchProjectsByOrgThunk, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan } from "../../redux/project/projectSlice";
 import { useDispatch, useSelector } from "react-redux";
 import ManagerLayout from "../../components/Layout/ManagerLayout";
 import { FaLink } from "react-icons/fa";
@@ -31,7 +31,7 @@ const OrganizationProject = () => {
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const spendingPlans = useSelector((state) => state.project.spendingPlans);
+  const currentSpendingPlan = useSelector((state) => state.project.currentSpendingPlan);
   const spendingItems = useSelector((state) => state.project.spendingItems);
   const [loading, setLoading] = useState(false);
   const [newProject, setNewProject] = useState({
@@ -112,10 +112,10 @@ const OrganizationProject = () => {
                             console.log("Selected Project:", project);
                             if (selectedProject && selectedProject.project) {
                               console.log(selectedProject.project.id);
-                              dispatch(fetchSpendingPlansOfProject(selectedProject.project.id));
+                              dispatch(fetchSpendingPlanOfProject(selectedProject.project.id));
                             }
-                            if (spendingPlans && spendingPlans.length > 0) {
-                              dispatch(fetchSpendingItemOfPlan(spendingPlans[0].id));
+                            if (currentSpendingPlan && currentSpendingPlan.id) {
+                              dispatch(fetchSpendingItemOfPlan(currentSpendingPlan.id));
                             }
                           }
                           } type="primary" style={{ marginTop: '10px' }} onClick={() => { }}>View Spending plan</Button>
@@ -130,7 +130,7 @@ const OrganizationProject = () => {
                 <>
                   <Flex justify="space-between" align="center" style={{ padding: '20px' }}>
                     <Title level={4}>
-                      {(spendingPlans && spendingPlans.length) ? spendingPlans[0].planName : ""}
+                      {(currentSpendingPlan && currentSpendingPlan.id) ? currentSpendingPlan.planName : ""}
                     </Title>
                     <Button>Approve</Button>
                   </Flex>
