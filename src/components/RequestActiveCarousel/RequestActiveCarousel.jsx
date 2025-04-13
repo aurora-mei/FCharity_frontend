@@ -8,6 +8,15 @@ import { fetchActiveRequests } from "../../redux/request/requestSlice";
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import provinceCoordinates from "./provinceCoordinates";
+import L from "leaflet";
+import markerIconPng from "leaflet/dist/images/marker-icon.png"; // Import icon mặc định của Leaflet
+
+const customIcon = L.icon({
+  iconUrl: markerIconPng, 
+  iconSize: [25, 41], 
+  iconAnchor: [12, 41], 
+  popupAnchor: [0, -41],
+});
 
 // Import React Leaflet cho map
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -268,7 +277,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
               if (!coord) return null;
               const requests = requestsByProvince[provKey];
               return (
-                <Marker key={provKey} position={[coord.lat, coord.lng]}>
+                <Marker key={provKey} position={[coord.lat, coord.lng]} icon={customIcon}>
                   <Popup>
                     <h3>
                       {coord.displayName} ({requests.length} request{requests.length > 1 ? "s" : ""})

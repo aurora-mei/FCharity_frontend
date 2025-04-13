@@ -1,26 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate
 import { fetchRequestById } from "../../redux/request/requestSlice";
 import LoadingModal from "../../components/LoadingModal";
-import { Carousel, Typography, Alert, Tag, Button, Breadcrumb, Flex, message } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { Carousel, Typography, Alert, Tag, Button, Breadcrumb, Flex, message, Badge, Card } from "antd"; // Badge and Card moved here
+import { LeftOutlined, RightOutlined, CheckCircleOutlined, UserOutlined, HomeOutlined } from "@ant-design/icons";
 import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
-import { Badge, Card } from "antd";
-import { CheckCircleOutlined, UserOutlined, HomeOutlined } from "@ant-design/icons";
-import {fetchMyOrganization,fetchOrganizationMembers} from "../../redux/organization/organizationSlice";
-import { useNavigate } from "react-router-dom";
+// Removed duplicate Badge, Card import
+import { fetchMyOrganization, fetchOrganizationMembers } from "../../redux/organization/organizationSlice";
+// Removed duplicate useNavigate import
+
 const { Title, Text, Paragraph } = Typography;
 const items =
   [
     {
-      href: '/requests/myrequests',
+      href: '/requests/myrequests', // Consider making this dynamic or relative if needed
       title: <HomeOutlined />,
     },
     {
       title: 'Request Detail',
     },
   ];
+
 const RequestDetailScreen = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -31,174 +32,222 @@ const RequestDetailScreen = () => {
   const orgMembers = useSelector((state) => state.organization.myOrganizationMembers);
   const error = useSelector((state) => state.request.error);
   const [expanded, setExpanded] = useState(false);
+
   const storedUser = localStorage.getItem("currentUser");
-    let currentUser = {};
+  let currentUser = {};
 
-    try {
-        currentUser = storedUser ? JSON.parse(storedUser) : {};
-    } catch (error) {
-        console.error("Error parsing currentUser from localStorage:", error);
+  try {
+    currentUser = storedUser ? JSON.parse(storedUser) : {};
+  } catch (error) {
+    console.error("Error parsing currentUser from localStorage:", error);
+  }
+
+  // Fetch request details
+  useEffect(() => {
+    if (id) { // Ensure id is present before fetching
+      dispatch(fetchRequestById(id));
+      window.scrollTo(0, 0); // Scroll to top when request loads
     }
-    
-  // useEffect cho fetchRequestById (giữ nguyên nếu id không thay đổi liên tục)
-useEffect(() => {
-  dispatch(fetchRequestById(id));
-}, [dispatch, id]);
+  }, [dispatch, id]);
 
-// useEffect cho fetchMyOrganization (dựa trên currentUser.id)
-useEffect(() => {
-  console.log("currentUser",currentUser)
-  if (currentUser.id) {
-    dispatch(fetchMyOrganization(currentUser.id));
-    window.scrollTo(0, 0);
-  }
-}, [dispatch]); // Dependency là currentUser.id thay vì organizationId
+  // Fetch user's organization
+  useEffect(() => {
+    // console.log("currentUser for org fetch", currentUser) // Keep for debugging if needed
+    if (currentUser?.id) { // Use optional chaining and check if id exists
+      dispatch(fetchMyOrganization(currentUser.id));
+    }
+  }, [dispatch, currentUser?.id]); // Depend on currentUser.id
 
-// useEffect riêng cho fetchOrganizationMembers (dựa trên organizationId)
-useEffect(() => {
-  if (myOrganization.organizationId) {
-    dispatch(fetchOrganizationMembers(myOrganization.organizationId));
-  }
-}, [dispatch, myOrganization.organizationId]); // Chỉ gọi khi organizationId có giá trị
+  // Fetch organization members
+  useEffect(() => {
+    if (myOrganization?.organizationId) { // Use optional chaining and check if organizationId exists
+      dispatch(fetchOrganizationMembers(myOrganization.organizationId));
+    }
+  }, [dispatch, myOrganization?.organizationId]); // Depend on organizationId
 
-if (loading) return <LoadingModal />;
+  // --- Share Button Handler ---
+  const handleShareClick = () => {
+    // Get the current page URL
+    const currentUrl = window.location.href;
+    // Construct the Facebook Sharer URL
+    // We encode the current URL to make sure it's passed correctly as a parameter
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+
+    // Open the Facebook Sharer dialog in a new tab/window
+    // 'noopener noreferrer' is important for security when opening external links
+    window.open(facebookShareUrl, '_blank', 'noopener,noreferrer');
+  };
+  // --- End Share Button Handler ---
+
   if (loading) return <LoadingModal />;
 
+  // Simplified error handling
   if (error) {
     return (
-      <div className="request-detail-page">
-        <Alert message="Error" description={error.message} type="error" showIcon />
+      <div className="request-detail-page" style={{ padding: "2rem" }}>
+        <Alert message="Error" description={error.message || "Failed to load request."} type="error" showIcon />
       </div>
     );
   }
 
-  if (!requestData || !requestData.helpRequest) {
+  // Improved check for request data
+  if (!requestData?.helpRequest) {
+    // Don't show loading here, show not found or different error
     return (
-      <div className="request-detail-page">
-        <Alert message="Error" description="Request not found" type="error" showIcon />
+      <div className="request-detail-page" style={{ padding: "2rem" }}>
+        <Alert message="Not Found" description="The requested resource could not be found." type="warning" showIcon />
+        <Button onClick={() => navigate('/requests/myrequests')} style={{ marginTop: '1rem' }}>Go Back</Button>
       </div>
     );
   }
 
-  // Lấy data
-  const { helpRequest, requestTags } = requestData;
-  const { user } = helpRequest || {};
 
-  // Lọc ảnh/video (nếu backend trả về attachments)
-  const imageUrls = requestData.attachments?.filter((url) =>
-    url.match(/\.(jpeg|jpg|png|gif)$/i)
-  ) || [];
-  const videoUrls = requestData.attachments?.filter((url) =>
-    url.match(/\.(mp4|webm|ogg)$/i)
-  ) || [];
+  // Lấy data (safer access with optional chaining)
+  const { helpRequest, requestTags, attachments } = requestData;
+  const { user, category, title, content, phone, email, location } = helpRequest;
+
+  // Filter media URLs (safer with optional chaining)
+  const imageUrls = attachments?.filter((att) =>
+    att.filePath?.match(/\.(jpeg|jpg|png|gif|webp)$/i) // Check filePath exists
+  ).map(att => att.filePath) || []; // Map to get the actual URL string
+  const videoUrls = attachments?.filter((att) =>
+    att.filePath?.match(/\.(mp4|webm|ogg)$/i) // Check filePath exists
+  ).map(att => att.filePath) || []; // Map to get the actual URL string
+
 
   const carouselSettings = {
+    dots: true, // Added dots for better navigation
     arrows: true,
-    infinite: true,
+    prevArrow: <LeftOutlined />,
+    nextArrow: <RightOutlined />,
+    infinite: imageUrls.length + videoUrls.length > 1, // Only infinite if more than one item
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
+    adaptiveHeight: true, // Adjust height based on content
   };
 
   return (
-    <Flex vertical gap={10} style={{ padding: "0 6rem 2rem 6rem", margin: "0" }} >
-      <Flex gap={10} vertical className="request-detail-page" >
-        <Breadcrumb
-          items={items} />
-        <Flex vertical gap={10} className="request-detail">
-          {/* Tiêu đề */}
-          <Title level={3} className="request-title">{helpRequest.title}</Title>
+    <Flex vertical gap={20} style={{ padding: "1rem 2rem 2rem 2rem", maxWidth: '1200px', margin: '0 auto' }} > {/* Adjusted padding and max-width */}
+      <Breadcrumb items={items} />
+      <Flex vertical gap={20} className="request-detail"> {/* Increased gap */}
+        {/* Title */}
+        <Title level={2} style={{ marginBottom: '0.5rem' }}>{title}</Title> {/* Adjusted level and margin */}
 
-          {/* Carousel ảnh/video ngay dưới tiêu đề */}
-          {(imageUrls.length > 0 || videoUrls.length > 0) && (
-            <div className="request-carousel" style={{ position: 'relative' }}>
-              <Carousel arrows  {...carouselSettings} style={{ position: 'relative', borderRadius: 10 }}>
-                {imageUrls.map((url, index) => (
-                  <div key={`img-${index}`} className="media-slide">
-                    <img src={url} alt={`request-img-${index}`} />
-                  </div>
-                ))}
-                {videoUrls.map((url, index) => (
-                  <div key={`vid-${index}`} className="media-slide">
-                    <video src={url} controls />
-                  </div>
-                ))}
-              </Carousel>
-              <span className="category-badge">
-                {helpRequest.category.categoryName}
-              </span>
-            </div>
-          )}
-
-          {/* Tổ chức gây quỹ */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <UserOutlined style={{ fontSize: 24 }} />
-            <div>
-              <strong>{helpRequest.user.fullName}</strong> <br />
-              <div style={{ fontSize: 10, marginTop: 5 }}>
-                <strong>Phone:</strong> {helpRequest.phone} <br />
-                <strong>Email:</strong> {helpRequest.email} <br />
-                <strong>Location:</strong> {helpRequest.location}
-              </div>
-
-              {/* <p style={{ margin: 0, color: "#666" }}>Churchtown Primary School and David Clayton are organizing this fundraiser.</p> */}
-            </div>
-          </div>
-
-          <hr />
-          {requestTags?.length > 0 && (
-            <Paragraph className="request-tags">
-              {requestTags.map((taggable) => (
-                <Badge key={taggable.tag.id}
-                  count={
-                    <span style={{ backgroundColor: "#DFF6E1", color: "#177A56", padding: "5px 10px", borderRadius: 20, display: "flex", alignItems: "center", gap: 5 }}>
-                      <CheckCircleOutlined /> {taggable.tag.tagName}
-                    </span>
-                  }
-                />
+        {/* Media Carousel */}
+        {(imageUrls.length > 0 || videoUrls.length > 0) && (
+          <div className="request-carousel" style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid #f0f0f0' }}> {/* Added border */}
+            <Carousel {...carouselSettings}>
+              {imageUrls.map((url, index) => (
+                <div key={`img-${index}`} className="media-slide" style={{ background: '#f7f7f7' }}> {/* Added background */}
+                  {/* Ensure consistent image display */}
+                  <img
+                    src={url}
+                    alt={`request-media-${index}`}
+                    style={{ width: '100%', height: '400px', objectFit: 'contain', display: 'block' }} // Adjust height, objectFit
+                  />
+                </div>
               ))}
-            </Paragraph>
-          )}
-          {/* Badge bảo vệ quyên góp */}
-
-
-          {/* Nội dung gây quỹ */}
-          {/* <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "Read more" }}>{request.content}</Paragraph> */}
-          {expanded ? <Paragraph>{`${helpRequest.content}`} </Paragraph> : <Paragraph>{`${helpRequest.content.substring(0, 800)}...`}</Paragraph>}
-          <a style={{ fontSize: "0.9rem", color: "gray" }} onClick={() => setExpanded(!expanded)}>
-            {expanded ? "Read Less" : "Read More"}
-          </a>
-
-          {/* Nút Donate & Share */}
-          <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-          {currentUser.id !== requestData.helpRequest.user.id && (
-            <Button type="default" block style={{ flex: 1 }} onClick={()=>{
-              if(myOrganization){
-                if(myOrganization.organizationStatus === "APPROVED"){
-                  if(orgMembers.filter((member)=>member.user.userRole !== "Leader").length === 0){
-                    message.error("Your organization doesn't have any available member to be leader")
-                  }else{
-                    navigate(`/manage-organization/projects/create/${requestData.helpRequest.id}`)
-                  }
-                }else{
-                  message.error("Your organization is not approved yet")
-                }
-              }else{
-                message.error("You must be a ceo of an organization to register for request")
-              }
-              }}>
-              Register
-            </Button>
-          )}
-            <Button type="default" block style={{ flex: 1 }}>
-              Share
-            </Button>
+              {videoUrls.map((url, index) => (
+                <div key={`vid-${index}`} className="media-slide" style={{ background: '#000' }}> {/* Dark background for video */}
+                  <video
+                    src={url}
+                    controls
+                    style={{ width: '100%', height: '400px', display: 'block' }} // Consistent height
+                  />
+                </div>
+              ))}
+            </Carousel>
+            {category?.categoryName && (
+              <Tag color="blue" className="category-badge" style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1 }}>
+                {category.categoryName}
+              </Tag>
+            )}
           </div>
+        )}
 
+        {/* User/Organizer Info */}
+        {user && ( // Check if user exists
+          <Card size="small"> {/* Wrap in a card for better visual grouping */}
+            <Flex align="center" gap={15}>
+              <UserOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+              <div>
+                <Text strong>{user.fullName || 'Unknown User'}</Text>
+                <div style={{ fontSize: '0.85rem', color: '#595959', marginTop: '4px' }}>
+                  {phone && <span><strong>Phone:</strong> {phone}<br /></span>}
+                  {email && <span><strong>Email:</strong> {email}<br /></span>}
+                  {location && <span><strong>Location:</strong> {location}</span>}
+                </div>
+              </div>
+            </Flex>
+          </Card>
+        )}
+
+
+        <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0' }} />
+
+        {/* Tags */}
+        {requestTags?.length > 0 && (
+          <div className="request-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {requestTags.map((taggable) => (
+              <Tag
+                key={taggable.tag.id}
+                icon={<CheckCircleOutlined />}
+                color="success" // Use Ant Design colors
+                style={{ borderRadius: '12px', padding: '3px 8px' }} // Style adjustments
+              >
+                {taggable.tag.tagName}
+              </Tag>
+            ))}
+          </div>
+        )}
+
+        {/* Content */}
+        <Card title="Details" size="small"> {/* Added card around content */}
+          <Paragraph style={{ whiteSpace: 'pre-wrap' }}> {/* Preserve line breaks */}
+            {expanded ? content : `${content?.substring(0, 800)}${content?.length > 800 ? '...' : ''}`}
+          </Paragraph>
+          {content?.length > 800 && ( // Only show Read More/Less if content is long
+            <Button type="link" style={{ paddingLeft: 0 }} onClick={() => setExpanded(!expanded)}>
+              {expanded ? "Read Less" : "Read More"}
+            </Button>
+          )}
+        </Card>
+
+
+        {/* Action Buttons */}
+        <Flex gap={10} style={{ marginTop: '1rem' }}>
+          {currentUser?.id !== user?.id && ( // Safer check with optional chaining
+            <Button type="primary" block style={{ flex: 1 }} onClick={() => {
+              if (myOrganization) {
+                if (myOrganization.organizationStatus === "APPROVED") {
+                  const availableMembers = orgMembers?.filter((member) => member.user.userRole !== "Leader"); // Check orgMembers exist
+                  if (!availableMembers || availableMembers.length === 0) { // Check if filter result is empty or orgMembers is null/undefined
+                    message.error("Your organization doesn't have any available members to assign.");
+                  } else {
+                    navigate(`/manage-organization/projects/create/${helpRequest.id}`);
+                  }
+                } else {
+                  message.warning(`Your organization (${myOrganization.organizationName}) is pending approval or has been rejected.`);
+                }
+              } else {
+                message.error("You must be the leader of an organization to register for this request.");
+              }
+            }}>
+              Register Project
+            </Button>
+          )}
+          {/* Updated Share Button */}
+          <Button type="default" block style={{ flex: 1 }} onClick={handleShareClick}>
+            Share
+          </Button>
         </Flex>
 
       </Flex>
-      <RequestActiveCarousel search={false} map={false} />
+
+      {/* Related/Active Carousel */}
+      {/* Passing props explicitly */}
+      <RequestActiveCarousel showSearch={false} showMap={false} title="Other Active Requests" />
     </Flex>
   );
 };

@@ -77,7 +77,7 @@ const JoinRequests = ({ organizationId }) => {
                   ) : (
                     <a
                       href={
-                        "http://localhost:8080/uploads/Dynamic-Programing.pdf"
+                        "https://fcharity.azurewebsites.net/uploads/Dynamic-Programing.pdf"
                       }
                       target="_blank"
                       rel="noreferrer"

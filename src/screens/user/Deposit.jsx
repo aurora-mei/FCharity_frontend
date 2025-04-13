@@ -32,7 +32,7 @@ const ProductDisplay = () => {
     setIsCreatingLink(true);
     exit();
     const response = await APIPrivate.post(
-      "http://localhost:8080/payment/create",
+      "https://fcharity.azurewebsites.net/payment/create",
        {
             amount: 2000,
             itemContent:"tesst",

@@ -37,7 +37,7 @@ const EditOrganization = () => {
         setCeoSearch(orgData.ceo?.fullName || ""); // Hiển thị tên CEO hiện tại
         setImagePreview(
           orgData.pictures
-            ? `http://localhost:8080${orgData.pictures}`
+            ? `https://fcharity.azurewebsites.net${orgData.pictures}`
             : "https://images.unsplash.com/photo-1520962880247-cfaf541c8724?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8cGVhY2V8ZW58MHx8MHx8fDA%3D"
         ); // Hiển thị ảnh hiện tại
       } catch (err) {

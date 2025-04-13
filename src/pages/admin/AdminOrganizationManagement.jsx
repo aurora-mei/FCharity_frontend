@@ -346,7 +346,7 @@ const AdminOrganizationManagement = () => {
                     <img
                       src={
                         org.pictures
-                          ? `http://localhost:8080${org.pictures}`
+                          ? `https://fcharity.azurewebsites.net${org.pictures}`
                           : "https://images.unsplash.com/photo-1520962880247-cfaf541c8724?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8cGVhY2V8ZW58MHx8MHx8fDA%3D"
                       }
                       alt={`${org.organizationName} cover`}
@@ -355,7 +355,7 @@ const AdminOrganizationManagement = () => {
                         e.target.src =
                           "https://via.placeholder.com/600x200?text=No+Image";
                         console.error(
-                          `Failed to load image: http://localhost:8080${org.pictures}`
+                          `Failed to load image: https://fcharity.azurewebsites.net${org.pictures}`
                         );
                       }}
                     />

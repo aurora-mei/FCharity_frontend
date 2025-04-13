@@ -6,7 +6,7 @@ const OrganizationOverview = ({ organization }) => {
   const [formData, setFormData] = useState({ ...organization });
   const [previewImage, setPreviewImage] = useState(
     organization.pictures
-      ? "http://localhost:8080" + organization.pictures
+      ? "https://fcharity.azurewebsites.net" + organization.pictures
       : null
   ); // Ảnh preview
   const [isDragging, setIsDragging] = useState(false); // Trạng thái kéo thả
@@ -213,7 +213,7 @@ const OrganizationOverview = ({ organization }) => {
             style={{
               backgroundImage:
                 organization.pictures != undefined
-                  ? `url('http://localhost:8080${organization.pictures}')`
+                  ? `url('https://fcharity.azurewebsites.net${organization.pictures}')`
                   : `url('https://www.aaronreedphotography.com/images/xl/Sweet-Dreams-2022.jpg')`,
             }}
           />
