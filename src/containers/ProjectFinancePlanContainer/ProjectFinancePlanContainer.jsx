@@ -105,6 +105,7 @@ const ProjectFinancePlanContainer = () => {
         if (currentSpendingPlan && currentSpendingPlan.id) {
             dispatch(fetchSpendingItemOfPlan(currentSpendingPlan.id));
         }
+        console.log("currentSpendingPlan", !currentSpendingPlan.id);
     }, [ currentSpendingPlan, dispatch]);
     useEffect(() => {
         console.log("curr",currentSpendingPlan)
@@ -236,7 +237,7 @@ const ProjectFinancePlanContainer = () => {
     return (
         <>
             {currentProject && currentProject.project && (
-                (!currentSpendingPlan && !currentSpendingPlan.id) ? (
+                (!currentSpendingPlan.id) ? (
                     <>
                         <SpendingPlanFlex>
                             {isLeader && 
@@ -278,7 +279,7 @@ const ProjectFinancePlanContainer = () => {
                         <Header>
                             <TitleSection>
                                 <Title level={4}>{(currentSpendingPlan && currentSpendingPlan.planName) ? `${currentSpendingPlan.planName}` : ""}</Title>
-                                {isLeader && currentSpendingPlan.approvalStatus === "PREPARING" &&
+                                {isLeader || currentSpendingPlan.approvalStatus === "PREPARING" &&
                                     <StyledButtonInvite icon={<EditOutlined
                                         onClick={() => setIsOpenUpdatePlanModal(true)}
                                         style={{ cursor: 'pointer', fontSize: "1rem" }} />}></StyledButtonInvite>}
