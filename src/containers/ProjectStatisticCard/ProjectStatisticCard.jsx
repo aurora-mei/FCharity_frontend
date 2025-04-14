@@ -139,22 +139,29 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
     }, [donations]);
 
     useEffect(() => {
-        dispatch(fetchSpendingPlanOfProject(project.id));
-        if (currentSpendingPlan && currentSpendingPlan.id) {
-            setCurrentDonationValue(donations.filter((x) => x.donationStatus === "COMPLETED")
-            .reduce((total, donation) => total + donation.amount, 0))
-        setEstimatedTotalCost(currentSpendingPlan.estimatedTotalCost);
+        if (project?.id) {
+            dispatch(fetchSpendingPlanOfProject(project.id));
         }
-        
-        console.log("plan", currentSpendingPlan)
-    }, [dispatch, currentDonationValue,currentSpendingPlan]);
+    }, [dispatch, project?.id]);
+    
     useEffect(() => {
-        if (project ) {
+        if (donations && currentSpendingPlan) {
+            setCurrentDonationValue(
+                donations
+                    .filter((x) => x.donationStatus === "COMPLETED")
+                    .reduce((total, donation) => total + donation.amount, 0)
+            );
+            setEstimatedTotalCost(currentSpendingPlan.estimatedTotalCost);
+        }
+    }, [donations, currentSpendingPlan]);
+    
+    useEffect(() => {
+        if (project?.id) {
             dispatch(fetchProjectRequests(project.id));
             dispatch(fetchActiveProjectMembers(project.id));
         }
-        console.log("projectRequests", projectRequests);
-    }, [dispatch, donations]);
+    }, [dispatch, project?.id]);
+    
 
     const handleSendJoinRequest = () => {
         dispatch(
