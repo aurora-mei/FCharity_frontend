@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 
 } from "recharts";
-import { fetchProjectsByOrgThunk, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan } from "../../redux/project/projectSlice";
+import { fetchProjectsByOrgThunk, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan,approveSpendingPlanThunk } from "../../redux/project/projectSlice";
 import { useDispatch, useSelector } from "react-redux";
 import ManagerLayout from "../../components/Layout/ManagerLayout";
 import { FaLink } from "react-icons/fa";
@@ -132,7 +132,9 @@ const OrganizationProject = () => {
                     <Title level={4}>
                       {(currentSpendingPlan && currentSpendingPlan.id) ? currentSpendingPlan.planName : ""}
                     </Title>
-                    <Button>Approve</Button>
+                    <Button onClick={()=>{
+                      dispatch(approveSpendingPlanThunk(currentSpendingPlan.id));
+                    }}>Approve</Button>
                   </Flex>
 
                   {spendingItems && spendingItems.length > 0 ? (

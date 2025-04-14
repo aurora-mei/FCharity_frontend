@@ -39,7 +39,7 @@ const SpendingPlanModal = ({project, form, isOpenModal,setIsOpenModal , spending
             id: spendingPlan.id,
             planName: spendingPlan.planName,
             description: spendingPlan.description,
-            minRequiredDonationAmount: spendingPlan.minRequiredDonationAmount,
+            maxExtraCostPercentage: spendingPlan.maxExtraCostPercentage,
             estimatedTotalCost: spendingPlan.estimatedTotalCost,
             approvalStatus: spendingPlan.approvalStatus,
           });
@@ -89,15 +89,13 @@ return (
             </Form.Item>
 
             <Form.Item
-                name="minRequiredDonationAmount"
-                label="Minimum Required Donation Amount"
-                rules={[{ required: true, message: "Please input the minimum donation amount" }]}
+                name="maxExtraCostPercentage"
+                label="Max Extra Cost Percentage"
             >
                 <InputNumber
                     style={{ width: "100%" }}
-                    min={0}
-                    step={0.01}
-                    placeholder="e.g. 100.00"
+                    formatter={(value) => `${value} %`}
+                    readOnly
                 />
             </Form.Item>
 

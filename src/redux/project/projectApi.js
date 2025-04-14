@@ -103,8 +103,22 @@ const moveOutProjectMember = async (memberId) => {
     try {
         const response = await APIPrivate.post(`projects/members/move-out/${memberId}`);
         console.log("Project members:", response.data);
+        message.success("Move out project member successful");
         return response.data;
     } catch (err) {
+        message.error("Error move out project member");
+        console.error("Error get project members:", err);
+        throw err.response.data;
+    }
+}
+const removeProjectMember = async (memberId) => {
+    try {
+        const response = await APIPrivate.post(`projects/members/remove/${memberId}`);
+        console.log("Project members:", response.data);
+        message.success("Remove project member successful");
+        return response.data;
+    } catch (err) {
+        message.error("Error remove project member");
         console.error("Error get project members:", err);
         throw err.response.data;
     }
@@ -243,7 +257,7 @@ export const getSpendingTemplate = async (projectId) => { // Rename for clarity
                 filename = matches[1].replace(/['"]/g, '');
             }
         }
-console.log("filename",filename);
+        console.log("filename",filename);
         // 3. Use FileSaver.js (or manual method) to save the blob
         saveAs(blob, filename);
 
@@ -356,7 +370,19 @@ export const deleteSpendingPlan = async (planId) => {
         throw err.response?.data;
     }
 };
+export const approveSpendingPlan = async(planId)=>{
+    try{
+        const response = await APIPrivate.post(`projects/spending/plans/${planId}/approve`);
+        console.log("Spending plan approved:", response.data);
+        message.success("Spending plan approved successfully");
+        return response.data;
+    }catch(err){
+        console.error("Error approving spending plan:", err);
+        message.error("Error approving spending plan");
+        throw err.response.data;
+    }
 
+}
 // ===== SPENDING ITEM =====
 export const createSpendingItem = async (dto) => {
     try {
@@ -447,10 +473,10 @@ const getDonationsOfProject = async (projectId) => {
 }
 
 const projectApi = { fetchProjects, createProject, fetchProjectById, fetchMyProjects,updateProject,fetchProjectsByOrg,
-    getUserNotInProject, addProjectMember,fetchAllProjectMembers, fetchActiveProjectMembers,moveOutProjectMember,inviteProjectMember,
+    getUserNotInProject, addProjectMember,fetchAllProjectMembers, fetchActiveProjectMembers,moveOutProjectMember,removeProjectMember,inviteProjectMember,
     getAllProjectRequest, sendJoinRequest, cancelProjectRequest,approveJoinRequest,rejectJoinRequest,
     approveLeaveRequest,rejectLeaveRequest,
-    getSpendingTemplate,importSpendingPlan,
+    getSpendingTemplate,importSpendingPlan,approveSpendingPlan,
     getSpendingPlanOfProject, createSpendingPlan, getSpendingPlanById, updateSpendingPlan, deleteSpendingPlan,
     createSpendingItem,getSpendingItemById,updateSpendingItem,deleteSpendingItem,getItemsByPlan,
      createDonation,getDonationsOfProject};

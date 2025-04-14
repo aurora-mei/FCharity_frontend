@@ -19,7 +19,7 @@ import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addProjectMemberThunk,
-  moveOutProjectMemberThunk,
+  removeProjectMemberThunk,
   fetchAllProjectMembersThunk,
 } from "../../redux/project/projectSlice";
 import {
@@ -125,7 +125,7 @@ const CreateProjectScreen = () => {
   const handleRemoveMembers = () => {
     console.log("selectedProjectMembers", selectedProjectMembers);
     selectedProjectMembers.forEach((memberId) => {
-      dispatch(moveOutProjectMemberThunk(memberId));
+      dispatch(removeProjectMemberThunk(memberId));
     });
     const removedMembers = myProjectMembers.filter((member) =>
       selectedProjectMembers.includes(member.id)
