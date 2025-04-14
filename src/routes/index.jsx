@@ -52,9 +52,13 @@ import UserRankings from "../pages/manage/components/UserRankings.jsx";
 import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
 import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 const AppRoutes = () => {
   return (
+    <QueryClientProvider client={queryClient}>
     <Router>
       <Routes>
         <Route path="/auth">
@@ -142,6 +146,7 @@ const AppRoutes = () => {
         </Route>
       </Routes>
     </Router>
+    </QueryClientProvider>
   );
 };
 

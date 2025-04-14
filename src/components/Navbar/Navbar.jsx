@@ -27,6 +27,7 @@ import {
   getJoinedOrganizations, // lấy các tổ chức mà mình đã tham gia (member)
 } from "../../redux/organization/organizationSlice";
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
+import NotificationBell from "./NotificationBell";
 import "./Navbar.pcss";
 import { fetchMyProjectsThunk } from "../../redux/project/projectSlice"; // Import your thunk action
 const lngs = {
@@ -314,6 +315,8 @@ const Navbar = () => {
             {/* Added wrap */}
             {token ? (
               // Use the renamed user menu items
+              <Flex align="center" gap="16px">
+                <NotificationBell />
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                 {/* Added specific class for potential user button styling */}
                 <Button className="btn-custom btn-user" type="text">
@@ -326,6 +329,7 @@ const Navbar = () => {
                   <span className="user-name">{currentUser?.fullName}</span>
                 </Button>
               </Dropdown>
+              </Flex>
             ) : (
               <Button
                 className="btn-custom"
