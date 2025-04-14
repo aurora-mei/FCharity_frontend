@@ -4,9 +4,11 @@ import { ToastContainer } from "react-toastify";
 import AppFooter from "../AppFooter/AppFooter";
 import { Outlet } from "react-router-dom";
 import UserSidebar from "../OrganizationManagement/UserSidebar";
+import { StompSessionProvider } from "react-stomp-hooks";
 
 const UserLayout = () => {
   return (
+    <StompSessionProvider url={"ws://localhost:8080/ws/websocket"}>
     <div>
       <Navbar />
       <div className="relative">
@@ -27,6 +29,7 @@ const UserLayout = () => {
         </main>
       </div>
     </div>
+    </StompSessionProvider>
   );
 };
 
