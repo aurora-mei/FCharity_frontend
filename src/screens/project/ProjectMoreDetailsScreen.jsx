@@ -273,7 +273,7 @@ const ProjectMoreDetailScreen = () => {
       dispatch(fetchActiveProjectMembers(project.id));
     }
     console.log("currentProject", currentProject);
-  }, [dispatch, currentProject.project, donations]);
+  }, [dispatch, currentProject.project, donations,checkoutURL]);
 
   // Lọc ảnh/video (nếu backend trả về attachments)
   const imageUrls = currentProject.attachments?.filter((url) =>
