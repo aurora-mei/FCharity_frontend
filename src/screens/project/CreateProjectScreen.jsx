@@ -233,7 +233,7 @@ const CreateProjectScreen = () => {
     console.log("Project Members:", myProjectMembers);
     console.log("Organization Members:", currentOrganizationMembers);
     if (isFirstMount && currentOrganizationMembers?.length > 0) {
-      setAvailableMembers(currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER"));
+      setAvailableMembers(currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER" && newProject.project.leader.id !== x.user.id));
       setIsFirstMount(false); 
     }
   }, [dispatch, newProject]);

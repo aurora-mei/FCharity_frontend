@@ -8,12 +8,10 @@ import UserSidebar from "../OrganizationManagement/UserSidebar";
 const UserLayout = () => {
   return (
     <div>
-      <Navbar />
       <div className="relative">
         <UserSidebar />
         <main className="flex-1 ml-64 pt-6">
           <Outlet />
-          <AppFooter />
           <ToastContainer
             position="bottom-right"
             autoClose={3000}

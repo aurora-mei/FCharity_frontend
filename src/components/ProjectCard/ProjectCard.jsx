@@ -115,6 +115,21 @@ const ProjectCard = ({ projectData, only }) => {
                             >
                                 {donations.filter((x) => x.donationStatus === "COMPLETED").length} donations
                             </div>
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    bottom: 10,
+                                    padding: "0.1rem 0.5rem",
+                                    right: 10,
+                                    backgroundColor: "green",
+                                    color: "white",
+                                    borderRadius: "1rem",
+                                    width: "fit-content",
+                                    fontSize: "0.9rem",
+                                }}
+                            >
+                                {projectData.project.projectStatus}
+                            </div>
                         </>
                     }
                 >
