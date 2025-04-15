@@ -12,25 +12,26 @@ import {
   ResponsiveContainer,
 
 } from "recharts";
-import { fetchProjectsByOrgThunk, fetchSpendingPlansOfProject, fetchSpendingItemOfPlan } from "../../redux/project/projectSlice";
+import { fetchProjectsByOrgThunk, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan } from "../../redux/project/projectSlice";
 import { useDispatch, useSelector } from "react-redux";
 import ManagerLayout from "../../components/Layout/ManagerLayout";
 import { FaLink } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { getManagedOrganizationByCeo } from "../../redux/organization/organizationSlice";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
 import { Col, Row, Button, Flex, Modal, Skeleton, Empty ,Typography } from "antd";
 const { Title } = Typography;
 import { Table } from "antd";
 const OrganizationProject = () => {
-  const myOrganization = useSelector((state) => state.organization.myOrganization);
+  const myOrganization = useSelector((state) => state.organization.ownedOrganization);
 
-  const { organizationId } = useParams();
+  // const { organizationId } = useParams();
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("overview");
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const spendingPlans = useSelector((state) => state.project.spendingPlans);
+  const currentSpendingPlan = useSelector((state) => state.project.currentSpendingPlan);
   const spendingItems = useSelector((state) => state.project.spendingItems);
   const [loading, setLoading] = useState(false);
   const [newProject, setNewProject] = useState({
@@ -39,8 +40,11 @@ const OrganizationProject = () => {
     status: "Active",
   });
   const projectByOrg = useSelector(state => state.project.projects);
+  useEffect(()=>{
+    dispatch(getManagedOrganizationByCeo());
+  },[dispatch])
   useEffect(() => {
-    console.log("Organization ID:", organizationId);
+    // console.log("Organization ID:", organizationId);
     dispatch(fetchProjectsByOrgThunk(myOrganization.organizationId));
   }, [myOrganization]);
 
@@ -108,10 +112,10 @@ const OrganizationProject = () => {
                             console.log("Selected Project:", project);
                             if (selectedProject && selectedProject.project) {
                               console.log(selectedProject.project.id);
-                              dispatch(fetchSpendingPlansOfProject(selectedProject.project.id));
+                              dispatch(fetchSpendingPlanOfProject(selectedProject.project.id));
                             }
-                            if (spendingPlans && spendingPlans.length > 0) {
-                              dispatch(fetchSpendingItemOfPlan(spendingPlans[0].id));
+                            if (currentSpendingPlan && currentSpendingPlan.id) {
+                              dispatch(fetchSpendingItemOfPlan(currentSpendingPlan.id));
                             }
                           }
                           } type="primary" style={{ marginTop: '10px' }} onClick={() => { }}>View Spending plan</Button>
@@ -126,7 +130,7 @@ const OrganizationProject = () => {
                 <>
                   <Flex justify="space-between" align="center" style={{ padding: '20px' }}>
                     <Title level={4}>
-                      {(spendingPlans && spendingPlans.length) ? spendingPlans[0].planName : ""}
+                      {(currentSpendingPlan && currentSpendingPlan.id) ? currentSpendingPlan.planName : ""}
                     </Title>
                     <Button>Approve</Button>
                   </Flex>
@@ -177,7 +181,7 @@ const OrganizationProject = () => {
   };
 
   return (
-    <ManagerLayout>
+    <div>
       <div className="pl-2">
         <div className="inline-flex gap-2 items-baseline">
           <FaLink />
@@ -220,7 +224,7 @@ const OrganizationProject = () => {
           </div>
         </div>
       </div>
-    </ManagerLayout>
+    </div>
   );
 };
 

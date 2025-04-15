@@ -45,6 +45,13 @@ import ProjectMemberContainer from "../containers/ProjectMemberContainer/Project
 import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer.jsx";
 import ProjectDonationContainer from "../containers/ProjectDonationContainer/ProjectDonationContainer.jsx";
 
+import OrganizationsOverview from "../pages/guest/OrganizationsOverview.jsx";
+import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
+import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
+import UserRankings from "../pages/manage/components/UserRankings.jsx";
+import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
+import UserLayout from "../components/Layout/UserLayout.jsx";
+import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -66,11 +73,14 @@ const AppRoutes = () => {
           <Route path="/posts/:id" element={<PostDetailPage />} />
           <Route path="/requests/:id" element={<RequestDetailScreen />} />
           <Route element={<PrivateRoute />}>
-            <Route path="/user/manage-profile" element={<ManageProfileScreen />}>
+            <Route
+              path="/user/manage-profile"
+              element={<ManageProfileScreen />}
+            >
               <Route path="profile" element={<MyProfileScreen />} />
               <Route path="mydonations" element={<MyDonationScreen />} />
               <Route path="myrequests" element={<MyRequestScreen />} />
-              <Route path="invitations" element={<InviteRequestScreen />} /> 
+              <Route path="invitations" element={<InviteRequestScreen />} />
             </Route>
             <Route path="requests">
               <Route index element={<RequestListScreen />} />
@@ -82,33 +92,56 @@ const AppRoutes = () => {
               <Route path="create-post" element={<CreatePostPage />} />
             </Route>
             <Route path="user">
-              <Route path="manage-profile/:keyTab" element={<ManageProfileScreen />} />
+              <Route
+                path="manage-profile/:keyTab"
+                element={<ManageProfileScreen />}
+              />
               <Route path="change-profile" element={<ChangeProfileModal />} />
               <Route path="change-password" element={<ChangePasswordModal />} />
             </Route>
-            <Route path="manage-organization">
-              <Route index element={<MyOrganization />} />
-              <Route path="dashboard" element={<OrganizationDashboard />} />
-              <Route path="users" element={<OrganizationMember />} />
-              <Route path="projects" element={<OrganizationProject />} />
-              <Route path="projects/create/:requestId" element={<CreateProjectScreen />} />
-              <Route path="requests" element={<OrganizationRequest />} />
-            </Route>
-            <Route path="manage-project" element={<ProjectDashboard />}/>
-            <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
-                <Route path="home" element={<ProjectHomeContainer />} />
-                <Route path="members" element={<ProjectMemberContainer />} />
-                <Route path="finance" element={<ProjectFinancePlanContainer />} />
-                <Route path="donations" element={<ProjectDonationContainer />} />
-                <Route path="*" element={<ProjectHomeContainer />} />
-            </Route>
-            <Route path="projects">
-              <Route path=":projectId" element={<ProjectDetailScreen />} />
-              <Route path=":projectId/details" element={<ProjectMoreDetailScreen />} />
-            </Route>
-            <Route path="/organizations">
-              <Route path="create" element={<CreateOrganization />} />
-            </Route>
+          </Route>
+          <Route path="projects">
+            <Route path=":projectId" element={<ProjectDetailScreen />} />
+            <Route
+              path=":projectId/details"
+              element={<ProjectMoreDetailScreen />}
+            />
+          </Route>
+          <Route path="manage-project" element={<ProjectDashboard />} />
+          <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
+            <Route path="home" element={<ProjectHomeContainer />} />
+            <Route path="members" element={<ProjectMemberContainer />} />
+            <Route path="finance" element={<ProjectFinancePlanContainer />} />
+            <Route path="donations" element={<ProjectDonationContainer />} />
+
+            <Route path="*" element={<ProjectHomeContainer />} />
+          </Route>
+        </Route>
+        <Route path="/" element={<ManagerLayout />}>
+          <Route path="my-organization">
+            <Route index element={<MyOrganization />} />
+            <Route path="dashboard" element={<OrganizationDashboard />} />
+            <Route path="members" element={<OrganizationMember />} />
+            <Route path="projects" element={<OrganizationProject />} />
+            <Route
+              path="projects/create/:requestId"
+              element={<CreateProjectScreen />}
+            />
+            <Route path="requests" element={<OrganizationRequest />} />
+            <Route path="schedule" element={<OrganizationSchedule />} />
+          </Route>
+        </Route>
+
+
+        <Route path="/" element={<UserLayout />}>
+          <Route path="organizations">
+            <Route index element={<OrganizationsOverview />} />
+            <Route path=":organizationId" element={<OrganizationDetails />} />
+            <Route path="create" element={<CreateOrganization />} />
+          </Route>
+          <Route path="rankings">
+            <Route path="organizations" element={<OrganizationRankings />} />
+            <Route path="users" element={<UserRankings />} />
           </Route>
         </Route>
       </Routes>

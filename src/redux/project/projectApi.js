@@ -1,5 +1,8 @@
 import { message } from 'antd';
 import { APIPrivate } from '../../config/API/api';
+import { saveAs } from 'file-saver';
+
+
 
 const fetchProjects = async () => {
     try {
@@ -218,6 +221,79 @@ const rejectLeaveRequest = async(requestId)=>{
     }
 }
 // ===== SPENDING PLAN =====
+export const getSpendingTemplate = async (projectId) => { // Rename for clarity
+    try {
+        const response = await APIPrivate.get( 
+            `projects/spending/${projectId}/download-template`,
+            {
+                responseType: 'blob', // *** CRITICAL: Tell Axios to expect binary data (Blob) ***
+            }
+        );
+        const blob = new Blob([response.data], {
+            type: response.headers['content-type'] || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // Get MIME type from header or default
+        });
+
+        // 2. Extract filename from Content-Disposition header (optional but recommended)
+        let filename = 'spending_template.xlsx'; // Default filename
+        const contentDisposition = response.headers['content-disposition'];
+        if (contentDisposition) {
+            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            const matches = filenameRegex.exec(contentDisposition);
+            if (matches != null && matches[1]) {
+                filename = matches[1].replace(/['"]/g, '');
+            }
+        }
+console.log("filename",filename);
+        // 3. Use FileSaver.js (or manual method) to save the blob
+        saveAs(blob, filename);
+
+        // No need to return response.data here as it's handled by FileSaver
+        // message.success("Template downloaded successfully."); // Optional success message
+
+    } catch (err) {
+        message.error("Failed to download spending template");
+        console.error("Error downloading Spending Template:", err);
+        // Handle specific error responses if needed
+        // Consider checking err.response.status or err.response.data if backend sends error details as JSON even on failure
+        // If the response for an error is also a blob, you might need to read it differently
+        if (err.response && err.response.data instanceof Blob && err.response.data.type.toLowerCase().indexOf('json') !== -1) {
+             // Try reading the Blob as JSON text if it's an error response
+             try {
+                const errorJson = await err.response.data.text();
+                const errorData = JSON.parse(errorJson);
+                console.error("Error details:", errorData);
+                 message.error(errorData.message || "An error occurred during download."); // Show more specific error
+                 throw errorData;
+             } catch (parseError) {
+                console.error("Could not parse error blob:", parseError);
+                 throw new Error("An unknown error occurred during download.");
+             }
+        } else {
+            // Throw original error or a generic one
+             throw err.response?.data || new Error("An unknown error occurred during download.");
+        }
+    }
+};
+
+export const importSpendingPlan = async ({file, projectId }) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await APIPrivate.post(`projects/spending/${projectId}/save-items-from-template`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        message.success("Spending plan imported successfully");
+        console.log("Imported Spending Plan:", response.data);
+        return response.data;
+    } catch (err) {
+        message.error(`Failed to import spending plan: ${err.response?.data?.message || ""}`);
+        console.error("Error importing Spending Plan:", err);
+        throw err.response?.data;
+    }
+};
+
 export const createSpendingPlan = async (dto) => {
     try {
         const response = await APIPrivate.post(`projects/spending/plans`, dto);
@@ -231,11 +307,10 @@ export const createSpendingPlan = async (dto) => {
     }
 };
 
-export const getSpendingPlansOfProject = async (projectId) => {
+export const getSpendingPlanOfProject = async (projectId) => {
     try {
         const response = await APIPrivate.get(`projects/spending/${projectId}/plan`);
-        // message.success("Fetched project spending plan successfully");
-        console.log("Fetched Spending Plans:", response.data);
+        console.log("Fetched Spending Plan:", response.data);
         return response.data;
     } catch (err) {
         // message.error("Failed to fetch project spending plan");
@@ -375,7 +450,8 @@ const projectApi = { fetchProjects, createProject, fetchProjectById, fetchMyProj
     getUserNotInProject, addProjectMember,fetchAllProjectMembers, fetchActiveProjectMembers,moveOutProjectMember,inviteProjectMember,
     getAllProjectRequest, sendJoinRequest, cancelProjectRequest,approveJoinRequest,rejectJoinRequest,
     approveLeaveRequest,rejectLeaveRequest,
-    getSpendingPlansOfProject, createSpendingPlan, getSpendingPlanById, updateSpendingPlan, deleteSpendingPlan,
+    getSpendingTemplate,importSpendingPlan,
+    getSpendingPlanOfProject, createSpendingPlan, getSpendingPlanById, updateSpendingPlan, deleteSpendingPlan,
     createSpendingItem,getSpendingItemById,updateSpendingItem,deleteSpendingItem,getItemsByPlan,
      createDonation,getDonationsOfProject};
 export default projectApi;

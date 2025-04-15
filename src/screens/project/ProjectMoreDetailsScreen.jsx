@@ -1,10 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { Row, Input, Col, Modal, Form, Flex, Typography, Carousel, Button, Badge, Divider, Table, InputNumber, message, Breadcrumb, Skeleton, Card, Progress, Avatar, Space } from "antd";
-import { UserOutlined, LeftCircleOutlined, HomeOutlined, FlagOutlined } from "@ant-design/icons";
-import { getOrganization } from "../../redux/organization/organizationSlice";
-import { getCurrentWalletThunk } from "../../redux/user/userSlice";
+import {
+  Row,
+  Input,
+  Col,
+  Modal,
+  Form,
+  Flex,
+  Typography,
+  Carousel,
+  Button,
+  Badge,
+  Divider,
+  Table,
+  InputNumber,
+  message,
+  Breadcrumb,
+  Skeleton,
+  Card,
+  Progress,
+  Avatar,
+  Space,
+} from "antd";
+import {
+  UserOutlined,
+  LeftCircleOutlined,
+  HomeOutlined,
+  FlagOutlined,
+} from "@ant-design/icons";
+import { getOrganizationById } from "../../redux/organization/organizationSlice";
 import { getPaymentLinkThunk } from "../../redux/helper/helperSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
@@ -24,135 +49,134 @@ import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectS
 const { Title, Paragraph, Text } = Typography;
 
 const StyledScreen = styled.div`
-.request-detail-page {
-  padding:1rem 1rem;
-}
-.request-detail{
-  background-color: #fff;
-  border-radius: 1rem;
-  /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
-  margin-bottom: 24px;
-}
-.request-title {
-  text-align: left;
-  margin-bottom: 1rem !important;
-}
+  .request-detail-page {
+    padding: 1rem 1rem;
+  }
+  .request-detail {
+    background-color: #fff;
+    border-radius: 1rem;
+    /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
+    margin-bottom: 24px;
+  }
+  .request-title {
+    text-align: left;
+    margin-bottom: 1rem !important;
+  }
 
-/* Carousel nằm ngay dưới title */
-.request-carousel {
-  width: 100%;
-  margin-bottom: 1rem;
-}
+  /* Carousel nằm ngay dưới title */
+  .request-carousel {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
 
-.media-slide img,
-.media-slide video {
-  border-radius: 0.8rem;
-  width: 100%;
-  height: 22rem;
-  object-fit: cover;
-  object-position: center;
-  display:flex;
-}
+  .media-slide img,
+  .media-slide video {
+    border-radius: 0.8rem;
+    width: 100%;
+    height: 22rem;
+    object-fit: cover;
+    object-position: center;
+    display: flex;
+  }
 
-/* Mũi tên slick */
-.slick-arrow {
-  font-size: 24px;
-  color: #333 !important;
-  z-index: 2;
-  position: absolute; 
-  top: 50%;
-  transform: translateY(-50%);
-  display: block !important; /* Ép hiển thị mũi tên */
-}
+  /* Mũi tên slick */
+  .slick-arrow {
+    font-size: 24px;
+    color: #333 !important;
+    z-index: 2;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: block !important; /* Ép hiển thị mũi tên */
+  }
 
-/* Đẩy mũi tên ra ngoài ảnh */
-.slick-prev {
-  left: -40px; /* Thay đổi tuỳ ý, ví dụ -40px, -50px */
-}
+  /* Đẩy mũi tên ra ngoài ảnh */
+  .slick-prev {
+    left: -40px; /* Thay đổi tuỳ ý, ví dụ -40px, -50px */
+  }
 
-.slick-next {
-  right: -40px; /* Thay đổi tuỳ ý, ví dụ -40px, -50px */
-}
+  .slick-next {
+    right: -40px; /* Thay đổi tuỳ ý, ví dụ -40px, -50px */
+  }
 
-/* Xoá icon mặc định của slick */
-.slick-prev::before,
-.slick-next::before {
-  content: '';
-}
+  /* Xoá icon mặc định của slick */
+  .slick-prev::before,
+  .slick-next::before {
+    content: "";
+  }
 
-/* Thông tin tổ chức + donation tag */
-.organizer-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
+  /* Thông tin tổ chức + donation tag */
+  .organizer-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
 
-.organizer-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+  .organizer-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
-.organizer-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-}
+  .organizer-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
 
-.organizer-text {
-  font-size: 16px;
-}
+  .organizer-text {
+    font-size: 16px;
+  }
 
-/* Nội dung chính */
-.request-main-content {
-  margin-bottom: 24px;
-  line-height: 1.6;
-  font-size: 16px;
-}
+  /* Nội dung chính */
+  .request-main-content {
+    margin-bottom: 24px;
+    line-height: 1.6;
+    font-size: 16px;
+  }
 
-.request-tags {
-  display:flex;
-  gap: 8px;
-  margin:0 !important;
-  .ant-typography {
-  margin:0 !important;
-}
-}
+  .request-tags {
+    display: flex;
+    gap: 8px;
+    margin: 0 !important;
+    .ant-typography {
+      margin: 0 !important;
+    }
+  }
 
-/* Nút Donate */
-.donate-button-container {
-  text-align: center;
-  margin-bottom: 20px;
-}
-.category-badge{
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background-color: #D8BFD8; 
-  color: #800080; 
-  padding: 3px 10px;
-  border-radius: 15px;
-  font-size: 0.7rem;
-  font-weight: bold;
-}
+  /* Nút Donate */
+  .donate-button-container {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .category-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #d8bfd8;
+    color: #800080;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    font-weight: bold;
+  }
   .bottom-actions {
     display: flex;
     justify-content: space-between;
-    gap:1rem;
-    font-size: 0.9rem!important;
-    .ant-btn:hover{
-        background-color: #f0f0f0 !important;
-        color: black !important;
-        border-color: black !important;
+    gap: 1rem;
+    font-size: 0.9rem !important;
+    .ant-btn:hover {
+      background-color: #f0f0f0 !important;
+      color: black !important;
+      border-color: black !important;
     }
   }
-    .details-containter{
+  .details-containter {
     padding: 0 5rem;
-    }
+  }
 `;
-
 
 const StyledSection = {
   Container: styled.div`
@@ -180,7 +204,7 @@ const StyledSection = {
       p {
         margin: 0;
         color: #666;
-        margin-bottom:0.5rem;
+        margin-bottom: 0.5rem;
         &:first-child {
           font-weight: 600;
           color: #000;
@@ -226,7 +250,6 @@ const ProjectMoreDetailScreen = () => {
   const loading = useSelector((state) => state.project.loading);
 
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const balance = useSelector((state) => state.user.currentBalance);
 
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -239,14 +262,13 @@ const ProjectMoreDetailScreen = () => {
   useEffect(() => {
     dispatch(fetchProjectById(projectId));
     dispatch(fetchDonationsOfProject(projectId));
-    dispatch(getCurrentWalletThunk());
   }, [dispatch, projectId, donations.length]);
   useEffect(() => {
     if (checkoutURL) {
       window.location.href = checkoutURL;
     }
     if (currentProject.project) {
-      dispatch(getOrganization(currentProject.project.organizationId));
+      dispatch(getOrganizationById(currentProject.project.organizationId));
       dispatch(fetchProjectRequests(project.id));
       dispatch(fetchActiveProjectMembers(project.id));
     }
@@ -306,7 +328,6 @@ const ProjectMoreDetailScreen = () => {
     );
     setIsOpenModal(false);
     form.resetFields();
-    dispatch(getCurrentWalletThunk());
   }
 
   return (
@@ -355,7 +376,7 @@ const ProjectMoreDetailScreen = () => {
         <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
         <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
       </Flex>
-      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} balance={balance} />
+      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
     </StyledScreen>
   );
 }

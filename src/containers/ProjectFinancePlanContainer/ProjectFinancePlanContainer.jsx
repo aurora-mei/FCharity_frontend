@@ -7,7 +7,8 @@ import { useParams } from 'react-router-dom';
 import { deleteSpendingItemThunk, fetchProjectById } from '../../redux/project/projectSlice';
 import { useEffect } from 'react';
 import {
-    fetchSpendingPlansOfProject, fetchSpendingItemOfPlan, createSpendingPlanThunk
+    fetchSpendingTemplateThunk,importSpendingPlanThunk,
+    fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, createSpendingPlanThunk
     , createSpendingItemThunk, updateSpendingPlanThunk, updateSpendingItemThunk
 } from '../../redux/project/projectSlice';
 import SpendingPlanModal from '../../components/SpendingPlanModal/SpendingPlanModal';
@@ -80,12 +81,12 @@ const ProjectFinancePlanContainer = () => {
     const dispatch = useDispatch();
     const { projectId } = useParams();
     const currentProject = useSelector((state) => state.project.currentProject);
-    const spendingPlans = useSelector((state) => state.project.spendingPlans);
     const spendingItems = useSelector((state) => state.project.spendingItems);
     const currentSpendingPlan = useSelector((state) => state.project.currentSpendingPlan);
     const currentSpendingItem = useSelector((state) => state.project.currentSpendingItem);
     const [selectedSpendingItem, setSelectedSpendingItem] = useState(null);
     const [selectedSpendingPlan, setSelectedSpendingPlan] = useState(null);
+    const [downloadTemplate,setDownloadTemplate] = useState(false);
     const [isOpenCreatePlanModal, setIsOpenCreatePlanModal] = useState(false);
     const [isOpenUpdatePlanModal, setIsOpenUpdatePlanModal] = useState(false);
     const [isOpenCreateItemModal, setIsOpenCreateItemModal] = useState(false);
@@ -95,23 +96,25 @@ const ProjectFinancePlanContainer = () => {
     const [form] = Form.useForm();
     useEffect(() => {
         dispatch(fetchProjectById(projectId));
-    }, [projectId, dispatch]);
-    useEffect(() => {
         if (currentProject && currentProject.project) {
             console.log(currentProject.project.id);
-            dispatch(fetchSpendingPlansOfProject(currentProject.project.id));
+            dispatch(fetchSpendingPlanOfProject(currentProject.project.id));
         }
+    }, [projectId, dispatch]);
+    useEffect(() => {
+        if (currentSpendingPlan && currentSpendingPlan.id) {
+            dispatch(fetchSpendingItemOfPlan(currentSpendingPlan.id));
+        }
+    }, [ currentSpendingPlan, dispatch]);
+    useEffect(() => {
+        console.log("curr",currentSpendingPlan)
         if (currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id) {
             console.log(currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id)
             setIsLeader(true);
         }
         console.log("isLeader", currentSpendingPlan.approvalStatus !== "PREPARING");
-    }, [currentProject, dispatch]);
-    useEffect(() => {
-        if (spendingPlans && spendingPlans.length > 0) {
-            dispatch(fetchSpendingItemOfPlan(spendingPlans[0].id));
-        }
-    }, [spendingPlans, currentSpendingPlan, dispatch]);
+    }, [currentSpendingPlan]);
+   
     const handleAddSpendingPlan = (values) => {
         console.log("values", values);
         const newPlan = {
@@ -124,7 +127,7 @@ const ProjectFinancePlanContainer = () => {
         console.log("values", values);
         const newItem = {
             ...values,
-            spendingPlanId: spendingPlans[0].id,
+            spendingPlanId: currentSpendingPlan.id,
         };
         dispatch(createSpendingItemThunk(newItem))
         setIsOpenCreateItemModal(false);
@@ -145,7 +148,7 @@ const ProjectFinancePlanContainer = () => {
         if (values) {
             const updatedItem = {
                 ...values,
-                spendingPlanId: spendingPlans[0].id,
+                spendingPlanId: currentSpendingPlan.id,
             };
             console.log("updatedItem", updatedItem);
             dispatch(updateSpendingItemThunk({ itemId: updatedItem.id, dto: updatedItem }));
@@ -233,10 +236,38 @@ const ProjectFinancePlanContainer = () => {
     return (
         <>
             {currentProject && currentProject.project && (
-                (spendingPlans && spendingPlans.length === 0) ? (
+                (!currentSpendingPlan && !currentSpendingPlan.id) ? (
                     <>
                         <SpendingPlanFlex>
-                            {isLeader && (<StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreatePlanModal(true)} />)}
+                            {isLeader && 
+                            (
+                                <>                
+                                <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreatePlanModal(true)} />
+                                <Button title="Click here to download creating spending plan template" onClick={()=>{
+                                    setDownloadTemplate(true);
+                                    dispatch(fetchSpendingTemplateThunk(currentProject.project.id));
+                                }}>Download template</Button>
+                                {downloadTemplate && (
+                                  <Form>
+                                    <Form.Item>
+                                        <Input
+                                            type="file"
+                                            accept=".xlsx"
+                                            onChange={(e) => {
+                                                const file = e.target.files[0];
+                                                dispatch(importSpendingPlanThunk({file, projectId: currentProject.project.id}));
+                                            }}
+                                        />
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <Button type="primary" htmlType="submit">
+                                            Upload
+                                        </Button>
+                                    </Form.Item>
+                                  </Form>
+                                )}
+                                </>
+                            )}
                         </SpendingPlanFlex>
                         <SpendingPlanModal form={form} project={currentProject} isOpenModal={isOpenCreatePlanModal} setIsOpenModal={setIsOpenCreatePlanModal} handleSubmit={handleAddSpendingPlan} title="Create" />
 

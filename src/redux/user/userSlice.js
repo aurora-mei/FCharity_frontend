@@ -25,12 +25,7 @@ export const getTransactionHistoryOfUser = createAsyncThunk(
     return await userApi.getTransactionHistoryOfUser(userId);
   }
 );
-export const getCurrentWalletThunk = createAsyncThunk(
-  "users/current-wallet",
-  async () => {
-    return await userApi.getCurrentWallet();
-  }
-);
+
 export const getAllUsers = createAsyncThunk(
   "users/all",
   async (_, { rejectWithValue }) => {
@@ -95,17 +90,6 @@ export const userSlice = createSlice({
         state.transactionHistory = action.payload;
       })
       .addCase(getTransactionHistoryOfUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(getCurrentWalletThunk.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getCurrentWalletThunk.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentBalance = action.payload.balance;
-      })
-      .addCase(getCurrentWalletThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

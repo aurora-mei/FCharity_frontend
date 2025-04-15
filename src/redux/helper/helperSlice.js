@@ -14,6 +14,9 @@ export const getPaymentLinkThunk = createAsyncThunk("helper/getPaymentLink", asy
     return await helperApi.getPaymentLink(data);
 }
 );
+export const uploadFileMedia = createAsyncThunk("helper/uploadFileMedia", async ({ file, folderName = "default-folder", resourceType }) => {
+    return await helperApi.uploadFileMedia({ file, folderName, resourceType });
+});
 export const helperSlice = createSlice({
     name: "helper",
     initialState,
@@ -27,6 +30,16 @@ export const helperSlice = createSlice({
                 state.loading = false;
             })
             .addCase(uploadFileHelper.rejected, (state,action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(uploadFileMedia.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(uploadFileMedia.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(uploadFileMedia.rejected, (state,action) => {
                 state.loading = false;
                 state.error = action.error;
             })

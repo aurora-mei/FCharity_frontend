@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import ManagerLayout from "../../components/Layout/ManagerLayout";
+import { FaFileWord } from "react-icons/fa";
 
 import {
-  getManagedOrganizations,
+  getManagedOrganizationByCeo,
+  getOrganizationVerificationDocuments,
   updateOrganization,
-  fetchMyOrganization
+  uploadFileLocal,
 } from "../../redux/organization/organizationSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -21,25 +22,16 @@ import {
   showWarning,
   showInfo,
 } from "../../utils/showMessage";
-import { current } from "@reduxjs/toolkit";
+import ReferenceLink from "./components/ReferenceLink";
 
 const MyOrganization = () => {
   const dispatch = useDispatch();
 
-  const { myOrganization } = useSelector(
+  const { ownedOrganization, verificationDocuments } = useSelector(
     (state) => state.organization
   );
-  const [currentOrganization, setCurrentOrganization] = useState(myOrganization);
-   const storedUser = localStorage.getItem("currentUser");
-    let currentUser = {};
-  
-    try {
-      currentUser = storedUser ? JSON.parse(storedUser) : {};
-    } catch (error) {
-      console.error("Error parsing currentUser from localStorage:", error);
-      currentUser = {};
-    }
-  console.log("managedOrganizations: ", myOrganization);
+  console.log(" owned organization: ", ownedOrganization);
+  console.log("verificationDocuments: ", verificationDocuments);
 
   const [orgInfo, setOrgInfo] = useState({
     organizationId: "",
@@ -47,41 +39,45 @@ const MyOrganization = () => {
     email: "",
     phoneNumber: "",
     address: "",
-    walletId: "",
-    ceoId: "",
+    walletAddress: null,
+    ceo: null,
     organizationDescription: "",
     organizationStatus: "",
     avatarUrl: "",
     backgroundUrl: "",
   });
 
-  useEffect(() => {
-    dispatch(fetchMyOrganization(currentUser.id))
-  }, [dispatch]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [newDocuments, setNewDocuments] = useState([]);
+  const [deletedDocuments, setDeletedDocuments] = useState([]);
+
+  const [activeTab, setActiveTab] = useState("Basic Information");
 
   useEffect(() => {
-    if (myOrganization) {
-      setCurrentOrganization(myOrganization);
-    }
-  }, [myOrganization]);
-  
+    dispatch(getManagedOrganizationByCeo());
+  }, []);
+
   useEffect(() => {
-      if (currentOrganization) {
-        setOrgInfo({
-          organizationId: currentOrganization?.organizationId,
-          organizationName: currentOrganization?.organizationName,
-          email: currentOrganization?.email,
-          phoneNumber: currentOrganization?.phoneNumber,
-          address: currentOrganization?.address,
-          walletId: currentOrganization?.walletId,
-          ceoId: currentOrganization?.ceoId,
-          organizationDescription: currentOrganization?.organizationDescription,
-          organizationStatus: currentOrganization?.organizationStatus,
-          avatarUrl: currentOrganization?.avatarUrl,
-          backgroundUrl: currentOrganization?.backgroundUrl,
-        });
-    }    
-  }, [currentOrganization]);
+    if (ownedOrganization) {
+      dispatch(
+        getOrganizationVerificationDocuments(ownedOrganization.organizationId)
+      );
+
+      setOrgInfo({
+        organizationId: ownedOrganization?.organizationId,
+        organizationName: ownedOrganization?.organizationName,
+        email: ownedOrganization?.email,
+        phoneNumber: ownedOrganization?.phoneNumber,
+        address: ownedOrganization?.address,
+        walletAddress: ownedOrganization?.walletAddress,
+        ceo: ownedOrganization?.ceo,
+        organizationDescription: ownedOrganization?.organizationDescription,
+        organizationStatus: ownedOrganization?.organizationStatus,
+        avatarUrl: ownedOrganization?.avatarUrl,
+        backgroundUrl: ownedOrganization?.backgroundUrl,
+      });
+    }
+  }, [ownedOrganization, dispatch]);
 
   const [avatar, setAvatar] = useState(null);
   const [background, setBackground] = useState(null);
@@ -93,9 +89,16 @@ const MyOrganization = () => {
   const triggerAvatarUpload = () => avatarInputRef.current.click();
   const triggerBackgroundUpload = () => backgroundInputRef.current.click();
 
+  console.log("🍎🍎🍎new documents:", newDocuments);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setOrgInfo((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setNewDocuments(files);
   };
 
   const handleAvatarChange = (e) => {
@@ -131,25 +134,46 @@ const MyOrganization = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmitFile = async () => {
+    if (newDocuments.length > 0) {
+      const newDocUrls = await Promise.all(
+        newDocuments.map(
+          async (docFile) =>
+            await dispatch(
+              uploadFileLocal({
+                file: docFile,
+                organizationId: ownedOrganization.organizationId,
+              })
+            ).unwrap()
+        )
+      );
 
+      console.log("newDocUrls 🦔🦔🦔: ", newDocUrls);
+
+      setNewDocuments([]);
+    } else {
+      showWarning("Chưa chon file");
+    }
+  };
+
+  const handleSubmit = async () => {
     try {
       let updatedOrgInfo = { ...orgInfo };
       showInfo("Cập nhật tổ chức...");
+
       if (avatarInputRef.current?.files[0]) {
-        const avatarUrl = await helperApi.uploadFile(
-        {file:avatarInputRef.current.files[0],
-          folderName:"organizations"},
-        );
+        const avatarUrl = await uploadFile({
+          file: avatarInputRef.current.files[0],
+          folderName: "organizations",
+        });
         updatedOrgInfo = { ...updatedOrgInfo, avatarUrl };
       }
 
       if (backgroundInputRef.current?.files[0]) {
-        const backgroundUrl = await helperApi.uploadFile(
-          {file:backgroundInputRef.current.files[0],
-          folderName:"organizations"},
-        );
+        const backgroundUrl = await uploadFile({
+          file: backgroundInputRef.current.files[0],
+          folderName: "organizations",
+        });
         updatedOrgInfo = { ...updatedOrgInfo, backgroundUrl };
       }
 
@@ -164,7 +188,7 @@ const MyOrganization = () => {
           avatarInputRef.current.value = null;
           backgroundInputRef.current.value = null;
           showSuccess("Cập nhật tổ chức thanh cong!");
-          dispatch(getManagedOrganizations());
+          dispatch(getManagedOrganizationByCeo());
         })
         .catch((error) => {
           console.error("Lỗi khi cập nhật tổ chức: ", error);
@@ -179,20 +203,48 @@ const MyOrganization = () => {
   const rgbToCss = (rgb) =>
     rgb ? `rgb(${rgb[0]},${rgb[1]},${rgb[2]})` : "bg-gray-300";
 
+  const getFileColor = (type) => {
+    switch (type) {
+      case "excel":
+        return "#00B050";
+      case "pdf":
+        return "#E81123";
+      case "word":
+        return "#0070C0";
+      case "powerpoint":
+        return "#FF6600";
+    }
+  };
+
+  const getFileType = (type) => {
+    switch (type) {
+      case "text/csv":
+      case "application/vnd.ms-excel":
+      case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+      case "application/vnd.oasis.opendocument.spreadsheet":
+        return "excel";
+
+      case "application/pdf":
+        return "pdf";
+
+      case "application/msword":
+      case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        return "word";
+
+      case "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+      case "application/vnd.ms-powerpoint":
+        return "powerpoint";
+    }
+  };
+
   return (
-    <ManagerLayout>
-      <div className="pl-2">
-        <div className="inline-flex gap-2 items-baseline">
-          <FaLink />
-          <Link to={"/"} className="hover:underline">
-            Home
-          </Link>
-        </div>
-        <span> / </span>
-        <Link to={"/manage-organization"} className="hover:underline">
-          my-organization
-        </Link>
-      </div>
+    <div>
+      <ReferenceLink
+        link={[
+          { name: "Home", path: "/" },
+          { name: "my-organization", path: "/my-organization" },
+        ]}
+      />
 
       <div className="relative m-10">
         <div
@@ -207,9 +259,9 @@ const MyOrganization = () => {
             className="w-[90%] aspect-video  overflow-hidden rounded-bl-2xl rounded-br-2xl relative bg-gray-300"
             style={{ maxWidth: "1250px", maxHeight: "460px" }}
           >
-            {(background || currentOrganization?.backgroundUrl) && (
+            {(background || ownedOrganization?.backgroundUrl) && (
               <img
-                src={background || currentOrganization.backgroundUrl}
+                src={background || ownedOrganization.backgroundUrl}
                 alt="Background image"
                 className="w-full h-full object-cover"
               />
@@ -234,9 +286,9 @@ const MyOrganization = () => {
             <div className="flex gap-8 items-end px-8">
               <div className="relative h-32 w-32">
                 <div className="rounded-full h-full w-full border-4 border-white overflow-hidden bg-gray-500">
-                  {(avatar || currentOrganization?.avatarUrl) && (
+                  {(avatar || ownedOrganization?.avatarUrl) && (
                     <img
-                      src={avatar || currentOrganization.avatarUrl}
+                      src={avatar || ownedOrganization.avatarUrl}
                       alt="Avatar image"
                       className="w-full h-full object-cover"
                     />
@@ -258,116 +310,466 @@ const MyOrganization = () => {
                 />
               </div>
               <div className="flex flex-col gap-2 mb-4">
-                <p className="font-semibold text-3xl" style={{ margin: 0 }}>
-                  {orgInfo.organizationName || "Organization Name"}
-                </p>
-                <span>@{orgInfo.id || "organizationUrl"}</span>
+                <div className="flex gap-2 items-center justify-between">
+                  <p className="font-semibold text-3xl" style={{ margin: 0 }}>
+                    {orgInfo.organizationName || "Organization Name"}
+                  </p>
+                  {orgInfo.organizationStatus === "PENDING" && (
+                    <span className="text-blue-500">
+                      <svg
+                        viewBox="0 0 12 13"
+                        width={20}
+                        height={20}
+                        fill="currentColor"
+                        title="The account was verified."
+                        className=""
+                      >
+                        <title>This account was verified.</title>
+                        <g fillRule="evenodd" transform="translate(-98 -917)">
+                          <path d="m106.853 922.354-3.5 3.5a.499.499 0 0 1-.706 0l-1.5-1.5a.5.5 0 1 1 .706-.708l1.147 1.147 3.147-3.147a.5.5 0 1 1 .706.708m3.078 2.295-.589-1.149.588-1.15a.633.633 0 0 0-.219-.82l-1.085-.7-.065-1.287a.627.627 0 0 0-.6-.603l-1.29-.066-.703-1.087a.636.636 0 0 0-.82-.217l-1.148.588-1.15-.588a.631.631 0 0 0-.82.22l-.701 1.085-1.289.065a.626.626 0 0 0-.6.6l-.066 1.29-1.088.702a.634.634 0 0 0-.216.82l.588 1.149-.588 1.15a.632.632 0 0 0 .219.819l1.085.701.065 1.286c.014.33.274.59.6.604l1.29.065.703 1.088c.177.27.53.362.82.216l1.148-.588 1.15.589a.629.629 0 0 0 .82-.22l.701-1.085 1.286-.064a.627.627 0 0 0 .604-.601l.065-1.29 1.088-.703a.633.633 0 0 0 .216-.819"></path>
+                        </g>
+                      </svg>
+                    </span>
+                  )}
+                </div>
+                <span>@{orgInfo.organizationId || "organizationUrl"}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mx-10 my-20 max-w-[800px]">
-          <p className="font-bold text-xl text-gray-900 mb-4">
+        <div className="flex border-b border-gray-200 mb-6 mt-8">
+          <button
+            onClick={() => setActiveTab("Basic Information")}
+            className={`px-6 py-3 text-lg font-semibold transition-all duration-300 ${
+              activeTab === "Basic Information"
+                ? "border-b-4 border-blue-500 text-blue-600"
+                : "text-gray-500 hover:text-blue-500"
+            }`}
+          >
             Basic Information
-          </p>
-          <form className="space-y-3 ml-8" onSubmit={handleSubmit}>
-            <div className="flex gap-2 items-center">
-              <label htmlFor="name" className="w-[160px] shrink-0">
-                Organization name
-              </label>
-              <input
-                id="name"
-                type="text"
-                name="organizationName"
-                placeholder="Fpt Software Academy"
-                value={orgInfo.organizationName}
-                onChange={handleChange}
-                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-              />
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <label htmlFor="email" className="w-[160px] shrink-0">
-                Email
-              </label>
-              <input
-                id="email"
-                type="text"
-                name="email"
-                placeholder="duc@gmail.com"
-                value={orgInfo.email}
-                onChange={handleChange}
-                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-              />
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <label htmlFor="phone" className="w-[160px] shrink-0">
-                Phone number
-              </label>
-              <input
-                id="phone"
-                type="text"
-                name="phoneNumber"
-                placeholder="0123456789"
-                value={orgInfo.phoneNumber}
-                onChange={handleChange}
-                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-              />
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <label htmlFor="address" className="w-[160px] shrink-0">
-                Address
-              </label>
-              <input
-                id="address"
-                type="text"
-                name="address"
-                placeholder="Số 1, phường Hòa Hải, quận Ngũ Hành Sơn, tp Đà Nẵng."
-                value={orgInfo.address}
-                onChange={handleChange}
-                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-              />
-            </div>
-            <div className="flex gap-2 items-center">
-              <label htmlFor="wallet" className="w-[160px] shrink-0">
-                Wallet address
-              </label>
-              <input
-                id="wallet"
-                type="text"
-                name="walletId"
-                placeholder="987-234234KKF-234423 (Auto-generate after creating organization.)"
-                value={orgInfo.walletId}
-                disabled
-                className="w-full p-3 bg-gray-100 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-              />
-            </div>
-            <div className="flex gap-2 items-start">
-              <label htmlFor="description" className="w-[160px] shrink-0 mt-3">
-                Descriptions
-              </label>
-              <textarea
-                id="description"
-                type="text"
-                name="organizationDescription"
-                placeholder="Tổ chức giáo dục phi lợi nhuận."
-                value={orgInfo.organizationDescription}
-                onChange={handleChange}
-                className="w-full h-[120px] p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-              />
-            </div>
-            <div className="flex flex-row-reverse mt-8">
-              <button className="bg-green-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-green-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300">
-                <span className="text-white">Update</span>
-              </button>
-            </div>
-          </form>
+          </button>
+          <button
+            onClick={() => setActiveTab("Verification Documents")}
+            className={`px-6 py-3 text-lg font-semibold transition-all duration-300 ${
+              activeTab === "Verification Documents"
+                ? "border-b-4 border-blue-500 text-blue-600"
+                : "text-gray-500 hover:text-blue-500"
+            }`}
+          >
+            Verification Documents
+          </button>
         </div>
+
+        {activeTab === "Basic Information" &&
+          (isEditing ? (
+            <div className="mx-10 my-20 max-w-[800px]">
+              <p className="font-bold text-xl text-gray-900 mb-4">
+                Basic Information
+              </p>
+              <div className="space-y-3 ml-8">
+                <div className="flex gap-2 items-center">
+                  <label htmlFor="name" className="w-[160px] shrink-0">
+                    Organization name
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    name="organizationName"
+                    placeholder="Fpt Software Academy"
+                    value={orgInfo.organizationName}
+                    onChange={handleChange}
+                    className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                  />
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <label htmlFor="email" className="w-[160px] shrink-0">
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="text"
+                    name="email"
+                    placeholder="duc@gmail.com"
+                    value={orgInfo.email}
+                    onChange={handleChange}
+                    className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                  />
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <label htmlFor="phone" className="w-[160px] shrink-0">
+                    Phone number
+                  </label>
+                  <input
+                    id="phone"
+                    type="text"
+                    name="phoneNumber"
+                    placeholder="0123456789"
+                    value={orgInfo.phoneNumber}
+                    onChange={handleChange}
+                    className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                  />
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <label htmlFor="address" className="w-[160px] shrink-0">
+                    Address
+                  </label>
+                  <input
+                    id="address"
+                    type="text"
+                    name="address"
+                    placeholder="Số 1, phường Hòa Hải, quận Ngũ Hành Sơn, tp Đà Nẵng."
+                    value={orgInfo.address}
+                    onChange={handleChange}
+                    className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                  />
+                </div>
+                <div className="flex gap-2 items-center">
+                  <label htmlFor="wallet" className="w-[160px] shrink-0">
+                    Wallet address
+                  </label>
+                  <input
+                    id="wallet"
+                    type="text"
+                    name="walletId"
+                    placeholder="987-234234KKF-234423 (Auto-generate after creating organization.)"
+                    value={orgInfo.walletAddress.id}
+                    disabled
+                    className="w-full p-3 bg-gray-100 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                  />
+                </div>
+                <div className="flex gap-2 items-start">
+                  <label
+                    htmlFor="description"
+                    className="w-[160px] shrink-0 mt-3"
+                  >
+                    Descriptions
+                  </label>
+                  <textarea
+                    id="description"
+                    type="text"
+                    name="organizationDescription"
+                    placeholder="Tổ chức giáo dục phi lợi nhuận."
+                    value={orgInfo.organizationDescription}
+                    onChange={handleChange}
+                    className="w-full h-[120px] p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                  />
+                </div>
+                <div className="flex flex-row-reverse mt-8 gap-3">
+                  <button
+                    type="button"
+                    className="bg-gray-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-gray-700 hover:shadow-md hover:cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
+                    onClick={() => {
+                      dispatch(getManagedOrganizationByCeo());
+                      setIsEditing(false);
+                    }}
+                  >
+                    <span className="text-white">Cancel</span>
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-green-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-green-700 hover:shadow-md  hover:cursor-pointer  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
+                    onClick={() => {
+                      setIsEditing(false);
+                      handleSubmit();
+                    }}
+                  >
+                    <span className="text-white">Save</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-xl p-8 animate-fadeIn relative">
+              {/* Thông tin tổ chức */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <span className="w-[160px] font-semibold text-gray-700">
+                    Organization name
+                  </span>
+                  <span className="text-gray-800  px-3 py-1 rounded-md">
+                    {orgInfo.organizationName}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <span className="w-[160px] font-semibold text-gray-700">
+                    Email
+                  </span>
+                  <span className="text-gray-800  px-3 py-1 rounded-md">
+                    {orgInfo.email}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <span className="w-[160px] font-semibold text-gray-700">
+                    Phone number
+                  </span>
+                  <span className="text-gray-800  px-3 py-1 rounded-md">
+                    {orgInfo.phoneNumber}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <span className="w-[160px] font-semibold text-gray-700">
+                    Address
+                  </span>
+                  <span className="text-gray-800  px-3 py-1 rounded-md">
+                    {orgInfo.address}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <span className="w-[160px] font-semibold text-gray-700">
+                    Wallet address
+                  </span>
+                  <span className="text-gray-800  px-3 py-1 rounded-md">
+                    {orgInfo?.walletAddress?.id}
+                  </span>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <span className="w-[160px] font-semibold text-gray-700">
+                    Descriptions
+                  </span>
+                  <span className="text-gray-800  px-3 py-1 rounded-md flex-1">
+                    {orgInfo.organizationDescription}
+                  </span>
+                </div>
+              </div>
+              <div className="absolute bottom-2 right-4">
+                <button
+                  onClick={() => {
+                    setIsEditing(true);
+                  }}
+                  className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-green-500 hover:bg-green-600`}
+                >
+                  Update
+                </button>
+              </div>
+            </div>
+          ))}
+        {activeTab === "Verification Documents" &&
+          (isEditing ? (
+            <div className="flex flex-col gap-10">
+              <div className="flex gap-3 items-start min-h-[50px]">
+                <label
+                  htmlFor="verificationDocs"
+                  className="w-[160px] font-semibold text-gray-700 mt-3"
+                >
+                  Verification Docs
+                </label>
+                <div className="w-full">
+                  <input
+                    id="verificationDocs"
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                    onChange={handleFileChange}
+                    className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition duration-200"
+                    maxLength={10 * 1024 * 1024}
+                  />
+                  {newDocuments.length > 0 && (
+                    <div className="mt-2 flex gap-2 flex-wrap hover:cursor-pointer">
+                      {newDocuments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="relative w-24 h-24 border border-gray-300 rounded-md flex flex-col items-center justify-center p-2 bg-gray-50"
+                        >
+                          <div className={`flex flex-col items-center gap-1 `}>
+                            <FaFileWord
+                              className="w-12 h-12"
+                              style={{
+                                color: getFileColor(getFileType(file.type)),
+                              }}
+                            />
+                            <p className="text-xs mt-1 text-center truncate w-[80px]">
+                              {file.name}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() =>
+                              setNewDocuments(
+                                newDocuments.filter((_, i) => i !== index)
+                              )
+                            }
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+
+                          <span className="absolute bottom-1 right-1 text-xs text-gray-500">
+                            {(file.size / 1024).toFixed(1)}KB
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {verificationDocuments?.length > 0 ? (
+                <div className="flex gap-4 flex-wrap">
+                  {verificationDocuments
+                    .filter(
+                      (v) =>
+                        !deletedDocuments.some(
+                          (d) => d.organizationImageId == v.organizationImageId
+                        )
+                    )
+                    .map((file, index) => (
+                      <div
+                        key={index}
+                        className="relative w-24 h-24 border border-gray-300 rounded-md flex flex-col items-center justify-center p-2 bg-gray-50 hover:cursor-pointer"
+                      >
+                        {/* Hiển thị preview hoặc icon */}
+                        {String(file.imageUrl).includes("docx") ? (
+                          <img
+                            src={file.imageUrl}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div
+                            className={`flex flex-col items-center gap-1 ${getFileColor(
+                              String(file.imageUrl)
+                            )}`}
+                          >
+                            <FaFileWord
+                              className="w-12 h-12"
+                              style={{
+                                color: getFileColor(getFileType(file.fileType)),
+                              }}
+                            />
+                            <p className="text-xs mt-1 text-center truncate w-[80px]">
+                              {String(file.fileName).substring(
+                                String(file.fileName).lastIndexOf("_") + 1
+                              )}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Nút xóa */}
+                        <button
+                          onClick={() => {
+                            if (
+                              !deletedDocuments.some(
+                                (d) =>
+                                  d.organizationImageId ==
+                                  file.organizationImageId
+                              )
+                            )
+                              setDeletedDocuments((prev) => [...prev, file]);
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+
+                        <span className="absolute bottom-1 right-1 text-xs text-gray-500">
+                          {(file.fileSize / 1024).toFixed(1)}KB
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center">
+                  No verification documents uploaded yet.
+                </p>
+              )}
+
+              <div className="flex flex-row-reverse mt-8 gap-3">
+                <button
+                  type="button"
+                  className="bg-gray-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-gray-700 hover:shadow-md hover:cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
+                  onClick={() => {
+                    dispatch(getManagedOrganizationByCeo());
+                    setIsEditing(false);
+                    setNewDocuments([]);
+                  }}
+                >
+                  <span className="text-white">Cancel</span>
+                </button>
+                <button
+                  type="submit"
+                  className="bg-green-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-green-700 hover:shadow-md  hover:cursor-pointer  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
+                  onClick={() => {
+                    setIsEditing(false);
+                    handleSubmitFile();
+                  }}
+                >
+                  <span className="text-white">Save files</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="bg-gradient-to-r from-blue-50 to-white p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                  Verification Documents
+                </h2>
+                {verificationDocuments?.length > 0 ? (
+                  <div className="flex gap-4 flex-wrap hover:cursor-pointer">
+                    {verificationDocuments
+                      .filter(
+                        (v) =>
+                          !deletedDocuments.some(
+                            (d) =>
+                              d.organizationImageId == v.organizationImageId
+                          )
+                      )
+                      .map((file, index) => (
+                        <div
+                          key={index}
+                          className="relative w-24 h-24 border border-gray-300 rounded-md flex flex-col items-center justify-center p-2 bg-gray-50"
+                        >
+                          <div
+                            className={`flex flex-col items-center gap-1 ${getFileColor(
+                              String(file.imageUrl)
+                            )}`}
+                          >
+                            <FaFileWord
+                              className="w-12 h-12"
+                              style={{
+                                color: getFileColor(getFileType(file.fileType)),
+                              }}
+                            />
+                            <p className="text-xs mt-1 text-center truncate w-[80px]">
+                              {String(file.fileName).substring(
+                                String(file.fileName).lastIndexOf("_") + 1
+                              )}
+                            </p>
+                          </div>
+
+                          <span className="absolute bottom-1 right-1 text-xs text-gray-500">
+                            {(file.fileSize / 1024).toFixed(1)}KB
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center">
+                    No verification documents uploaded yet.
+                  </p>
+                )}
+              </div>
+              <div className="absolute bottom-2 right-4">
+                <button
+                  onClick={() => {
+                    setIsEditing(true);
+                  }}
+                  className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-green-500 hover:bg-green-600`}
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
+          ))}
       </div>
-    </ManagerLayout>
+    </div>
   );
 };
 

@@ -7,43 +7,46 @@ import {
   TruckFilled,
   BankFilled,
 } from "@ant-design/icons";
+import { FaArrowTrendUp } from "react-icons/fa6";
+import { FaBuilding } from "react-icons/fa";
+
 import { FaBuildingUser } from "react-icons/fa6";
 
-const Sidebar = () => {
+const UserSidebar = () => {
   return (
     <div className="w-64 h-full fixed bg-white shadow-md overflow-y-auto">
       <div className="flex flex-col p-4 space-y-2">
         <Link
-          to={`/manage-organization`}
+          to={`/`}
           className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200"
         >
           <HomeFilled style={{ fontSize: "24px" }} />
-          <span className="text-base font-medium">My Organization</span>
+          <span className="text-base font-medium">Home</span>
         </Link>
 
         <Link
-          to={`/manage-organization/dashboard`}
+          to={`/organizations`}
           className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200"
         >
-          <DashboardFilled style={{ fontSize: "24px" }} />
-          <span className="text-base font-medium">Dashboard</span>
+          <FaBuilding style={{ fontSize: "24px" }} />
+          <span className="text-base font-medium">Organizations</span>
         </Link>
         <Link
-          to={`/manage-organization/users`}
+          to={`/rankings`}
           className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200"
         >
-          <FaBuildingUser style={{ fontSize: "24px" }} />
-          <span className="text-base font-medium">Members</span>
+          <FaArrowTrendUp style={{ fontSize: "24px" }} />
+          <span className="text-base font-medium">Rankings</span>
         </Link>
         <Link
-          to="/manage-organization/projects"
+          to="/projects"
           className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200"
         >
           <ProjectFilled style={{ fontSize: "24px" }} />
           <span className="text-base font-medium">Projects</span>
         </Link>
         <Link
-          to="/manage-organization/requests"
+          to="/requests"
           className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200"
         >
           <TruckFilled style={{ fontSize: "24px" }} />
@@ -54,4 +57,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default UserSidebar;

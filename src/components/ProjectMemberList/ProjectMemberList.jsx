@@ -100,10 +100,6 @@ const ProjectMemberList = ({isLeader, projectId }) => {
     const [filerOption, setFilterOption] = useState("all");
     
     useEffect(() => {
-        // dispatch(fetchUserNotInProjectThunk(projectId));
-    }, [dispatch, projectId]);
-   
-    useEffect(() => {
         if (allProjectMembers && allProjectMembers.length > 0) {
             switch (filerOption) {
                 case "all":
