@@ -5,6 +5,7 @@ import AppFooter from "../AppFooter/AppFooter";
 import { Outlet } from "react-router-dom";
 import UserSidebar from "../OrganizationManagement/UserSidebar";
 import { StompSessionProvider } from "react-stomp-hooks";
+
 const UserLayout = () => {
   return (
     <StompSessionProvider url={"ws://localhost:8080/ws/websocket"}>

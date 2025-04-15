@@ -31,7 +31,7 @@ import NotificationBell from "./NotificationBell";
 
 // **** Import your CSS/PCSS file ****
 // Make sure the path is correct relative to this component file
-import "./Navbar.pcss"; // Assuming it's named Navbar.pcss and in the same folder
+
 
 import "./Navbar.pcss";
 import { fetchMyProjectsThunk } from "../../redux/project/projectSlice"; // Import your thunk action

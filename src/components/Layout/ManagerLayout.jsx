@@ -14,6 +14,7 @@ const ManagerLayout = ({ children }) => {
       <div className="relative">
         <ManagerSidebar />
         <main className="flex-1 ml-64 pt-6">
+          
           <Outlet />
           <AppFooter />
           <ToastContainer
