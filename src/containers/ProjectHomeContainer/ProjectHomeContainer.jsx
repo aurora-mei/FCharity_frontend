@@ -1,11 +1,11 @@
-import { Card, Row, Col, Typography, Carousel } from 'antd';
+import { Card, Row, Col, Typography, Carousel,Flex,Tag  } from 'antd';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjectById } from '../../redux/project/projectSlice';
 import React from 'react';
 const { Title, Text } = Typography;
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,Link  } from 'react-router-dom';
 import styled from 'styled-components';
 const StyledScreen = styled.div`
   height: 100vh;
@@ -44,8 +44,14 @@ const ProjectHomeContainer = () => {
             ))}
           </Carousel>
           <Card style={{ marginBottom: 24 }}>
+            <Flex justify='space-between' align='center'>
             <Title level={4}>Welcome to Project {currentProject.project.projectName}</Title>
-            <Text>Here's a quick overview of your project.</Text>
+            <Link to="#"><Tag color="blue">Project of {currentProject.project.organizationName.toUpperCase()}</Tag></Link>
+            </Flex>
+           <Flex vertical gap="10px" align="left">
+           <Text>Here's a quick overview of your project.</Text>
+            <Text>Click <Link to={`/projects/${currentProject.project.id}`}>here</Link> to view your project page</Text>
+           </Flex>
             <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={8}>
                 <Card title="Total Members" bordered={false}>10</Card>
@@ -56,11 +62,13 @@ const ProjectHomeContainer = () => {
               <Col span={8}>
                 <Card title="Tasks Completed" bordered={false}>25/30</Card>
               </Col>
+           
             </Row>
           </Card>
           <Card style={{ marginBottom: 24 }}>
             <Title level={4}>Welcome to Project {currentProject.project.projectName}</Title>
             <Text>Here's a quick overview of your project.</Text>
+
             <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={8}>
                 <Card title="Total Members" bordered={false}>10</Card>

@@ -36,7 +36,7 @@ const items = [
     title: "Request Detail",
   },
 ];
-const RequestDetailScreen = () => {
+const ProjectRequestContainer = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -132,11 +132,10 @@ const RequestDetailScreen = () => {
     <Flex
       vertical
       gap={10}
-      style={{ padding: "0 6rem 2rem 6rem", margin: "0" }}
+      style={{ padding: "1rem", margin: "0" }}
     >
-      <Flex gap={10} vertical className="request-detail-page">
-        <Breadcrumb items={items} />
-        <Flex vertical gap={10} className="request-detail">
+      <Flex gap={10} vertical >
+        <Flex vertical gap={10} className="request-detail" style={{padding:"2rem"}}>
           {/* Tiêu đề */}
           <Title level={3} className="request-title">
             {helpRequest.title}
@@ -267,9 +266,8 @@ const RequestDetailScreen = () => {
           </div>
         </Flex>
       </Flex>
-      <RequestActiveCarousel search={false} map={false} />
     </Flex>
   );
 };
 
-export default RequestDetailScreen;
+export default ProjectRequestContainer;

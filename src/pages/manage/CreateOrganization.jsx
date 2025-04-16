@@ -123,7 +123,7 @@ const CreateOrganization = () => {
           setBackground(null);
           avatarInputRef.current.value = null;
           backgroundInputRef.current.value = null;
-          navigate("/manage-organization");
+          navigate("/my-organization");
         })
         .catch((error) => {
           showError("Tạo tổ chức that bai!");

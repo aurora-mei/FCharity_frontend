@@ -20,7 +20,6 @@ const SpendingPlanFlex = styled(Flex)`
   flex-direction: column;
   border-radius:1rem;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
-  margin-top: 40px;
   padding:2rem;
     background: #fff;
 `;
@@ -119,7 +118,7 @@ const ProjectFinancePlanContainer = () => {
         }
         setTotalItems(spendingItems.length);
         console.log("isLeader", currentSpendingPlan.approvalStatus !== "PREPARING");
-    }, [currentSpendingPlan, spendingItems]);
+    }, [currentSpendingPlan, spendingItems,currentProject.project]);
 
     const handleAddSpendingPlan = (values) => {
         console.log("values", values);
@@ -240,7 +239,7 @@ const ProjectFinancePlanContainer = () => {
     ];
 
     return (
-        <>
+        <div style={{padding:'2rem'}}>
             {currentProject && currentProject.project && (
                 (!currentSpendingPlan.id) ? (
                     <>
@@ -276,8 +275,6 @@ const ProjectFinancePlanContainer = () => {
                                 )}
                         </SpendingPlanFlex>
                         <SpendingPlanModal form={form} project={currentProject} isOpenModal={isOpenCreatePlanModal} setIsOpenModal={setIsOpenCreatePlanModal} handleSubmit={handleAddSpendingPlan} title="Create" />
-
-
                     </>
                 ) : (
                     <SpendingPlanFlex>
@@ -334,7 +331,7 @@ const ProjectFinancePlanContainer = () => {
                                     showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
                                 }}
                             />
-                        <StyledButtonInvite type="primary" onClick={handleSubmit} style={{alignSelf:"flex-end"}}>Submit</StyledButtonInvite>
+                      {currentSpendingPlan.approvalStatus ==="PREPARING" &&   <StyledButtonInvite type="primary" onClick={handleSubmit} style={{alignSelf:"flex-end"}}>Submit</StyledButtonInvite>}
                            </>
                         )
                             : (
@@ -344,7 +341,7 @@ const ProjectFinancePlanContainer = () => {
                 )
 
             )}
-        </>
+        </div>
     );
 };
 

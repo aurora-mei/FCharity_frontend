@@ -1,7 +1,7 @@
 import { Flex } from "antd";
 import { Button, Form, Input, Divider } from "antd";
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
-import { Typography } from "antd";
+import { Typography,message } from "antd";
 import LoadingModal from "../LoadingModal";
 import { useNavigate } from "react-router-dom";
 import useLoading from "../../hooks/useLoading";
@@ -27,7 +27,7 @@ const LoginForm = () => {
       navigate("/", { replace: true });
     } catch (error) {
       console.error("Login error:", error);
-      alert(error.message);
+      message.error(error.message);
     }
   };
 
@@ -40,13 +40,13 @@ const LoginForm = () => {
       navigate("/", { replace: true });
     } catch (error) {
       console.error("Google login error:", error);
-      alert(error.message);
+      message.error(error.message);
     }
   };
 
   const handleGoogleFailure = (error) => {
     console.log("Google login failed:", error);
-    alert("Google login failed!");
+    message.error("Google login failed!");
   };
 
   if (loadingUI || loading) return <LoadingModal />;
