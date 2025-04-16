@@ -36,16 +36,25 @@ const deleteComment = async (commentId) => {
         throw err.response.data;
     }
 };
-
 export const voteComment = (commentId, userId, vote) => {
     return APIPrivate.post(`/comments/${commentId}/vote`, null, {
       params: { userId, vote }
     }).catch(err => {
-      const errorMessage = err.response?.data?.error || err.message || "Unknown error";
+      const errorData = err?.response?.data;
+      const rawMessage = errorData && typeof errorData === 'object' && errorData.error
+        ? errorData.error
+        : err.message || "Unknown error";
+  
+      const errorMessage = typeof rawMessage === "string"
+        ? rawMessage
+        : JSON.stringify(rawMessage || {});
+  
       console.error("Vote comment error:", errorMessage);
-      throw new Error(errorMessage); // Ném một Error với thông điệp rõ ràng
+  
+      throw new Error(errorMessage);
     });
   };
+  
 const createReply = async ({commentId,replyData}) => {
     try {
         const response = await APIPrivate.post(`comments/${commentId}/reply`, replyData);

@@ -2,10 +2,10 @@ import React, { useEffect } from "react";
 
 import { Navigate } from "react-router-dom";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomeScreen from "../screens/general/HomeScreen.jsx";
-import ForumPage from "../screens/forum/ForumPage.jsx";
-import CreatePostPage from "../screens/forum/CreatePostPage.jsx";
-import PostDetailPage from "../screens/forum/PostDetailPage.jsx";
+import HomeScreen from "../screens/General/HomeScreen.jsx";
+import ForumPage from "../screens/Forum/ForumPage.jsx";
+import CreatePostPage from "../screens/Forum/CreatePostPage.jsx";
+import PostDetailPage from "../screens/Forum/PostDetailPage.jsx";
 import LoginScreen from "../screens/auth/LoginScreen.jsx";
 import SignupScreen from "../screens/auth/SignupScreen.jsx";
 import OtpVerificationScreen from "../screens/auth/OtpVerificationScreen.jsx";

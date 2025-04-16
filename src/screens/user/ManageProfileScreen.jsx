@@ -8,7 +8,8 @@ import {
   MenuUnfoldOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
-
+import { ReadOutlined } from '@ant-design/icons';
+import MyPostsScreen from "./MyPostScreen";
 const { Header, Sider, Content } = Layout;
 
 const ManageProfileScreen = () => {
@@ -35,6 +36,22 @@ const ManageProfileScreen = () => {
       key: "myrequests",
       icon: <HistoryOutlined />,
       label: "My Requests",
+      component: MyRequestScreen,
+    },
+    {
+      key: "myposts",
+      icon: <ReadOutlined />, // Hoặc dùng icon khác phù hợp hơn, như <ReadOutlined />
+      label: "My Posts",
+      component: MyPostsScreen,
+    },
+  ];
+
+  // Khi keyTab thay đổi trong URL, cập nhật activeTab
+  useEffect(() => {
+    if (keyTab && (keyTab === "profile" || keyTab === "myrequests")) {
+      setActiveTab(keyTab);
+    }
+  }, [keyTab]);
     },
     {
       key: "invitations",
