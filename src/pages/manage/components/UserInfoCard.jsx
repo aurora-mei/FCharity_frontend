@@ -52,7 +52,7 @@ const UserInfoCard = ({
                 </h3>
                 <p className="flex items-center gap-2 text-gray-600">
                   <FaIdCard className="text-gray-500" />
-                  <span className="font-semibold">ID:</span> {selectedUser.id}
+                  <span className="font-semibold">ID:</span> {selectedUser?.id}
                 </p>
                 <p className="flex items-center gap-2 text-gray-600">
                   <MdAttachEmail className="text-gray-500" />
@@ -78,11 +78,6 @@ const UserInfoCard = ({
                   <FaCalendar className="text-gray-500" />
                   <span className="font-semibold">Ngày tạo:</span>{" "}
                   {formatDate(selectedUser.createdDate)}
-                </p>
-                <p className="flex items-center gap-2 text-gray-600">
-                  <FaWallet className="text-blue-500" />
-                  <span className="font-semibold">Wallet:</span>{" "}
-                  {selectedUser.walletAddress.id || "Not Specified"}
                 </p>
               </div>
             </div>

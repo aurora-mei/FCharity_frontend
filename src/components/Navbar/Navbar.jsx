@@ -161,14 +161,17 @@ const Navbar = () => {
     navigate("/");
   };
 
-  const { ownedOrganization, managedOrganizations, myOrganizations } =
-    useSelector((state) => state.organization);
+  const { ownedOrganization, managedOrganizations } = useSelector(
+    (state) => state.organization
+  );
 
   useEffect(() => {
     dispatch(getManagedOrganizationByCeo());
     dispatch(getManagedOrganizationsByManager());
     dispatch(getJoinedOrganizations());
   }, []);
+
+  console.log("currentUser", currentUser);
 
   // *** This is NO LONGER needed if using Popover ***
   // const fundraiseMenuItems = [ ... ];

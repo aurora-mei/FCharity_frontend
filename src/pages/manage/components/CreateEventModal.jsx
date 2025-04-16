@@ -6,7 +6,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { IoClose } from "react-icons/io5";
 import { IoChevronDownOutline } from "react-icons/io5";
 
-Modal.setAppElement("#root");
 const CreateEventModal = ({
   isCreateModalOpen,
   setIsCreateModalOpen,
