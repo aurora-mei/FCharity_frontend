@@ -10,12 +10,10 @@ const UserLayout = () => {
   return (
     <StompSessionProvider url={"ws://localhost:8080/ws/websocket"}>
     <div>
-      <Navbar />
       <div className="relative">
         <UserSidebar />
         <main className="flex-1 ml-64 pt-6">
           <Outlet />
-          <AppFooter />
           <ToastContainer
             position="bottom-right"
             autoClose={3000}

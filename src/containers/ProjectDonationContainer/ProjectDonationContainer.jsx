@@ -178,7 +178,7 @@ const StyledScreen = styled.div`
     }
   }
   .details-containter {
-    padding: 0 5rem;
+    padding: 0 ;
   }
 `;
 

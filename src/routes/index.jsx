@@ -116,8 +116,7 @@ const AppRoutes = () => {
 
             <Route path="*" element={<ProjectHomeContainer />} />
           </Route>
-        </Route>
-        <Route path="/" element={<ManagerLayout />}>
+          <Route path="/" element={<ManagerLayout />}>
           <Route path="my-organization">
             <Route index element={<MyOrganization />} />
             <Route path="dashboard" element={<OrganizationDashboard />} />
@@ -144,6 +143,8 @@ const AppRoutes = () => {
             <Route path="users" element={<UserRankings />} />
           </Route>
         </Route>
+        </Route>
+     
       </Routes>
     </Router>
     </QueryClientProvider>

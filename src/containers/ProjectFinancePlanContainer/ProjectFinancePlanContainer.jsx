@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Card, Button, Tag, Input, Typography, Flex, Form, Empty, Table } from 'antd';
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { DownloadOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { deleteSpendingItemThunk, fetchProjectById } from '../../redux/project/projectSlice';
 import { useEffect } from 'react';
 import {
-    fetchSpendingTemplateThunk,importSpendingPlanThunk,
+    fetchSpendingTemplateThunk, importSpendingPlanThunk,
     fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, createSpendingPlanThunk
     , createSpendingItemThunk, updateSpendingPlanThunk, updateSpendingItemThunk
 } from '../../redux/project/projectSlice';
@@ -18,8 +18,10 @@ const { Title } = Typography;
 const SpendingPlanFlex = styled(Flex)`
   width: 100%;
   flex-direction: column;
+  border-radius:1rem;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
   margin-top: 40px;
-  padding:1rem;
+  padding:2rem;
     background: #fff;
 `;
 
@@ -86,11 +88,14 @@ const ProjectFinancePlanContainer = () => {
     const currentSpendingItem = useSelector((state) => state.project.currentSpendingItem);
     const [selectedSpendingItem, setSelectedSpendingItem] = useState(null);
     const [selectedSpendingPlan, setSelectedSpendingPlan] = useState(null);
-    const [downloadTemplate,setDownloadTemplate] = useState(false);
+    const [downloadTemplate, setDownloadTemplate] = useState(false);
     const [isOpenCreatePlanModal, setIsOpenCreatePlanModal] = useState(false);
     const [isOpenUpdatePlanModal, setIsOpenUpdatePlanModal] = useState(false);
     const [isOpenCreateItemModal, setIsOpenCreateItemModal] = useState(false);
     const [isOpenUpdateItemModal, setIsOpenUpdateItemModal] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
     const currentUser = useSelector((state) => state.auth.currentUser);
     const [isLeader, setIsLeader] = useState(false);
     const [form] = Form.useForm();
@@ -105,17 +110,17 @@ const ProjectFinancePlanContainer = () => {
         if (currentSpendingPlan && currentSpendingPlan.id) {
             dispatch(fetchSpendingItemOfPlan(currentSpendingPlan.id));
         }
-        console.log("currentSpendingPlan", !currentSpendingPlan.id);
-    }, [ currentSpendingPlan, dispatch]);
+    }, [currentSpendingPlan, dispatch]);
     useEffect(() => {
-        console.log("curr",currentSpendingPlan)
+        console.log("curr", currentSpendingPlan)
         if (currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id) {
             console.log(currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id)
             setIsLeader(true);
         }
+        setTotalItems(spendingItems.length);
         console.log("isLeader", currentSpendingPlan.approvalStatus !== "PREPARING");
-    }, [currentSpendingPlan]);
-   
+    }, [currentSpendingPlan, spendingItems]);
+
     const handleAddSpendingPlan = (values) => {
         console.log("values", values);
         const newPlan = {
@@ -143,7 +148,7 @@ const ProjectFinancePlanContainer = () => {
             dispatch(updateSpendingPlanThunk({ planId: updatedPlan.id, dto: updatedPlan }));
         }
         setIsOpenUpdatePlanModal(false);
-        window.location.reload();
+        // window.location.reload();
     };
     const handleUpdateSpendingItem = (values) => {
         if (values) {
@@ -240,35 +245,35 @@ const ProjectFinancePlanContainer = () => {
                 (!currentSpendingPlan.id) ? (
                     <>
                         <SpendingPlanFlex>
-                            {isLeader && 
-                            (
-                                <>                
-                                <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreatePlanModal(true)} />
-                                <Button title="Click here to download creating spending plan template" onClick={()=>{
-                                    setDownloadTemplate(true);
-                                    dispatch(fetchSpendingTemplateThunk(currentProject.project.id));
-                                }}>Download template</Button>
-                                {downloadTemplate && (
-                                  <Form>
-                                    <Form.Item>
-                                        <Input
-                                            type="file"
-                                            accept=".xlsx"
-                                            onChange={(e) => {
-                                                const file = e.target.files[0];
-                                                dispatch(importSpendingPlanThunk({file, projectId: currentProject.project.id}));
-                                            }}
-                                        />
-                                    </Form.Item>
-                                    <Form.Item>
-                                        <Button type="primary" htmlType="submit">
-                                            Upload
-                                        </Button>
-                                    </Form.Item>
-                                  </Form>
+                            {isLeader &&
+                                (
+                                    <>
+                                        <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreatePlanModal(true)} />
+                                        <Button title="Click here to download creating spending plan template" onClick={() => {
+                                            dispatch(fetchSpendingTemplateThunk(currentProject.project.id));
+                                            setDownloadTemplate(true);
+                                        }}>Download template</Button>
+                                        {downloadTemplate && (
+                                            <Form>
+                                                <Form.Item>
+                                                    <Input
+                                                        type="file"
+                                                        accept=".xlsx"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            dispatch(importSpendingPlanThunk({ file, projectId: currentProject.project.id }));
+                                                        }}
+                                                    />
+                                                </Form.Item>
+                                                <Form.Item>
+                                                    <Button type="primary" htmlType="submit">
+                                                        Upload
+                                                    </Button>
+                                                </Form.Item>
+                                            </Form>
+                                        )}
+                                    </>
                                 )}
-                                </>
-                            )}
                         </SpendingPlanFlex>
                         <SpendingPlanModal form={form} project={currentProject} isOpenModal={isOpenCreatePlanModal} setIsOpenModal={setIsOpenCreatePlanModal} handleSubmit={handleAddSpendingPlan} title="Create" />
 
@@ -289,40 +294,48 @@ const ProjectFinancePlanContainer = () => {
                             {currentSpendingPlan.approvalStatus !== "PREPARING" ? (
                                 <Tag color="orange">{currentSpendingPlan.approvalStatus}</Tag>
                             ) : isLeader ? (
-                                <>
-                                    <div>
-                                        <ButtonGroup>
-                                            <b style={{ alignSelf: "center" }}>
-                                                Total: {spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0).toLocaleString()} VND
-                                            </b>
-                                            <StyledButtonInvite type="primary" onClick={handleSubmit}>Submit</StyledButtonInvite>
-                                            <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreateItemModal(true)} />
-                                        </ButtonGroup>
+                                <div>
+                                    <ButtonGroup>
+                                        <b style={{ alignSelf: "center" }}>
+                                            Total: {spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0).toLocaleString()} VND
+                                        </b>
+                                        <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreateItemModal(true)} />
+                                        <StyledButtonInvite icon={<DownloadOutlined />} title="Click here to download current spending plan details" />
+                                    </ButtonGroup>
 
-                                        <SpendingItemModal
-                                            form={form}
-                                            project={currentProject}
-                                            isOpenModal={isOpenCreateItemModal}
-                                            setIsOpenModal={setIsOpenCreateItemModal}
-                                            handleSubmit={handleAddSpendingItem}
-                                            title="Create"
-                                        />
-                                    </div>
-                                </>
+                                    <SpendingItemModal
+                                        form={form}
+                                        project={currentProject}
+                                        isOpenModal={isOpenCreateItemModal}
+                                        setIsOpenModal={setIsOpenCreateItemModal}
+                                        handleSubmit={handleAddSpendingItem}
+                                        title="Create"
+                                    />
+                                </div>
                             ) : null}
 
                         </Header>
-
                         {spendingItems && spendingItems.length > 0 ? (
-                            <>
-                                <Table
-                                    rowKey={(record, index) => index}
-                                    columns={columns.filter(Boolean)}
-                                    dataSource={spendingItems}
-                                    pagination={false}
-                                />
-
-                            </>
+                           <>
+                            <Table
+                                rowKey={(record) => record.id}
+                                columns={columns.filter(Boolean)}
+                                dataSource={spendingItems}
+                                s pagination={{
+                                    current: currentPage,
+                                    pageSize: pageSize,
+                                    total: totalItems,
+                                    showSizeChanger: true,
+                                    pageSizeOptions: ["5", "10", "20", "50"],
+                                    onChange: (page, size) => {
+                                        setCurrentPage(page);
+                                        setPageSize(size);
+                                    },
+                                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+                                }}
+                            />
+                        <StyledButtonInvite type="primary" onClick={handleSubmit} style={{alignSelf:"flex-end"}}>Submit</StyledButtonInvite>
+                           </>
                         )
                             : (
                                 <Empty title="No spending items found" description="Please add a spending item." style={{ marginTop: '20px' }} />
