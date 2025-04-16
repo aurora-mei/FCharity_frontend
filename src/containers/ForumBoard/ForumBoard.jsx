@@ -12,7 +12,6 @@ const ForumBoard = () => {
                 <Col span={8}>
                     <div className="forum-intro">
                         <div className="text-overlay-forum">
-                            <div>Unite, share, and make a difference</div>
                         </div>
                     </div>
                 </Col>

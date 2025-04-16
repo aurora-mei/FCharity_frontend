@@ -6,7 +6,8 @@
         posts: [],
         currentPost :{},
         error: null,
-        recentPosts: []
+        recentPosts: [],
+        myPosts: []
 
     };
 
@@ -49,6 +50,9 @@
             }
         }
     );
+    export const fetchMyPosts = createAsyncThunk("posts/fetchMyPosts", async () => {
+        return await postApi.fetchMyPosts();
+    });
     
     const postSlice = createSlice({
         name: 'Post',
@@ -132,11 +136,13 @@
                     state.error = action.error;
                 })
                 .addCase(votePostThunk.fulfilled, (state, action) => {
+                    console.log("vote res: ",action.payload)
                     const { postId, vote, totalVote } = action.payload;
                     const found = state.posts.find(p => p.post.id === postId);
                     if (found) {
                         found.post.vote = totalVote;
                     }
+                    console.log("hhh",postId )
                 
                     if (state.currentPost?.post?.id === postId) {
                         state.currentPost.post.vote = totalVote;
@@ -144,7 +150,19 @@
                 })
                 .addCase(votePostThunk.rejected, (state, action) => {
                     state.error = action.payload;
+                })
+                .addCase(fetchMyPosts.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(fetchMyPosts.fulfilled, (state, action) => {
+                    state.loading = false;
+                    state.myPosts = action.payload;
+                })
+                .addCase(fetchMyPosts.rejected, (state, action) => {
+                    state.loading = false;
+                    state.error = action.error;
                 });
+                
                 
         },
     });

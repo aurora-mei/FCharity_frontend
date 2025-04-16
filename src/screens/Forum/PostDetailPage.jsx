@@ -56,6 +56,7 @@ const PostDetailPage = () => {
         </Content>
       </Flex>
       <RightSidebar />
+      
     </Layout>
   );
 };

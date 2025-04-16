@@ -15,11 +15,11 @@ const RightSidebar = () => {
 
   return (
     <Layout.Sider
-      width={280}
+      width={260}
       style={{
         background: "#fff",
         padding: "16px",
-        borderLeft: "1px solid #eee",
+        marginLeft: "20px"
       }}
     >
       <Title level={4} style={{ marginBottom: 16 }}>
@@ -31,8 +31,7 @@ const RightSidebar = () => {
         renderItem={(postResponse) => {
           const { post, attachments = [], taggables = [], vote } = postResponse;
 
-          // 🛑 Hooks như useState/useEffect KHÔNG ĐƯỢC đặt trong renderItem
-          // Cần tách ra thành component con để dùng được Hook
+      
 
           return (
             <RecentPostItem

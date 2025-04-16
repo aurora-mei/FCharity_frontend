@@ -65,6 +65,15 @@ const votePost = async (postId, userId, vote) => {
         throw new Error(errorMessage);
     }
 };
+const fetchMyPosts = async () => {
+    try {
+        const response = await APIPrivate.get('posts/mine');
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching my posts:", err);
+        throw err.response?.data;
+    }
+};
 
 const postApi = { 
     fetchPosts, 
@@ -72,7 +81,9 @@ const postApi = {
     updatePost, 
     deletePost, 
     fetchPostById,
-    votePost
+    votePost,
+    fetchMyPosts, // <== thêm mới
 };
+
 
 export default postApi;

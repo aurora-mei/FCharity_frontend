@@ -5,7 +5,7 @@ const { Sider } = Layout;
 const { Title } = Typography;
 
 const LeftSidebar = () => (
-    <Sider width={250} style={{ background: "#fff", padding: "20px", marginRight: "20px" }}>
+    <Sider width={260} style={{ background: "#fff", padding: "16px", marginRight: "20px" }}>
         
         <Title level={4} style={{ marginTop: "20px" }}>Communities</Title>
         <List

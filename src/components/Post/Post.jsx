@@ -8,7 +8,11 @@ import {
   Button,
   Carousel,
   Tag,
-  message
+  message,
+  Dropdown,
+  Menu,
+  Modal,
+  Radio
 } from "antd";
 import {
   MessageOutlined,
@@ -18,7 +22,8 @@ import {
   UserOutlined,
   SendOutlined,
   LeftOutlined,
-  RightOutlined
+  RightOutlined,
+  EllipsisOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -143,14 +148,16 @@ const Post = ({ currentPost }) => {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState("");
   const [currentVotes, setCurrentVotes] = useState({});
+  const [reportVisible, setReportVisible] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetails, setReportDetails] = useState('');
+  
   const comments = useSelector((state) => state.comment.comments) || [];
-  console.log("DEBUG comments:", comments);
-  console.log("Tổng comment + reply:", countCommentsWithReplies(comments));
   const carouselRef = useRef(null);
   const commentEndRef = useRef(null);
 
   useEffect(() => {
-    if (comments.length === 0 && currentPost?.post?.id) {
+    if (currentPost?.post?.id) {
       dispatch(fetchCommentsByPost({ postId: currentPost.post.id }));
     }
   }, [currentPost?.post?.id, dispatch]);
@@ -158,6 +165,59 @@ const Post = ({ currentPost }) => {
   useEffect(() => {
     commentEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [comments]);
+
+  // Dropdown Menu
+  const menu = (
+    <Menu>
+      <Menu.Item 
+        key="delete" 
+        onClick={(e) => {
+          e.domEvent.stopPropagation();
+          handleDeletePost();
+        }}
+      >
+        Xóa bài viết
+      </Menu.Item>
+      <Menu.Item 
+        key="update" 
+        onClick={(e) => {
+          e.domEvent.stopPropagation();
+          handleUpdatePost();
+        }}
+      >
+        Chỉnh sửa bài viết
+      </Menu.Item>
+      <Menu.Item 
+        key="report"
+        onClick={(e) => {
+          e.domEvent.stopPropagation();
+          setReportVisible(true);
+        }}
+      >
+        Báo cáo bài viết
+      </Menu.Item>
+    </Menu>
+  );
+
+  const handleDeletePost = () => {
+    // Implement delete logic
+    message.info("Chức năng xóa đang được phát triển");
+  };
+
+  const handleUpdatePost = () => {
+    // Implement update logic
+    message.info("Chức năng chỉnh sửa đang được phát triển");
+  };
+
+  const handleReportSubmit = () => {
+    console.log("Report submitted:", {
+      reason: reportReason,
+      details: reportDetails,
+      postId: currentPost.post.id
+    });
+    setReportVisible(false);
+    message.success("Đã gửi báo cáo thành công");
+  };
 
   const handlePostVote = async (isUpvote) => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
@@ -168,7 +228,11 @@ const Post = ({ currentPost }) => {
 
     try {
       setPostVote(newVoteValue);
-      await dispatch(votePostThunk({ postId: currentPost.post.id, userId: currentUser.id, vote: newVoteValue })).unwrap();
+      await dispatch(votePostThunk({ 
+        postId: currentPost.post.id, 
+        userId: currentUser.id, 
+        vote: newVoteValue 
+      })).unwrap();
     } catch (err) {
       setPostVote(currentVote);
       message.error(err.message || "Vote bài viết thất bại");
@@ -180,7 +244,11 @@ const Post = ({ currentPost }) => {
 
     try {
       const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
-      await dispatch(createComment({ postId: currentPost.post.id, userId: currentUser.id, content: newComment.trim() }));
+      await dispatch(createComment({ 
+        postId: currentPost.post.id, 
+        userId: currentUser.id, 
+        content: newComment.trim() 
+      }));
       await dispatch(fetchCommentsByPost({ postId: currentPost.post.id }));
       setNewComment("");
       message.success("Bình luận thành công!");
@@ -193,7 +261,14 @@ const Post = ({ currentPost }) => {
     if (!replyContent.trim()) return message.error("Vui lòng nhập nội dung phản hồi");
     try {
       const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-      await dispatch(createReply({ commentId: parentCommentId, replyData: { postId: currentPost.post.id, userId: currentUser.id, content: replyContent } }));
+      await dispatch(createReply({ 
+        commentId: parentCommentId, 
+        replyData: { 
+          postId: currentPost.post.id, 
+          userId: currentUser.id, 
+          content: replyContent 
+        } 
+      }));
       await dispatch(fetchCommentsByPost({ postId: currentPost.post.id }));
       setReplyContent("");
       setReplyingTo(null);
@@ -212,7 +287,11 @@ const Post = ({ currentPost }) => {
 
     try {
       setCurrentVotes((prev) => ({ ...prev, [commentId]: newVoteValue }));
-      await dispatch(voteComment({ commentId, userId: currentUser.id, vote: newVoteValue })).unwrap();
+      await dispatch(voteComment({ 
+        commentId, 
+        userId: currentUser.id, 
+        vote: newVoteValue 
+      })).unwrap();
     } catch (error) {
       setCurrentVotes((prev) => ({ ...prev, [commentId]: currentVote }));
       message.error(typeof error.message === "string" ? error.message : "Vote thất bại");
@@ -225,7 +304,7 @@ const Post = ({ currentPost }) => {
   const { attachments = [], taggables = [] } = currentPost;
 
   return (
-    <Card variant="outlined" style={{ maxWidth: 800, margin: "auto", marginTop: 20 }}>
+    <Card variant="outlined" style={{ width: "85%", margin: "auto", marginTop: 20 }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
         <Avatar src={user?.avatar} size={40} icon={!user?.avatar && <UserOutlined />} />
         <div style={{ marginLeft: 8, flex: 1 }}>
@@ -235,8 +314,25 @@ const Post = ({ currentPost }) => {
           </Space>
           <div style={{ marginTop: 4 }}>
             {taggables.map((tag) => (
-              <Tag key={tag.id} color="#1890ff" style={{ color: "white", borderRadius: 12 }}>{tag.tag.tagName}</Tag>
+              <Tag key={tag.id} color="#1890ff" style={{ color: "white", borderRadius: 12 }}>
+                {tag.tag.tagName}
+              </Tag>
             ))}
+            
+            <Dropdown overlay={menu} trigger={['click']}>
+              <span
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  cursor: 'pointer',
+                  marginLeft: 8,
+                  fontSize: '15px',
+                  padding: '0 8px',
+                  userSelect: 'none',
+                }}
+              >
+                <EllipsisOutlined />
+              </span>
+            </Dropdown>
           </div>
         </div>
       </div>
@@ -261,18 +357,25 @@ const Post = ({ currentPost }) => {
           </Carousel>
           {attachments.length > 1 && (
             <>
-              <Button shape="circle" icon={<LeftOutlined />} onClick={() => carouselRef.current.prev()} style={{ position: "absolute", top: "50%", left: 16, transform: "translateY(-50%)", background: "rgba(0, 0, 0, 0.5)", color: "white" }} />
-              <Button shape="circle" icon={<RightOutlined />} onClick={() => carouselRef.current.next()} style={{ position: "absolute", top: "50%", right: 16, transform: "translateY(-50%)", background: "rgba(0, 0, 0, 0.5)", color: "white" }} />
+              <Button shape="circle" icon={<LeftOutlined />} onClick={() => carouselRef.current.prev()} 
+                style={{ position: "absolute", top: "50%", left: 16, transform: "translateY(-50%)", 
+                background: "rgba(0, 0, 0, 0.5)", color: "white" }} />
+              <Button shape="circle" icon={<RightOutlined />} onClick={() => carouselRef.current.next()} 
+                style={{ position: "absolute", top: "50%", right: 16, transform: "translateY(-50%)", 
+                background: "rgba(0, 0, 0, 0.5)", color: "white" }} />
             </>
           )}
         </div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderTop: "1px solid #f0f0f0", borderBottom: "1px solid #f0f0f0", margin: "16px 0" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", 
+        padding: "12px 0", borderTop: "1px solid #f0f0f0", borderBottom: "1px solid #f0f0f0", margin: "16px 0" }}>
         <Space size="middle">
-          <Button shape="circle" icon={<UpOutlined style={{ color: postVote === 1 ? '#ff4500' : '#65676b' }} />} onClick={() => handlePostVote(true)} />
+          <Button shape="circle" icon={<UpOutlined style={{ color: postVote === 1 ? '#ff4500' : '#65676b' }} />} 
+            onClick={() => handlePostVote(true)} />
           <Text strong>{vote || 0}</Text>
-          <Button shape="circle" icon={<DownOutlined style={{ color: postVote === -1 ? '#7193ff' : '#65676b' }} />} onClick={() => handlePostVote(false)} />
+          <Button shape="circle" icon={<DownOutlined style={{ color: postVote === -1 ? '#7193ff' : '#65676b' }} />} 
+            onClick={() => handlePostVote(false)} />
         </Space>
         <Space size="middle">
           <Button
@@ -280,13 +383,14 @@ const Post = ({ currentPost }) => {
             icon={<MessageOutlined />}
             onClick={() => navigate(`/posts/${currentPost.post.id}#comments`)}
           >
-            {countCommentsWithReplies(comments)}
+            {comments.length}
           </Button>
           <Button shape="round" icon={<ShareAltOutlined />} />
         </Space>
       </div>
 
-      <div style={{ display: "flex", gap: 12, margin: "16px 0", alignItems: "center", background: "#fafafa", borderRadius: 24, padding: "8px 16px" }}>
+      <div style={{ display: "flex", gap: 12, margin: "16px 0", alignItems: "center", 
+        background: "#fafafa", borderRadius: 24, padding: "8px 16px" }}>
         <Input
           placeholder="Viết bình luận..."
           value={newComment}
@@ -296,7 +400,8 @@ const Post = ({ currentPost }) => {
           variant="borderless"
           style={{ flex: 1, background: "transparent" }}
         />
-        <Button type="primary" shape="circle" icon={<SendOutlined />} onClick={handleCreateComment} disabled={!newComment.trim()} />
+        <Button type="primary" shape="circle" icon={<SendOutlined />} 
+          onClick={handleCreateComment} disabled={!newComment.trim()} />
       </div>
 
       <div style={{ marginTop: 24 }}>
@@ -316,6 +421,38 @@ const Post = ({ currentPost }) => {
         ))}
         <div ref={commentEndRef} />
       </div>
+
+      {/* Report Modal */}
+      <Modal
+        title="Báo cáo bài viết"
+        visible={reportVisible}
+        onOk={handleReportSubmit}
+        onCancel={() => setReportVisible(false)}
+        okText="Gửi báo cáo"
+        cancelText="Hủy"
+      >
+        <Radio.Group 
+          onChange={(e) => setReportReason(e.target.value)} 
+          value={reportReason}
+        >
+          <Space direction="vertical">
+            <Radio value="spam">Nội dung spam</Radio>
+            <Radio value="inappropriate">Nội dung không phù hợp</Radio>
+            <Radio value="harassment">Quấy rối hoặc bắt nạt</Radio>
+            <Radio value="other">Lý do khác</Radio>
+          </Space>
+        </Radio.Group>
+        
+        {reportReason === "other" && (
+          <Input.TextArea
+            placeholder="Vui lòng mô tả chi tiết"
+            value={reportDetails}
+            onChange={(e) => setReportDetails(e.target.value)}
+            style={{ marginTop: 16 }}
+            rows={4}
+          />
+        )}
+      </Modal>
     </Card>
   );
 };

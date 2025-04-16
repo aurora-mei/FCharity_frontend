@@ -22,9 +22,7 @@ const reducer = combineReducers({
   project: projectReducer,
   comment: commentReducer
 });
-
 export const store = configureStore({
   reducer: reducer,
 });
-
 export default store;

@@ -4,7 +4,8 @@ import { Layout, Menu, Button, theme } from "antd";
 import { UserOutlined, HistoryOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import MyProfileScreen from "./MyProfileScreen";  // Component hiển thị thông tin người dùng
 import MyRequestScreen from "../request/MyRequestScreen";  // Component hiển thị danh sách yêu cầu
-
+import { ReadOutlined } from '@ant-design/icons';
+import MyPostsScreen from "./MyPostScreen";
 const { Header, Sider, Content } = Layout;
 
 const ManageProfileScreen = () => {
@@ -32,6 +33,12 @@ const ManageProfileScreen = () => {
       icon: <HistoryOutlined />,
       label: "My Requests",
       component: MyRequestScreen,
+    },
+    {
+      key: "myposts",
+      icon: <ReadOutlined />, // Hoặc dùng icon khác phù hợp hơn, như <ReadOutlined />
+      label: "My Posts",
+      component: MyPostsScreen,
     },
   ];
 
