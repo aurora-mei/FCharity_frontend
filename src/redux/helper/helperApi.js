@@ -74,7 +74,6 @@ const uploadFileMedia = async ({ file, folderName = "default-folder",resourceTyp
   }
 };
 //GENERATE QR
-
 const getPaymentLink = async (data) => {
   try {
     const response = await APIPrivate.post("payment/create", data);
@@ -85,5 +84,16 @@ const getPaymentLink = async (data) => {
     throw error;
   }
 };
-const helperApi = { uploadFile, getPaymentLink,uploadFileMedia };
+
+//get list bank
+const getListBank = async () => {
+  try {
+    const response = await axios.get("https://api.vietqr.io/v2/banks");
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching list of banks:", error);
+    throw error;
+  }
+};
+const helperApi = { uploadFile, getPaymentLink,uploadFileMedia,getListBank };
 export default helperApi;

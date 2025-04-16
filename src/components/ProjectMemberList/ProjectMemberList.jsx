@@ -225,8 +225,10 @@ const ProjectMemberList = ({ isLeader, projectId }) => {
     }
 
     return (
-        <>
-            <Flex vertical style={{ marginTop: 24 }}>
+        <div style={{ boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 8px 0px", borderRadius:"1rem",
+            padding:"2rem",
+              background: "#fff"}}>
+            <Flex vertical >
                 <Title level={5}>Members List</Title>
                 <Flex justify='space-between'>
                     <Space>
@@ -282,7 +284,7 @@ const ProjectMemberList = ({ isLeader, projectId }) => {
                     ))}
                 </StyledSelect>
             </Modal>
-        </>
+        </div>
     );
 };
 

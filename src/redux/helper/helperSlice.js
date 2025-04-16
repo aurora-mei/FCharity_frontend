@@ -5,6 +5,7 @@ const initialState = {
     loading: false,
     error: null,
     checkoutURL: null,
+    listBank: [],
 }
 export const uploadFileHelper = createAsyncThunk("helper/uploadImageHelper", async ({ file, folderName = "default-folder" }) => {
     return await helperApi.uploadFile({file, folderName});
@@ -17,6 +18,10 @@ export const getPaymentLinkThunk = createAsyncThunk("helper/getPaymentLink", asy
 export const uploadFileMedia = createAsyncThunk("helper/uploadFileMedia", async ({ file, folderName = "default-folder", resourceType }) => {
     return await helperApi.uploadFileMedia({ file, folderName, resourceType });
 });
+export const getListBankThunk = createAsyncThunk("helper/getListBank", async () => {
+    return await helperApi.getListBank();
+}
+);
 export const helperSlice = createSlice({
     name: "helper",
     initialState,
@@ -54,7 +59,21 @@ export const helperSlice = createSlice({
             .addCase(getPaymentLinkThunk.rejected, (state,action) => {
                 state.loading = false;
                 state.error = action.error;
-            });
+            })
+            .addCase(getListBankThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getListBankThunk.fulfilled, (state,action) => {
+                state.loading = false;
+                state.listBank = action.payload;
+                console.log("getListBankThunk :", action.payload);
+            })
+            .addCase(getListBankThunk.rejected, (state,action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            
+            ; 
     },
 });
 export default helperSlice.reducer;

@@ -4,7 +4,7 @@ import apiService from "../../services/api";
 import {
   BarChart,
   Bar,
-  XAxis,
+  XAxis, 
   YAxis,
   CartesianGrid,
   Tooltip,
@@ -14,12 +14,13 @@ import {
 } from "recharts";
 import { fetchProjectsByOrgThunk, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, approveSpendingPlanThunk } from "../../redux/project/projectSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { getManagedOrganizationsByManager } from "../../redux/organization/organizationSlice";
 import ManagerLayout from "../../components/Layout/ManagerLayout";
 import { FaLink } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { getManagedOrganizationByCeo } from "../../redux/organization/organizationSlice";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
-import { Col, Row, Button, Flex, Modal, Skeleton, Empty, Typography } from "antd";
+import { Col, Row, Button, Flex, Modal, Skeleton, Empty, Typography,Tag } from "antd";
 const { Title } = Typography;
 import { Table } from "antd";
 const OrganizationProject = () => {
@@ -42,11 +43,13 @@ const OrganizationProject = () => {
   const projectByOrg = useSelector(state => state.project.projects);
   useEffect(() => {
     dispatch(getManagedOrganizationByCeo());
+    dispatch(getManagedOrganizationsByManager());
   }, [dispatch])
   useEffect(() => {
-    // console.log("Organization ID:", organizationId);
+   if(myOrganization && myOrganization.organizationId){
     dispatch(fetchProjectsByOrgThunk(myOrganization.organizationId));
-  }, [myOrganization]);
+   }
+  }, [dispatch,myOrganization]);
 
   const projectStatusData = [
     {
@@ -111,17 +114,18 @@ const OrganizationProject = () => {
                           }}
                           onClickCapture={() => {
                             setIsOpenModal(true)
-                            setSelectedProject(project)
                             setLoading(true);
+                            setSelectedProject(project)
                             console.log("Selected Project:", project);
-                            if (selectedProject && selectedProject.project) {
-                              console.log(selectedProject.project.id);
+                            if(selectedProject && selectedProject.project && selectedProject.project.id){
                               dispatch(fetchSpendingPlanOfProject(selectedProject.project.id));
                             }
                             if (currentSpendingPlan && currentSpendingPlan.id) {
                               dispatch(fetchSpendingItemOfPlan(currentSpendingPlan.id));
                             }
-                          }
+                            if(spendingItems && spendingItems.length > 0){
+                              setLoading(false);
+                          }}
                           } type="primary" onClick={() => { }}>View Spending plan</Button>
                         </Flex>
                       ) : <ProjectCard key={project.project.id} projectData={project} only={false} />}
@@ -130,16 +134,23 @@ const OrganizationProject = () => {
               }
             </Row>
             <Modal open={isOpenModal} onCancel={() => setIsOpenModal(false)} footer={null} width={1000}>
-              {loading ? (
+              {!loading ? (
                 currentSpendingPlan && currentSpendingPlan.id ? (
                   <>
                     <Flex justify="space-between" align="center" style={{ padding: '20px' }}>
                       <Title level={4}>
                         {currentSpendingPlan.planName}
                       </Title>
-                      <Button onClick={() => {
-                        dispatch(approveSpendingPlanThunk(currentSpendingPlan.id));
-                      }}>Approve</Button>
+                      {
+                         currentSpendingPlan.approvalStatus ==="SUBMITED" ?(
+                          <Button onClick={() => {
+                            dispatch(approveSpendingPlanThunk(currentSpendingPlan.id));
+                          }}>Approve</Button>
+                         ):(
+                          <Tag >{currentSpendingPlan.approvalStatus}</Tag>
+                         )
+                      }
+                  
                     </Flex>
 
                     {spendingItems && spendingItems.length > 0 ? (

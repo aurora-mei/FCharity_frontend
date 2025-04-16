@@ -148,7 +148,9 @@ const Navbar = () => {
   const storedUser = localStorage.getItem("currentUser");
   const dispatch = useDispatch();
   const myProjects = useSelector((state) => state.project.myProjects);
-
+  const [ownedProject,setOwnedProject] = useState([]); // State to hold owned projects
+  const [joinedProject,setJoinedProject] = useState([]); // State to hold joined projects
+  const [projectId, setProjectId] = useState(null); // State to hold project ID
   let currentUser = {};
   try {
     currentUser = storedUser ? JSON.parse(storedUser) : {};
@@ -173,7 +175,16 @@ const Navbar = () => {
     dispatch(getManagedOrganizationByCeo());
     dispatch(getManagedOrganizationsByManager());
     dispatch(getJoinedOrganizations());
-  }, []);
+  }, [dispatch]);
+
+  useEffect(() => {
+    if(myProjects && myProjects.length > 0){
+      setOwnedProject(myProjects.filter((data) => data.project.leader.id === currentUser.id));
+      setJoinedProject(myProjects.filter((data) => data.project.leader.id !== currentUser.id));
+      setProjectId(ownedProject && ownedProject.length > 0 ?  ownedProject[0].project.id :
+        joinedProject && joinedProject.length > 0 ? joinedProject[0].project.id: "");
+    }
+  }, [myProjects, currentUser]);
 
   // *** This is NO LONGER needed if using Popover ***
   // const fundraiseMenuItems = [ ... ];
@@ -217,7 +228,7 @@ const Navbar = () => {
       key: "4",
       label:
         myProjects && myProjects.length > 0 ? (
-          <Link rel="noopener noreferrer" to="/manage-project">
+         <Link rel="noopener noreferrer" to={`/manage-project/${projectId}/home`}>
             My Project
           </Link>
         ) : (
