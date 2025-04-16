@@ -26,6 +26,7 @@ import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
 import MyDonationScreen from "../screens/user/MyDonationScreen.jsx";
 import MyProfileScreen from "../screens/user/MyProfileScreen.jsx";
 import InviteRequestScreen from "../screens/user/InviteRequestScreen.jsx";
+import MyPostScreen from "../screens/user/MyPostScreen.jsx";
 
 //organization
 import MyOrganization from "../pages/manage/MyOrganization.jsx";
@@ -80,6 +81,7 @@ const AppRoutes = () => {
               <Route path="profile" element={<MyProfileScreen />} />
               <Route path="mydonations" element={<MyDonationScreen />} />
               <Route path="myrequests" element={<MyRequestScreen />} />
+              <Route path="myposts" element={<MyPostScreen />} />
               <Route path="invitations" element={<InviteRequestScreen />} />
             </Route>
             <Route path="requests">

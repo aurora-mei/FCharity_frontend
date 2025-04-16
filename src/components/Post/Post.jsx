@@ -9,8 +9,6 @@ import {
   Carousel,
   Tag,
   message,
-  Popover
-  message,
   Dropdown,
   Menu,
   Modal,
