@@ -31,9 +31,9 @@ const StyledButtonInvite = styled(Button)`
     border: 1px solid green !important;
     padding: 1rem !important;
       transition: all 0.3s ease;
-    .anticon svg{
-        color: green !important;
-        }
+    // .anticon svg{
+    //     color: green !important;
+    //     }
     &:hover{
         background-color: #fff !important;
         border: 1px solid green !important;

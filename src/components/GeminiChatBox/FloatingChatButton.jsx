@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Tooltip } from 'antd';
-import { MessageOutlined, CloseOutlined, RobotOutlined } from '@ant-design/icons'; // Thêm icon Robot
-import GeminiChatbox from './GeminiChatBox';
-import './FloatingChatButton.pcss'; // File CSS/PCSS cho component này
+import { MessageOutlined, CloseOutlined, RobotOutlined } from '@ant-design/icons';
+import GeminiChatbox from '../GeminiChatBox/GeminiChatBox';
+import './FloatingChatButton.pcss';
 
 const FloatingChatButton = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -13,10 +13,8 @@ const FloatingChatButton = () => {
 
     return (
         <>
-            {/* Container cho Chatbox khi mở */}
             {isOpen && (
                 <div className="chatbox-wrapper">
-                   {/* Optional: Thêm tiêu đề và nút đóng */}
                    <div className="chatbox-header">
                        <span><RobotOutlined /> FCharity Assistant</span>
                        <Button
@@ -27,18 +25,17 @@ const FloatingChatButton = () => {
                            className="close-chat-button"
                        />
                    </div>
-                    <GeminiChatbox /> {/* Đặt GeminiChatbox vào đây */}
+                    <GeminiChatbox />
                 </div>
             )}
 
-            {/* Nút bấm nổi để mở/đóng chat */}
             <Tooltip title={isOpen ? "Close Chat" : "Chat with AI Assistant"} placement="left">
                 <Button
                     className="floating-chat-button"
                     type="primary"
                     shape="circle"
                     size="large"
-                    icon={isOpen ? <CloseOutlined /> : <MessageOutlined />} // Thay đổi icon dựa trên state
+                    icon={isOpen ? <CloseOutlined /> : <MessageOutlined />}
                     onClick={toggleChat}
                 />
             </Tooltip>
