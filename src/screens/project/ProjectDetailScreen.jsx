@@ -52,6 +52,7 @@ import styled from "styled-components";
 import LoadingModal from "../../components/LoadingModal";
 
 import moment from "moment-timezone";
+import { fetchRequestById } from "../../redux/request/requestSlice";
 const { Title, Paragraph, Text } = Typography;
 
 const StyledScreen = styled.div`
@@ -382,7 +383,7 @@ const ProjectDetailScreen = () => {
   const donations = useSelector((state) => state.project.donations);
   const projectRequests = useSelector((state) => state.project.projectRequests);
   const projectMembers = useSelector((state) => state.project.projectMembers);
-
+  const currentRequest = useSelector((state) => state.request.currentRequest);
   const currentOrganization = useSelector(
     (state) => state.organization.currentOrganization
   );
@@ -412,6 +413,8 @@ const ProjectDetailScreen = () => {
     if (currentProject.project) {
       dispatch(getOrganizationById(currentProject.project.organizationId));
       dispatch(fetchProjectRequests(project.id));
+      dispatch(fetchRequestById(project.requestId))
+      console.log("request", currentRequest)
       dispatch(fetchActiveProjectMembers(project.id));
     }
   }, [dispatch, currentProject.project, donations, checkoutURL, projectId]);
@@ -499,31 +502,30 @@ const ProjectDetailScreen = () => {
                         <video src={url.imageUrl} controls />
                       </div>
                     ))}
+
                   </Carousel>
                 </div>
               )}
 
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <UserOutlined style={{ fontSize: 24 }} />
-                <div>
-                  <strong>{project.leader.fullName}</strong> lead this project{" "}
-                  <br />
-                  <Tag color="green" style={{ fontSize: 12 }}>
-                    {project.projectStatus}
-                  </Tag>
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <Flex gap={10}>
+                  <Avatar src={project.leader.avatar} style={{ fontSize: 24 }} />
+                  <Flex vertical gap={10}>
+                    <span> <strong>{project.leader.fullName}</strong> lead this project</span>
+                    <p>at {project.location}</p>
+
+                  </Flex>
+                </Flex>
+                <Tag color="blue" style={{ fontSize: 12, width: "fit-content" }}>
+                  <b>{project.projectStatus}</b>
+                </Tag>
+
               </div>
 
               <Divider />
-              {/* <div style={{ fontSize: 10, marginTop: 5 }}>
-                                <strong>Phone:</strong> {project.phoneNumber} <br />
-                                <strong>Email:</strong> {project.email} <br />
-                                <strong>Location:</strong> {project.location}
-                            </div> */}
 
               {projectTags?.length > 0 && (
                 <Paragraph className="request-tags">
-                  <Button onClick={() => navigate(`/requests/${project.requestId}`)}>View help request</Button>
                   {projectTags.map((taggable) => (
                     <Badge
                       key={taggable.tag.id}
@@ -549,7 +551,17 @@ const ProjectDetailScreen = () => {
                   ))}
                 </Paragraph>
               )}
+              <Divider />
+              {currentRequest && currentRequest.helpRequest > 0 && (
+                <Card>
+                  <img src={currentRequest?.attachments.filter((url) =>
+                    url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
+                  )[0] ?? ""} alt="request" style={{ width: "100%", height: "auto", borderRadius: 10 }} />
+                  <Text type="primary"><Link to={`/requests/${project.requestId}`}>{currentRequest.helpRequest.title}</Link></Text>
+                </Card>
+              )}
 
+              {/* <Button onClick={() => navigate(`/requests/${project.requestId}`)}>View help request</Button> */}
               <Divider />
               {expanded ? (
                 <Paragraph>

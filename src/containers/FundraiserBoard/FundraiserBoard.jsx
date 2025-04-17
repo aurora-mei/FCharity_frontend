@@ -7,7 +7,7 @@ import ProjectCard from '../../components/ProjectCard/ProjectCard';
 import image from '../../assets/two-birds-white-minimalist-g98cih2t3q56hxky.jpg';
 const FundraiserBoard = ({ projects }) => {
     const top5Projects = [...projects] 
-        .filter(project => project.project.projectStatus !== 'PLANNING' && project.project.projectStatus !== 'COMPLETED')
+        .filter(project => project.project.projectStatus === 'DONATING' || project.project.projectStatus === 'ACTIVE')
         .sort((a, b) => new Date(b.project.plannedStartTime) - new Date(a.project.plannedStartTime))
         .slice(0, 5);
     useEffect(() => {

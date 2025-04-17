@@ -97,12 +97,15 @@ const ProjectFinancePlanContainer = () => {
     const [totalItems, setTotalItems] = useState(0);
     const currentUser = useSelector((state) => state.auth.currentUser);
     const [isLeader, setIsLeader] = useState(false);
+    const spendingDetails = useSelector((state) => state.project.spendingDetails);
+    const currentSpendingDetail = useSelector((state) => state.project.currentSpendingDetail);
     const [form] = Form.useForm();
     useEffect(() => {
         dispatch(fetchProjectById(projectId));
         if (currentProject && currentProject.project) {
             console.log(currentProject.project.id);
             dispatch(fetchSpendingPlanOfProject(currentProject.project.id));
+            dispatch(fetchSpendingDetailsByProject(currentProject.project.id));
         }
     }, [projectId, dispatch]);
     useEffect(() => {
@@ -337,9 +340,21 @@ const ProjectFinancePlanContainer = () => {
                             : (
                                 <Empty title="No spending items found" description="Please add a spending item." style={{ marginTop: '20px' }} />
                             )}
+                            {spendingDetails && spendingDetails.length > 0 && (
+                                <SpendingPlanFlex>
+                                    <Title level={4}>Spending Plan Details</Title>
+                                    {spendingDetails.map((detail) => (
+                                        <SpendingItemRow key={detail.id}>
+                                            <span>{detail.itemName}</span>
+                                            <span>{detail.estimatedCost}</span>
+                                            <span>{detail.note}</span>
+                                        </SpendingItemRow>
+                                    ))}
+                                    </SpendingPlanFlex>
+                            )
+                        }
                     </SpendingPlanFlex>
                 )
-
             )}
         </div>
     );
