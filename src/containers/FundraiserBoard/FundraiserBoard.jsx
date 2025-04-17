@@ -37,7 +37,7 @@ const FundraiserBoard = ({ projects }) => {
                             {
                                 top5Projects &&
                                 Array.isArray(top5Projects) &&
-                                top5Projects.length > 1 && top5Projects.slice(1, 4).map(project => (
+                                top5Projects.length > 1 && top5Projects.slice(1, 5).map(project => (
                                     <Col key={project.project.id} span='12' style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
                                         <ProjectCard key={project.project.id} projectData={project} only={false} />
                                     </Col>

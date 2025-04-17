@@ -94,7 +94,7 @@ const ProjectCard = ({ projectData, only }) => {
                                 }
                                 style={{
                                     width: "100%",
-                                    height: `${only ? "28.2rem" : "9rem"}`,
+                                    height: `${only ? "28.2rem" : "9.8rem"}`,
                                     objectFit: "cover",
                                     borderRadius: "1rem 1rem 0 0",
                                     position: "relative",

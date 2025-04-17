@@ -80,7 +80,7 @@ const StyledScreen = styled.div`
   .media-slide video {
     border-radius: 0.8rem;
     width: 100%;
-    height: 22rem;
+    height: 27rem;
     object-fit: cover;
     object-position: center;
     display: flex;
@@ -446,12 +446,12 @@ const ProjectDetailScreen = () => {
     {
       href: '/',
       title: (
-        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }} /> // Increase icon size
+        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem"}} /> // Increase icon size
       ),
     },
     {
       title: (
-        <p style={{ fontSize: "1rem", color: "green" }}>Project {project.projectName}</p> // Increase text size
+        <p style={{ fontSize: "1rem"}}>Project {project.projectName}</p> // Increase text size
       ),
     },
   ];
@@ -482,6 +482,9 @@ const ProjectDetailScreen = () => {
           {/* <LeftCircleOutlined  onClick={()=>navigate(-1)} style={{ fontWeight: "bold", fontSize: "1.5rem" }}/> */}
           <Flex gap={0} vertical className="request-detail-page">
             <Flex vertical gap={0} className="request-detail">
+            <Tag color="blue" style={{ fontSize: 12, width: "fit-content" }}>
+                  <b>{project.projectStatus}</b>
+                </Tag>
               <Title level={3} className="request-title">
                 {project.projectName}
               </Title>
@@ -516,18 +519,40 @@ const ProjectDetailScreen = () => {
                   <Avatar src={project.leader.avatar} style={{ fontSize: 24 }} />
                   <Flex vertical gap={10}>
                     <span> <strong>{project.leader.fullName}</strong> lead this project</span>
-                    <p>at {project.location}</p>
-
+                    <Flex vertical gap={5} >
+                    <span> <i>Planned start at: </i> { moment(project.plannedStartTime).format("DD/MM/YYYY hh:mm A")} </span>
+                    <span> <i>Planned end at: </i> {moment(project.plannedEndTime).format("DD/MM/YYYY hh:mm A")}</span>
+                    <span> <i>Location: </i> {project.location}</span>
+                    </Flex>
                   </Flex>
                 </Flex>
-                <Tag color="blue" style={{ fontSize: 12, width: "fit-content" }}>
-                  <b>{project.projectStatus}</b>
-                </Tag>
 
               </div>
 
+          
               <Divider />
+              <Title level={5} style={{ marginBottom: "1rem" }}>
+                  For Request
+                </Title>
+              {currentRequest && currentRequest.helpRequest && (
+                <Card>
+                  <Flex gap={10}>
+                  <img src={  currentRequest?.attachments &&  currentRequest?.attachments.length > 0 ?
+                 currentRequest?.attachments?.filter((url) =>
+                    url.match(/\.(jpeg|jpg|png|gif)$/i)
+                  )[0] : ""} alt="request" style={{ width: "5rem", height: "5rem", borderRadius: 10 }} />
+                    <Flex vertical>
+                    <Text type="primary"><Link to={`/requests/${project.requestId}`}>{currentRequest.helpRequest.title}</Link></Text>
+                    <span><strong>Created at: </strong>{moment(currentRequest.helpRequest.creationDate).format("DD/MM/YYYY hh:mm A")}</span>
+                    <span><strong>By requester: </strong>{currentRequest.helpRequest.user.fullName}</span>
+                    </Flex>
+                  </Flex>
+                </Card>
+              )}
 
+              {/* <Button onClick={() => navigate(`/requests/${project.requestId}`)}>View help request</Button> */}
+              <Divider />
+           
               {projectTags?.length > 0 && (
                 <Paragraph className="request-tags">
                   {projectTags.map((taggable) => (
@@ -555,21 +580,8 @@ const ProjectDetailScreen = () => {
                   ))}
                 </Paragraph>
               )}
-              <Divider />
-              {currentRequest && currentRequest.helpRequest && (
-                <Card>
-                  <img src={  currentRequest?.attachments &&  currentRequest?.attachments.length > 0 ?
-                 currentRequest?.attachments?.filter((url) =>
-                    url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
-                  )[0] : ""} alt="request" style={{ width: "100%", height: "auto", borderRadius: 10 }} />
-                  <Text type="primary"><Link to={`/requests/${project.requestId}`}>{currentRequest.helpRequest.title}</Link></Text>
-                </Card>
-              )}
-
-              {/* <Button onClick={() => navigate(`/requests/${project.requestId}`)}>View help request</Button> */}
-              <Divider />
               {expanded ? (
-                <Paragraph>
+                <Paragraph style={{marginTop:"1rem"}}>
                   Help Maninder Kaur & Son Williamjeet Singh (6 years) after
                   Gurvinder’s Tragic Passing. Dear friends, family, and
                   kind-hearted supporters, With a shattered heart, I share the
@@ -597,7 +609,7 @@ const ProjectDetailScreen = () => {
                   {`${project.projectDescription} `}{" "}
                 </Paragraph>
               ) : (
-                <Paragraph>{`${project.projectDescription.substring(
+                <Paragraph style={{marginTop:"1rem"}}>{`${project.projectDescription.substring(
                   0,
                   800
                 )}...`}</Paragraph>
@@ -675,17 +687,6 @@ const ProjectDetailScreen = () => {
                       />
                     ))}
                   </Avatar.Group>
-                  {/* <StyledOverlappingAvatars>
-                                        {projectMembers.map((member, index) => (
-                                            <img
-                                                key={member.id}
-                                                src={member.user.avatar || "https://via.placeholder.com/50"}
-                                                alt={`Avatar ${member.user.fullName}`}
-                                                title={`${member.user.fullName}`}
-                                                style={{ left: `${index * 24}px`, zIndex: projectMembers.length - index }}
-                                            />
-                                        ))}
-                                    </StyledOverlappingAvatars> */}
                 </Flex>
                 <Divider />
 
