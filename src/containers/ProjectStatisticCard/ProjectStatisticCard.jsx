@@ -283,7 +283,7 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                         </div>
                     </div>
                 </Space>
-                { (project.projectStatus === "DONATING" || project.projectStatus === "ACTIVE" ) && (
+                { (project.projectStatus === "DONATING" || project.projectStatus === "ACTIVE"||project.projectStatus === "PLANNING"  ) && (
                     currentUser === null && currentUser.id ===null? (
                         console.log("User is not logged in") ||
                         <div style={{ display: "flex", gap: 10, marginTop: 20 }} className="bottom-actions">

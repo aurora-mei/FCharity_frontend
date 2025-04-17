@@ -37,6 +37,7 @@ const SideBarMain = () => {
             console.log(currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id)
             setIsLeader(true);
         }
+        console.log("dsfdf",isLeader)
     }, [projectId, dispatch]);
     return (
         <Sider width={250} theme="light">
@@ -46,11 +47,9 @@ const SideBarMain = () => {
                         <Flex vertical style={{width: "100%"}} gap="10px" align="left">
                             <Flex justify="space-between" align="center" gap="10px">
                             <Text strong>{currentProject.project.projectName}</Text>
-                            {isLeader &&
-                                (
+                        
                                     <Button style={{ padding: "1rem" }} icon={<EditOutlined />} type="text"
                                         onClick={() => setIsOpenModal(true)} />
-                                )}
                             </Flex>
                             <Tag color="blue" style={{width:"fit-content"}}>{currentProject.project.projectStatus}</Tag>
                         </Flex>

@@ -175,16 +175,31 @@ const Navbar = () => {
     dispatch(getManagedOrganizationByCeo());
     dispatch(getManagedOrganizationsByManager());
     dispatch(getJoinedOrganizations());
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
-    if(myProjects && myProjects.length > 0){
-      setOwnedProject(myProjects.filter((data) => data.project.leader.id === currentUser.id));
-      setJoinedProject(myProjects.filter((data) => data.project.leader.id !== currentUser.id));
-      setProjectId(ownedProject && ownedProject.length > 0 ?  ownedProject[0].project.id :
-        joinedProject && joinedProject.length > 0 ? joinedProject[0].project.id: "");
+    if (myProjects && myProjects.length > 0 && currentUser) {
+      const owned = myProjects.filter(
+        (data) => data.project.leader.id === currentUser.id
+      );
+      const joined = myProjects.filter(
+        (data) => data.project.leader.id !== currentUser.id
+      );
+  
+      setOwnedProject(owned);
+      setJoinedProject(joined);
+  
+      const defaultProjectId =
+        owned.length > 0
+          ? owned[0].project.id
+          : joined.length > 0
+          ? joined[0].project.id
+          : "";
+  
+      setProjectId(defaultProjectId);
     }
-  }, [myProjects, currentUser]);
+  }, [myProjects]);
+  
 
   // *** This is NO LONGER needed if using Popover ***
   // const fundraiseMenuItems = [ ... ];

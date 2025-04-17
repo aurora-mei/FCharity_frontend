@@ -52,9 +52,9 @@ const StyledSearch = styled.div`
     background-color: #f0f0f0 !important;
         border: 1px solid green !important;
         padding: 1rem !important;
-        .anticon svg{
-            color: green !important;
-            }
+        // .anticon svg{
+        //     color: green !important;
+        //     }
     }
  
     }

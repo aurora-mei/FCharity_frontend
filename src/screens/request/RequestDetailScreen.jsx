@@ -227,7 +227,7 @@ const RequestDetailScreen = () => {
 
           {/* Nút Donate & Share */}
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-            {currentUser.id !== requestData.helpRequest.user.id && helpRequest.status === "PENDING" && (
+            {currentUser.id !== requestData.helpRequest.user.id && helpRequest.status === "APPROVED" && (
               <Button
                 type="default"
                 block
