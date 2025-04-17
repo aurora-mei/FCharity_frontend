@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { Table, Typography, Space, Button, Select, Flex,Input,Tag ,Modal } from 'antd';
-import { TeamOutlined,EditOutlined  } from '@ant-design/icons';
+import { Table, Typography, Space, Button, Select, Flex, Input, Tag, Modal, Dropdown } from 'antd';
+import { TeamOutlined, MoreOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAllProjectMembersThunk, moveOutProjectMemberThunk,inviteProjectMemberThunk,fetchUserNotInProjectThunk } from '../../redux/project/projectSlice';
+import { fetchAllProjectMembersThunk, moveOutProjectMemberThunk, inviteProjectMemberThunk, fetchUserNotInProjectThunk } from '../../redux/project/projectSlice';
 import { useState } from 'react';
 import styled from 'styled-components';
 import LoadingModal from '../../components/LoadingModal';
@@ -24,8 +24,8 @@ const StyledSearch = styled.div`
             }
     }
  
-    }
-`;
+    }`
+    ;
 const StyledButtonInvite = styled(Button)`
     background-color: #fff !important;
     border: 1px solid green !important;
@@ -51,8 +51,8 @@ const StyledButtonInvite = styled(Button)`
             }
         }    
   
+}`;
 
-}`
 
 const StyledSelect = styled(Select)`
     .ant-select-selector{
@@ -91,51 +91,67 @@ const StyledSelect = styled(Select)`
         }
     }
 }`;
-const ProjectMemberList = ({isLeader, projectId }) => {
+const ProjectMemberList = ({ isLeader, projectId }) => {
     const dispatch = useDispatch();
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-    const {userNotInProject, allProjectMembers} =useSelector((state) => state.project);
-    const [userToInvite, setUserToInvite] = useState(userNotInProject);
+    const { userNotInProject, allProjectMembers, currentProject } = useSelector((state) => state.project);
+    const [userToInvite, setUserToInvite] = useState([]);
     const [dataSource, setDataSource] = useState([]);
-    const [filerOption, setFilterOption] = useState("all");
-    
+    const [filterOption, setFilterOption] = useState("all");
+
     useEffect(() => {
         if (allProjectMembers && allProjectMembers.length > 0) {
-            switch (filerOption) {
-                case "all":
-                    setDataSource(allProjectMembers);
-                    break;
+            let filtered;
+            switch (filterOption) {
                 case "active":
-                    setDataSource(allProjectMembers.filter(member => member.leaveDate === null));
+                    filtered = allProjectMembers.filter(m => m.leaveDate === null);
                     break;
                 case "leaved":
-                    setDataSource(allProjectMembers.filter(member => member.leaveDate !== null));
+                    filtered = allProjectMembers.filter(m => m.leaveDate !== null);
                     break;
                 default:
-                    setDataSource(allProjectMembers);
+                    filtered = allProjectMembers;
             }
+            setDataSource(filtered);
         }
-    }, [dataSource, filerOption]);
+    }, [allProjectMembers, filterOption]);
+
+    useEffect(() => {
+        setUserToInvite(userNotInProject);
+    }, [userNotInProject]);
 
     const handleMoveOutMember = (memberId) => {
         dispatch(moveOutProjectMemberThunk(memberId));
     };
-    const handleInviteMember = (userId) => {
-        dispatch(inviteProjectMemberThunk(
-              { projectId: projectId,
-                userId: userId,
-              }
-        ));
+
+    const handleInviteMember = (userIds) => {
+        userIds.forEach(userId => {
+            dispatch(inviteProjectMemberThunk({ projectId, userId }));
+        });
         setIsInviteModalOpen(false);
-        // dispatch(fetchUserNotInProjectThunk(projectId));
     };
+
     const onSearch = (value) => {
-        if (value && value.length > 0) {
-            setDataSource(allProjectMembers.filter(member => member.user.fullName.toLowerCase().includes(value.toLowerCase())));
+        if (value?.length > 0) {
+            setDataSource(allProjectMembers.filter(member =>
+                member.user.fullName.toLowerCase().includes(value.toLowerCase())
+            ));
         } else {
             setDataSource(allProjectMembers);
         }
-    }
+    };
+
+    const onSearchUserToInvite = (value) => {
+        if (value?.length > 0) {
+            setUserToInvite(userNotInProject.filter(user =>
+                user.fullName.toLowerCase().includes(value.toLowerCase()) ||
+                user.email.toLowerCase().includes(value.toLowerCase())
+            ));
+        } else {
+            setUserToInvite(userNotInProject);
+        }
+    };
+
     const columns = [
         {
             title: 'Avatar',
@@ -148,116 +164,128 @@ const ProjectMemberList = ({isLeader, projectId }) => {
         {
             title: 'Full Name',
             dataIndex: 'user',
-            key: 'user',
-            render: (user) => (
-                <Text>{user.fullName}</Text>
-            ),
+            key: 'fullName',
+            render: (user) => <Text>{user.fullName}</Text>,
         },
         {
             title: 'Email',
             dataIndex: 'user',
-            key: 'user',
-            render: (user) => (
-                <Text>{user.email}</Text>
-            ),
+            key: 'email',
+            render: (user) => <Text>{user.email}</Text>,
         },
         {
             title: 'Join Date',
             dataIndex: 'joinDate',
             key: 'joinDate',
-            render: (joinDate) => (
-                <Text>{new Date(joinDate).toLocaleDateString()}</Text>
-            ),
+            render: (joinDate) => <Text>{new Date(joinDate).toLocaleDateString()}</Text>,
             sorter: (a, b) => new Date(a.joinDate) - new Date(b.joinDate),
-            sortDirections: ['ascend', 'descend'],
         },
         {
             title: 'Leave Date',
             dataIndex: 'leaveDate',
             key: 'leaveDate',
-            render: (leaveDate) => (
-                <Text>{leaveDate ? new Date(leaveDate).toLocaleDateString() : '-'}</Text>
-            ),
-            sorter: (a, b) => new Date(a.leaveDate) - new Date(b.leaveDate),
-            sortDirections: ['ascend', 'descend'],
+            render: (leaveDate) => <Text>{leaveDate ? new Date(leaveDate).toLocaleDateString() : '-'}</Text>,
+            sorter: (a, b) => new Date(a.leaveDate || 0) - new Date(b.leaveDate || 0),
         },
         {
             title: 'Role',
             dataIndex: 'memberRole',
             key: 'memberRole',
             render: (memberRole) => {
-                let roleTag;
-                if (memberRole === "LEADER") {
-                    roleTag = <Tag color="green"><b>{memberRole}</b></Tag>;
-                } else if (memberRole === "MEMBER") {
-                    roleTag = <Tag color="blue">{memberRole}</Tag>;
-                } else {
-                    roleTag = <Tag color="red">{memberRole}</Tag>;
-                }
-                return roleTag;
+                let color = memberRole === "LEADER" ? "green" : memberRole === "MEMBER" ? "blue" : "red";
+                return <Tag color={color}><b>{memberRole}</b></Tag>;
             },
         },
-        isLeader &&  {
+    ];
+
+    if (isLeader) {
+        columns.push({
             title: 'Action',
             key: 'action',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Button icon={<EditOutlined />} title="Move out" type="text" onClick={() => (handleMoveOutMember(record.id))}></Button>
-                </Space>
-            ),
-        },
-    ];
-    const onSearchUserToInvite = (value) => {
-        if (value && value.length > 0) {
-            setUserToInvite(userNotInProject.filter(user => user.fullName.toLowerCase().includes(value.toLowerCase() || user.email.toLowerCase().includes(value.toLowerCase()))));
-        } else {
-            setUserToInvite(userNotInProject);
-        }
+            render: (_, record) => {
+                if (record.user.id === currentProject.project.leader.id) {
+                    return null;
+                } else {
+                    const menuItems = [
+                        {
+                            key: 'moveOut',
+                            label: 'Move Out',
+                            icon: <TeamOutlined />,
+                            onClick: () => handleMoveOutMember(record.id),
+                        },
+                    ];
+                    return (
+                        <Dropdown menu={{ items: menuItems }} placement="bottomLeft">
+                            <Button type="default" shape="circle" icon={<MoreOutlined />} />
+                        </Dropdown>
+                    );
+                }
+            },
+        });
     }
+
     return (
-        <>
-            <Flex vertical style={{ marginTop: 24 }}>
-                <Title level={5} styled={{ margin: "0 !important" }}>Members List</Title>
+        <div style={{ boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 8px 0px", borderRadius:"1rem",
+            padding:"2rem",
+              background: "#fff"}}>
+            <Flex vertical >
+                <Title level={5}>Members List</Title>
                 <Flex justify='space-between'>
                     <Space>
                         <StyledSearch><Search onSearch={onSearch} /></StyledSearch>
-                        <StyledSelect defaultValue="all" style={{ width: 120, borderColor: "green" }} onChange={(value) => setFilterOption(value)}>
-                            <StyledSelect.Option value="all" >All</StyledSelect.Option>
-                            <StyledSelect.Option value="active">Active</StyledSelect.Option>
-                            <StyledSelect.Option value="leaved">Leaved</StyledSelect.Option>
+                        <StyledSelect value={filterOption} style={{ width: 120 }} onChange={(value) => setFilterOption(value)}>
+                            <Select.Option value="all">All</Select.Option>
+                            <Select.Option value="active">Active</Select.Option>
+                            <Select.Option value="leaved">Leaved</Select.Option>
                         </StyledSelect>
                     </Space>
-                   { isLeader &&  <StyledButtonInvite icon={<TeamOutlined />} bordered={false}  
-                    onClick={()=> {
-                        setIsInviteModalOpen(true);
-                        dispatch(fetchUserNotInProjectThunk(projectId));
-                    }} 
-                    >Invite</StyledButtonInvite>}
+                    {isLeader &&
+                        <StyledButtonInvite icon={<TeamOutlined />} onClick={() => {
+                            setIsInviteModalOpen(true);
+                            dispatch(fetchUserNotInProjectThunk(projectId));
+                        }}>
+                            Invite
+                        </StyledButtonInvite>}
                 </Flex>
             </Flex>
-            <Table columns={columns.filter(Boolean)} dataSource={dataSource} pagination={false} />
-                <Modal
-                    title="Invite Member"
-                    visible={isInviteModalOpen}
-                    onCancel={() => setIsInviteModalOpen(false)}
-                    footer={null}
+
+            <Table
+                columns={columns}
+                dataSource={dataSource}
+                rowKey={(record) => record.user.id}
+                pagination={{
+                    pageSize: 5,
+                    showSizeChanger: true,
+                    pageSizeOptions: ['5', '10', '20', '50'],
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} members`,
+                }}
+            />
+
+            <Modal
+                title="Invite Member"
+                open={isInviteModalOpen}
+                onCancel={() => setIsInviteModalOpen(false)}
+                footer={null}
+            >
+                <StyledSelect
+                    mode="multiple"
+                    allowClear
+                    showSearch
+                    style={{ width: '100%' }}
+                    placeholder="Select members to invite"
+                    onSearch={onSearchUserToInvite}
+                    onChange={handleInviteMember}
                 >
-                    <StyledSelect
-                        mode="multiple"
-                        allowClear
-                        style={{ width: '100%' }}
-                        placeholder="Select members to invite"
-                        onSearch={onSearchUserToInvite}
-                        onChange={handleInviteMember}
-                    >
-                        {userToInvite.map(user => (
-                            <StyledSelect.Option key={user.id} value={user.id}>
-                                {user.fullName}
-                            </StyledSelect.Option>
-                        ))}
-                    </StyledSelect>
-                </Modal>
-        </>
+                    {userToInvite.map(user => (
+                        <Select.Option key={user.id} value={user.id}>
+                            {user.fullName}
+                        </Select.Option>
+                    ))}
+                </StyledSelect>
+            </Modal>
+        </div>
     );
-}
+};
+
 export default ProjectMemberList;

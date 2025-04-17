@@ -52,6 +52,9 @@ export const addProjectMemberThunk = createAsyncThunk("project/members/add-membe
 export const moveOutProjectMemberThunk = createAsyncThunk("project/members/move-out", async (memberId) => {
     return await projectApi.moveOutProjectMember(memberId);
 });
+export const removeProjectMemberThunk = createAsyncThunk("project/members/remove", async (memberId) => {    
+    return await projectApi.removeProjectMember(memberId);
+});
 
 //requests  
 export const fetchProjectRequests = createAsyncThunk("project/requests", async (projectId) => {
@@ -86,6 +89,9 @@ export const fetchSpendingTemplateThunk = createAsyncThunk("project/get-spending
 });
 export const importSpendingPlanThunk = createAsyncThunk("project/import-spending-plan", async ({file,projectId}) => {
     return await projectApi.importSpendingPlan({file, projectId});
+});
+export const approveSpendingPlanThunk = createAsyncThunk("project/approve-spending-plan", async (planId) => {
+    return await projectApi.approveSpendingPlan(planId);
 });
 export const createSpendingPlanThunk = createAsyncThunk("project/create-spending-plan", async (spendingPlanData) => {
     return await projectApi.createSpendingPlan(spendingPlanData);
@@ -252,9 +258,28 @@ const projectSlice = createSlice({
             })
             .addCase(moveOutProjectMemberThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.projectMembers = state.projectMembers.filter(member => member.id !== action.payload.id);
+                const index = state.allProjectMembers.findIndex(req => req.id === action.payload.id);
+                if (index !== -1) {
+                    // Cập nhật request ở index tìm được bằng dữ liệu mới từ action.payload
+                    state.allProjectMembers[index] = {
+                        ...state.allProjectMembers[index],
+                        ...action.payload
+                    };
+                }
             })
             .addCase(moveOutProjectMemberThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(removeProjectMemberThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(removeProjectMemberThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.allProjectMembers = state.allProjectMembers.filter(item => item.id !== action.payload);
+                state.projectMembers = state.projectMembers.filter(item => item.id !== action.payload);
+            })
+            .addCase(removeProjectMemberThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             })
@@ -403,6 +428,17 @@ const projectSlice = createSlice({
                 state.currentSpendingItem = action.payload.items;
             })
             .addCase(importSpendingPlanThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            }) 
+            .addCase(approveSpendingPlanThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(approveSpendingPlanThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentSpendingPlan = action.payload;
+            })
+            .addCase(approveSpendingPlanThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             })

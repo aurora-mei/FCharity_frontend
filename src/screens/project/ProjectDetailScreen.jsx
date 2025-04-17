@@ -33,7 +33,7 @@ import {
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
 import { getOrganizationById } from "../../redux/organization/organizationSlice";
 import { getPaymentLinkThunk } from "../../redux/helper/helperSlice";
-import { fetchProjectRequests, fetchActiveProjectMembers} from "../../redux/project/projectSlice";
+import { fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
 import {
@@ -373,15 +373,15 @@ const columns = [
 ];
 
 const ProjectDetailScreen = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const { projectId } = useParams();
-    const [form] = Form.useForm();  // Khởi tạo form instance
-    const checkoutURL = useSelector((state) => state.helper.checkoutURL);
-    const currentProject = useSelector((state) => state.project.currentProject);
-    const donations = useSelector((state) => state.project.donations);
-    const projectRequests = useSelector((state) => state.project.projectRequests);
-    const projectMembers = useSelector((state) => state.project.projectMembers);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { projectId } = useParams();
+  const [form] = Form.useForm();  // Khởi tạo form instance
+  const checkoutURL = useSelector((state) => state.helper.checkoutURL);
+  const currentProject = useSelector((state) => state.project.currentProject);
+  const donations = useSelector((state) => state.project.donations);
+  const projectRequests = useSelector((state) => state.project.projectRequests);
+  const projectMembers = useSelector((state) => state.project.projectMembers);
 
   const currentOrganization = useSelector(
     (state) => state.organization.currentOrganization
@@ -393,28 +393,28 @@ const ProjectDetailScreen = () => {
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
 
-    try {
-        currentUser = storedUser ? JSON.parse(storedUser) : {};
-    } catch (error) {
-        console.error("Error parsing currentUser from localStorage:", error);
+  try {
+    currentUser = storedUser ? JSON.parse(storedUser) : {};
+  } catch (error) {
+    console.error("Error parsing currentUser from localStorage:", error);
+  }
+  useEffect(() => {
+    dispatch(fetchProjectById(projectId));
+    dispatch(fetchDonationsOfProject(projectId));
+
+  }, [dispatch, projectId, donations.length]);
+  const { project, projectTags } = currentProject;
+
+  useEffect(() => {
+    if (checkoutURL) {
+      window.location.href = checkoutURL;
     }
-    useEffect(() => {
-        dispatch(fetchProjectById(projectId));
-        dispatch(fetchDonationsOfProject(projectId));
-
-    }, [dispatch, projectId, donations.length]);
-    const { project, projectTags } = currentProject;
-
-    useEffect(() => {
-        if (checkoutURL) {
-            window.location.href = checkoutURL;
-        }
-        if (currentProject.project) {
-            dispatch(getOrganizationById(currentProject.project.organizationId));
-            dispatch(fetchProjectRequests(project.id));
-            dispatch(fetchActiveProjectMembers(project.id));
-        }
-    }, [dispatch, currentProject.project, donations,checkoutURL,projectId]);
+    if (currentProject.project) {
+      dispatch(getOrganizationById(currentProject.project.organizationId));
+      dispatch(fetchProjectRequests(project.id));
+      dispatch(fetchActiveProjectMembers(project.id));
+    }
+  }, [dispatch, currentProject.project, donations, checkoutURL, projectId]);
 
   // Lọc ảnh/video (nếu backend trả về attachments)
   const imageUrls =
@@ -425,46 +425,46 @@ const ProjectDetailScreen = () => {
     currentProject.attachments?.filter((url) =>
       url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
     ) || [];
-    const carouselSettings = {
-        arrows: true,
-        infinite: true,
-        speed: 500,
-        slidesToShow: 1,
-        slidesToScroll: 1,
-    };
-    if ( !currentProject.project) {
-        return <LoadingModal/>
-    }
-    const items = [
-        {
-            href: '/',
-            title: (
-                <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }} /> // Increase icon size
-            ),
-        },
-        {
-            title: (
-                <p style={{ fontSize: "1rem", color: "green" }}>Project {project.projectName}</p> // Increase text size
-            ),
-        },
-    ];
-    const handleDonate = async (values) => {
-        console.log(values);
-        console.log("currentUser", currentUser.id);
-        dispatch(
-            getPaymentLinkThunk({
-                itemContent: `${currentUser.email}'s deposit`,
-                userId: currentUser.id,
-                objectId: project.id,
-                amount: values.amount,
-                paymentContent: values.message,
-                objectType: "PROJECT",
-                returnUrl:`projects/${project.id}`,
-            })
-        );
-        setIsOpenModal(false);
-        form.resetFields();
-    }
+  const carouselSettings = {
+    arrows: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+  };
+  if (!currentProject.project) {
+    return <LoadingModal />
+  }
+  const items = [
+    {
+      href: '/',
+      title: (
+        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }} /> // Increase icon size
+      ),
+    },
+    {
+      title: (
+        <p style={{ fontSize: "1rem", color: "green" }}>Project {project.projectName}</p> // Increase text size
+      ),
+    },
+  ];
+  const handleDonate = async (values) => {
+    console.log(values);
+    console.log("currentUser", currentUser.id);
+    dispatch(
+      getPaymentLinkThunk({
+        itemContent: `${currentUser.email}'s deposit`,
+        userId: currentUser.id,
+        objectId: project.id,
+        amount: values.amount,
+        paymentContent: values.message,
+        objectType: "PROJECT",
+        returnUrl: `projects/${project.id}`,
+      })
+    );
+    setIsOpenModal(false);
+    form.resetFields();
+  }
 
   return (
     // <div>   </div>
@@ -520,8 +520,10 @@ const ProjectDetailScreen = () => {
                                 <strong>Email:</strong> {project.email} <br />
                                 <strong>Location:</strong> {project.location}
                             </div> */}
+
               {projectTags?.length > 0 && (
                 <Paragraph className="request-tags">
+                  <Button onClick={() => navigate(`/requests/${project.requestId}`)}>View help request</Button>
                   {projectTags.map((taggable) => (
                     <Badge
                       key={taggable.tag.id}
@@ -594,20 +596,24 @@ const ProjectDetailScreen = () => {
                 style={{ display: "flex", gap: 10, marginTop: 20 }}
                 className="bottom-actions"
               >
-                <Button
-                  type="default"
-                  block
-                  style={{ flex: 1 }}
-                  onClick={() => {
-                    if (!currentUser) {
-                      navigate("/auth/login");
-                      return;
-                    }
-                    setIsOpenModal(true);
-                  }}
-                >
-                  <b>Donate</b>
-                </Button>
+
+                {project.projectStatus === "DONATING" && (
+                  <Button
+                    type="default"
+                    block
+                    style={{ flex: 1 }}
+                    onClick={() => {
+                      if (!currentUser) {
+                        navigate("/auth/login");
+                        return;
+                      }
+                      setIsOpenModal(true);
+                    }}
+                  >
+                    <b>Donate</b>
+                  </Button>
+                )
+                }
                 <Button type="default" block style={{ flex: 1 }}>
                   <b>Share</b>
                 </Button>
@@ -714,46 +720,46 @@ const ProjectDetailScreen = () => {
                                 pagination={false} loading={loading}
                                 style={{ fontSize: "0.4rem" }}
                             /> */}
-                            {donations.length > 0 ? (
-                                <Table
-                                    columns={columns}
-                                    size="small"
-                                    scroll={{ y: 300 }}
-                                    dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
-                                    rowKey="id"
-                                    className="custom-table"
-                                />
-                            ) : (
-                                <div>No donations available</div>
-                            )}
+              {donations.length > 0 ? (
+                <Table
+                  columns={columns}
+                  size="small"
+                  scroll={{ y: 300 }}
+                  dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
+                  rowKey="id"
+                  className="custom-table"
+                />
+              ) : (
+                <div>No donations available</div>
+              )}
 
-                        </Card>
-                    </StyledWrapper>
-                    <StyledWrapper>
-                        <Card className="donation-card">
-                            <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-                                <Title level={5} style={{ margin: 0 }}>Expense Records</Title>
-                                <Link to={`/projects/${projectId}/details`} style={{ marginLeft: 10 }}>See all</Link>
-                            </Flex>
-                            {donations.length > 0 ? (
-                                <Table
-                                    columns={columns}
-                                    size="small"
-                                    scroll={{ y: 300 }}
-                                    dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
-                                    rowKey="id"
-                                    className="custom-table"
-                                />
-                            ) : (
-                                <div>No donations available</div>
-                            )}
+            </Card>
+          </StyledWrapper>
+          <StyledWrapper>
+            <Card className="donation-card">
+              <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+                <Title level={5} style={{ margin: 0 }}>Expense Records</Title>
+                <Link to={`/projects/${projectId}/details`} style={{ marginLeft: 10 }}>See all</Link>
+              </Flex>
+              {donations.length > 0 ? (
+                <Table
+                  columns={columns}
+                  size="small"
+                  scroll={{ y: 300 }}
+                  dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
+                  rowKey="id"
+                  className="custom-table"
+                />
+              ) : (
+                <div>No donations available</div>
+              )}
 
-                        </Card>
-                    </StyledWrapper>
-                </Col>
-            </Row>
-            <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
-        </StyledScreen>
-    );
+            </Card>
+          </StyledWrapper>
+        </Col>
+      </Row>
+      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
+    </StyledScreen>
+  );
 }
 export default ProjectDetailScreen;

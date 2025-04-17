@@ -37,6 +37,11 @@ const ManageProfileScreen = () => {
       label: "My Requests",
     },
     {
+      key: "myposts",
+      icon: <HistoryOutlined />,
+      label: "My Posts",
+    },
+    {
       key: "invitations",
       icon: <HistoryOutlined />,
       label: "Invitations",

@@ -10,13 +10,11 @@ const ManagerLayout = ({ children }) => {
   return (
     <StompSessionProvider url={"ws://localhost:8080/ws/websocket"}>
     <div>
-      <Navbar />
       <div className="relative">
         <ManagerSidebar />
         <main className="flex-1 ml-64 pt-6">
           
           <Outlet />
-          <AppFooter />
           <ToastContainer
             position="bottom-right"
             autoClose={3000}

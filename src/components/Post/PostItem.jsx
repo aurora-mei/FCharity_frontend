@@ -1,61 +1,57 @@
-import React, { useState, useEffect, useRef } from "react";
-import { List, Avatar, Typography, Button, Space,Tag } from "antd";
+import React, { useState, useEffect } from "react";
+import {
+    List,
+    Avatar,
+    Typography,
+    Button,
+    Space,
+    Tag,
+    message,
+    Dropdown,
+    Menu,
+    Modal
+} from "antd";
+import {
+    UpOutlined,
+    DownOutlined,
+    MessageOutlined,
+    ShareAltOutlined,
+    UserOutlined,
+    PictureOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { UpOutlined, DownOutlined, MessageOutlined, ShareAltOutlined, UserOutlined, PictureOutlined } from "@ant-design/icons";
+import { useDispatch } from "react-redux";
+import { votePostThunk } from "../../redux/post/postSlice";
 
 const { Title, Text } = Typography;
 
 const PostItem = ({ postResponse }) => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
     const attachments = postResponse?.attachments || [];
     const attachmentCount = attachments.length;
     const taggables = postResponse?.taggables || [];
-    // State để lưu thumbnail
     const [thumbnail, setThumbnail] = useState("https://via.placeholder.com/100");
-    const videoRef = useRef(null);
-    
+
+    const [userVote, setUserVote] = useState(postResponse?.post.userVote || 0);
+    const [voteCount, setVoteCount] = useState(postResponse?.post.votes || 0);
+
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const isOwner = currentUser?.id === postResponse?.post?.user?.id;
+
     useEffect(() => {
-        console.log(postResponse?.taggables);
-        if (attachments !==null) {
-            console.log("att",attachments)
+        if (attachments !== null) {
             const imageAttachment = attachments.find(att => att.match(/\.(jpg|jpeg|png|gif)$/));
             const videoAttachment = attachments.find(att => att.match(/\.(mp4|webm)$/));
-
             if (imageAttachment) {
-                setThumbnail(imageAttachment); // Ưu tiên ảnh
+                setThumbnail(imageAttachment);
             } else if (videoAttachment) {
                 generateVideoThumbnail(videoAttachment);
             }
         }
     }, [attachments]);
-    const formatTime = (createdAt) => {
-        const now = new Date();
-        const createdTime = new Date(createdAt);
-        const diffInSeconds = Math.floor((now - createdTime) / 1000);
-    
-        if (diffInSeconds < 60) {
-            return `${diffInSeconds} giây trước`;
-        }
-        
-        const diffInMinutes = Math.floor(diffInSeconds / 60);
-        if (diffInMinutes < 60) {
-            return `${diffInMinutes} phút trước`;
-        }
-    
-        const diffInHours = Math.floor(diffInMinutes / 60);
-        if (diffInHours < 24) {
-            return `${diffInHours} giờ trước`;
-        }
-    
-        const diffInDays = Math.floor(diffInHours / 24);
-        if (diffInDays < 7) {
-            return `${diffInDays} ngày trước`;
-        }
-    
-        return createdTime.toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
-    };
-    
-    // Tạo thumbnail từ video
+
     const generateVideoThumbnail = (videoUrl) => {
         const video = document.createElement("video");
         video.src = videoUrl;
@@ -66,18 +62,114 @@ const PostItem = ({ postResponse }) => {
 
         video.onloadeddata = () => {
             const canvas = document.createElement("canvas");
-            canvas.width = 160;  // Kích thước nhỏ để load nhanh
+            canvas.width = 160;
             canvas.height = 90;
             const ctx = canvas.getContext("2d");
 
-            video.currentTime = 2; // Lấy frame tại giây thứ 2
+            video.currentTime = 2;
 
             video.onseeked = () => {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                setThumbnail(canvas.toDataURL("image/png")); // Chuyển frame thành URL ảnh
+                setThumbnail(canvas.toDataURL("image/png"));
             };
         };
     };
+
+    const formatTimeAgo = (createdAt) => {
+        const createdDate = new Date(createdAt);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - createdDate) / 1000);
+        
+        if (diffInSeconds < 60) return `${diffInSeconds} giây trước`;
+        const diffInMinutes = Math.floor(diffInSeconds / 60);
+        if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `${diffInHours} giờ trước`;
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays < 7) return `${diffInDays} ngày trước`;
+        const diffInWeeks = Math.floor(diffInDays / 7);
+        if (diffInWeeks < 4) return `${diffInWeeks} tuần trước`;
+        
+        return createdDate.toLocaleString("vi-VN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      };
+
+    const handleVote = async (isUpvote) => {
+        if (!currentUser?.id) {
+            message.error("Vui lòng đăng nhập để thực hiện vote");
+            return;
+        }
+
+        const currentVote = userVote;
+        let newVote;
+
+        if (isUpvote) {
+            newVote = currentVote === 1 ? 0 : 1;
+        } else {
+            newVote = currentVote === -1 ? 0 : -1;
+        }
+
+        const voteDelta = newVote - currentVote;
+        const updatedVoteCount = voteCount + voteDelta;
+
+        setUserVote(newVote);
+        setVoteCount(updatedVoteCount);
+
+        try {
+            await dispatch(votePostThunk({
+                postId: postResponse.post.id,
+                userId: currentUser.id,
+                vote: newVote
+            })).unwrap();
+        } catch (error) {
+            setUserVote(currentVote);
+            setVoteCount(voteCount);
+            message.error("Lỗi khi gửi vote");
+        }
+    };
+
+    const handleEdit = () => {
+        message.info("Edit post: " + postResponse.post.id);
+        // Navigate or show modal edit
+    };
+
+    const handleDelete = () => {
+        Modal.confirm({
+            title: "Xác nhận xóa bài viết?",
+            content: "Bạn chắc chắn muốn xóa bài viết này?",
+            okText: "Xóa",
+            okType: "danger",
+            cancelText: "Hủy",
+            onOk() {
+                message.success("Đã xóa bài viết " + postResponse.post.id);
+                // Call API delete post
+            },
+        });
+    };
+
+    const handleReport = () => {
+        message.info("Report post: " + postResponse.post.id);
+        // Navigate or open report modal
+    };
+
+    const menu = (
+        <Menu
+            onClick={({ key }) => {
+                if (key === "edit") handleEdit();
+                if (key === "delete") handleDelete();
+                if (key === "report") handleReport();
+            }}
+        >
+            {isOwner && <Menu.Item key="edit">Chỉnh sửa</Menu.Item>}
+            {isOwner && <Menu.Item key="delete">Xóa</Menu.Item>}
+            <Menu.Item key="report">Báo cáo</Menu.Item>
+        </Menu>
+    );
 
     return (
         <List.Item
@@ -95,15 +187,8 @@ const PostItem = ({ postResponse }) => {
             onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f5f5")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
-            {/* **Thumbnail với số lượng attachment** */}
             <div style={{ position: "relative" }}>
-                <Avatar
-                    shape="square"
-                    size={80}
-                    src={thumbnail}
-                    icon={<UserOutlined />}
-                />
-                
+                <Avatar shape="square" size={80} src={thumbnail} icon={<UserOutlined />} />
                 {attachmentCount > 1 && (
                     <div style={{
                         position: "absolute",
@@ -124,52 +209,90 @@ const PostItem = ({ postResponse }) => {
                 )}
             </div>
 
-            {/* **Thông tin Post** */}
             <div style={{ flex: 1 }}>
-                <Text strong>{postResponse.post.user.fullName || "Unknown User"}</Text>
-                <Text type="secondary" style={{ marginLeft: 10 }}>
-    {formatTime(postResponse.post.createdAt)}
-</Text>
-
-                {taggables.map((tag) => (
-                    <Tag key={tag.id} style={{ marginRight: 10 }}>{tag.tag.tagName}</Tag>
-                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                        <Text strong>{postResponse.post.user.fullName || "Unknown User"}</Text>
+                        <Text style={{marginLeft:'15px'}} type="secondary">{formatTimeAgo(postResponse.post.createdAt)}</Text>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        {taggables.map((tag) => (
+                            <Tag
+                                key={tag.id}
+                                style={{
+                                    backgroundColor: "#1890ff",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "5px 10px",
+                                    fontWeight: "bold",
+                                    borderRadius: "15px",
+                                    marginLeft: 4,
+                                }}
+                            >
+                                {tag.tag.tagName}
+                            </Tag>
+                        ))}
+                        <Dropdown overlay={menu} trigger={["click"]}>
+                            <span
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                    cursor: "pointer",
+                                    fontSize: "15px",
+                                    marginLeft: 8,
+                                    userSelect: "none"
+                                }}
+                            >
+                                •••
+                            </span>
+                        </Dropdown>
+                    </div>
+                </div>
 
                 <Title level={5} style={{ marginTop: "5px", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {postResponse.post.title}
                 </Title>
 
-                {/* **Các nút tương tác** */}
                 <Space size={4}>
-    <Button 
-        shape="circle" 
-        size="small" 
-        icon={<UpOutlined style={{ fontSize: 14 }} />} 
-        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
-    />
-    <Text strong style={{ fontSize: 14 }}>{postResponse.post.votes || 0}</Text>
-    <Button 
-        shape="circle" 
-        size="small" 
-        icon={<DownOutlined style={{ fontSize: 14 }} />} 
-        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
-    />
-    <Button 
-        shape="circle" 
-        size="small" 
-        icon={<MessageOutlined style={{ fontSize: 14 }} />} 
-        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
-    />
-    <Button 
-        shape="circle" 
-        size="small" 
-        icon={<ShareAltOutlined style={{ fontSize: 14 }} />} 
-        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
-    />
-</Space>
-
-
-
+                    <Button
+                        shape="circle"
+                        size="small"
+                        icon={<UpOutlined style={{
+                            fontSize: 14,
+                            color: userVote === 1 ? "#ff4500" : "#65676b"
+                        }} />}
+                        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleVote(true);
+                        }}
+                    />
+                    <Text strong style={{ fontSize: 14 }}>{voteCount}</Text>
+                    <Button
+                        shape="circle"
+                        size="small"
+                        icon={<DownOutlined style={{
+                            fontSize: 14,
+                            color: userVote === -1 ? "#7193ff" : "#65676b"
+                        }} />}
+                        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleVote(false);
+                        }}
+                    />
+                    <Button
+                        shape="circle"
+                        size="small"
+                        icon={<MessageOutlined style={{ fontSize: 14 }} />}
+                        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
+                    />
+                    <Button
+                        shape="circle"
+                        size="small"
+                        icon={<ShareAltOutlined style={{ fontSize: 14 }} />}
+                        style={{ height: 24, width: 30, padding: "2px 6px", borderRadius: 6 }}
+                    />
+                </Space>
             </div>
         </List.Item>
     );

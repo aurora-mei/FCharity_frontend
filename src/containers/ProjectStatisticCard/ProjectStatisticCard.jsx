@@ -222,21 +222,23 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                     >
                         Share
                     </Button>
-                    <Button
-                        className="full-width-button"
-                        type="primary"
-                        icon={<DollarOutlined />}
-                        style={{ backgroundColor: '#F99A32', borderColor: '#F99A32' }}
-                        onClick={() => {
-                            if (!currentUser) {
-                                navigate("/auth/login");
-                                return;
-                            }
-                            setIsOpenModal(true)
-                        }}
-                    >
-                        Donate now
-                    </Button>
+                   {project.projectStatus === "DONATING" && (
+                     <Button
+                     className="full-width-button"
+                     type="primary"
+                     icon={<DollarOutlined />}
+                     style={{ backgroundColor: '#F99A32', borderColor: '#F99A32' }}
+                     onClick={() => {
+                         if (!currentUser) {
+                             navigate("/auth/login");
+                             return;
+                         }
+                         setIsOpenModal(true)
+                     }}
+                 >
+                     Donate now
+                 </Button>
+                   )}
                 </Space>
 
                 <div className="donation-item" style={{ marginBottom: 16 }}>
@@ -281,7 +283,7 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                         </div>
                     </div>
                 </Space>
-                {
+                { (project.projectStatus === "DONATING" || project.projectStatus === "ACTIVE"||project.projectStatus === "PLANNING"  ) && (
                     currentUser === null && currentUser.id ===null? (
                         console.log("User is not logged in") ||
                         <div style={{ display: "flex", gap: 10, marginTop: 20 }} className="bottom-actions">
@@ -352,9 +354,8 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                                 </Text>
                             );
                         })()
-                    )
+                    ))
                 }
-
             </Card>
         </StyledWrapper>
     );

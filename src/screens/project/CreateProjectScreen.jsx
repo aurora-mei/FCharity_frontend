@@ -19,7 +19,7 @@ import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addProjectMemberThunk,
-  moveOutProjectMemberThunk,
+  removeProjectMemberThunk,
   fetchAllProjectMembersThunk,
 } from "../../redux/project/projectSlice";
 import {
@@ -125,7 +125,7 @@ const CreateProjectScreen = () => {
   const handleRemoveMembers = () => {
     console.log("selectedProjectMembers", selectedProjectMembers);
     selectedProjectMembers.forEach((memberId) => {
-      dispatch(moveOutProjectMemberThunk(memberId));
+      dispatch(removeProjectMemberThunk(memberId));
     });
     const removedMembers = myProjectMembers.filter((member) =>
       selectedProjectMembers.includes(member.id)
@@ -233,7 +233,7 @@ const CreateProjectScreen = () => {
     console.log("Project Members:", myProjectMembers);
     console.log("Organization Members:", currentOrganizationMembers);
     if (isFirstMount && currentOrganizationMembers?.length > 0) {
-      setAvailableMembers(currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER"));
+      setAvailableMembers(currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER" && newProject.project.leader.id !== x.user.id));
       setIsFirstMount(false); 
     }
   }, [dispatch, newProject]);
