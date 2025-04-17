@@ -413,12 +413,16 @@ const ProjectDetailScreen = () => {
     if (currentProject.project) {
       dispatch(getOrganizationById(currentProject.project.organizationId));
       dispatch(fetchProjectRequests(project.id));
-      dispatch(fetchRequestById(project.requestId))
-      console.log("request", currentRequest)
       dispatch(fetchActiveProjectMembers(project.id));
     }
   }, [dispatch, currentProject.project, donations, checkoutURL, projectId]);
-
+  useEffect(() => {
+    if (project && project.requestId) {
+      dispatch(fetchRequestById(project.requestId));
+    }
+    
+  }, [dispatch, project]); // CHỈ khi project thay đổi mới gọi
+  console.log("curr req", currentRequest);
   // Lọc ảnh/video (nếu backend trả về attachments)
   const imageUrls =
     currentProject.attachments?.filter((url) =>
@@ -552,11 +556,12 @@ const ProjectDetailScreen = () => {
                 </Paragraph>
               )}
               <Divider />
-              {currentRequest && currentRequest.helpRequest > 0 && (
+              {currentRequest && currentRequest.helpRequest && (
                 <Card>
-                  <img src={currentRequest?.attachments.filter((url) =>
+                  <img src={  currentRequest?.attachments &&  currentRequest?.attachments.length > 0 ?
+                 currentRequest?.attachments?.filter((url) =>
                     url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
-                  )[0] ?? ""} alt="request" style={{ width: "100%", height: "auto", borderRadius: 10 }} />
+                  )[0] : ""} alt="request" style={{ width: "100%", height: "auto", borderRadius: 10 }} />
                   <Text type="primary"><Link to={`/requests/${project.requestId}`}>{currentRequest.helpRequest.title}</Link></Text>
                 </Card>
               )}

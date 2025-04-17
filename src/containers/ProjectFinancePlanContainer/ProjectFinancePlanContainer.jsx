@@ -7,7 +7,7 @@ import { useParams } from 'react-router-dom';
 import { deleteSpendingItemThunk, fetchProjectById } from '../../redux/project/projectSlice';
 import { useEffect } from 'react';
 import {
-    fetchSpendingTemplateThunk, importSpendingPlanThunk,
+    fetchSpendingTemplateThunk, importSpendingPlanThunk,fetchSpendingDetailsByProject ,
     fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, createSpendingPlanThunk
     , createSpendingItemThunk, updateSpendingPlanThunk, updateSpendingItemThunk
 } from '../../redux/project/projectSlice';
@@ -55,22 +55,17 @@ const StyledButtonInvite = styled(Button)`
     border: 1px solid green !important;
     padding: 1rem !important;
       transition: all 0.3s ease;
-    .anticon svg{
-        color: green !important;
-        }
+   
     &:hover{
         background-color: #fff !important;
         border: 1px solid green !important;
         padding: 1rem !important;
          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        .anticon svg{
-            color: green !important;
-            }
+       
         }
 }
     .ant-btn{
         span{
-            color: green !important;
             font-size: 1rem !important;
             }
         }    
