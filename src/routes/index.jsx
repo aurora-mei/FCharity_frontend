@@ -44,6 +44,7 @@ const AppRoutes = () => {
         <Route path="/" element={<Layout />}>
           <Route index element={<HomeScreen />} />
           <Route path="/forum" element={<ForumPage />} />
+          <Route path="/posts" element={<ForumPage />} />  // 👈 THÊM DÒNG NÀY
           <Route path="/posts/:id" element={<PostDetailPage />} />
           <Route path="/requests/:id" element={<RequestDetailScreen />} />
           <Route element={<PrivateRoute />}>

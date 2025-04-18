@@ -31,7 +31,8 @@ import {
   createComment,
   fetchCommentsByPost,
   voteComment,
-  createReply
+  createReply,
+  fetchAllCommentsByPostThunk
 } from "../../redux/post/commentSlice";
 import { votePostThunk } from "../../redux/post/postSlice";
 
@@ -73,7 +74,7 @@ const countCommentsWithReplies = (comments) => {
 
 const CommentItem = React.memo(({
   comment,
-  level,
+  level = 0,
   handleVote,
   replyingTo,
   setReplyingTo,
@@ -83,30 +84,74 @@ const CommentItem = React.memo(({
   currentVotes
 }) => {
   const [isCollapsed] = useState(false);
-  const commentDetail = comment.comment;
-  const replies = comment.replies;
+  // Handle both nested and flat comment structures
+  const commentDetail = comment.comment || comment;
+  const replies = comment.replies || [];
 
-  return commentDetail && (
-    <div style={{ marginLeft: level > 0 ? 44 : 0, position: 'relative', marginBottom: 8 }}>
+  return (
+    <div style={{ 
+      marginLeft: level > 0 ? `${level * 24}px` : 0,
+      position: 'relative',
+      marginBottom: 8,
+      transition: 'margin-left 0.2s ease'
+    }}>
+      {/* Vertical line for nested comments */}
       {level > 0 && (
-        <div style={{ position: 'absolute', left: -24, top: 0, bottom: 0, width: 2, backgroundColor: '#e4e6eb' }} />
+        <div style={{ 
+          position: 'absolute',
+          left: 12,
+          top: 0,
+          bottom: 0,
+          width: 2,
+          backgroundColor: '#e4e6eb'
+        }} />
       )}
+      
       <div style={{ display: 'flex', gap: 8 }}>
         <Avatar size={32} src={commentDetail.user?.avatar} />
         <div style={{ flex: 1 }}>
+          {/* Comment content */}
           <div style={{ backgroundColor: '#f0f2f5', borderRadius: 18, padding: '8px 12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Text strong style={{ fontSize: 13 }}>{commentDetail.user?.fullName}</Text>
               <Text type="secondary" style={{ fontSize: 12 }}>{formatTimeAgo(commentDetail.createdAt)}</Text>
             </div>
-            <Paragraph style={{ margin: '4px 0 0', fontSize: 15, lineHeight: 1.4 }}>{commentDetail.content}</Paragraph>
+            <Paragraph style={{ margin: '4px 0 0', fontSize: 15, lineHeight: 1.4 }}>
+              {commentDetail.content}
+            </Paragraph>
           </div>
+          
+          {/* Comment actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 8px', paddingLeft: 8 }}>
-            <Button type="text" size="small" icon={<UpOutlined style={{ color: currentVotes[commentDetail.commentId] === true ? '#ff4500' : '#65676b' }} />} onClick={() => handleVote(commentDetail.commentId, true)} />
-            <Text style={{ fontSize: 13, fontWeight: 600 }}>{commentDetail.vote + (currentVotes[commentDetail.commentId] === true ? 1 : currentVotes[commentDetail.commentId] === false ? -1 : 0)}</Text>
-            <Button type="text" size="small" icon={<DownOutlined style={{ color: currentVotes[commentDetail.commentId] === false ? '#7193ff' : '#65676b' }} />} onClick={() => handleVote(commentDetail.commentId, false)} />
-            <Button type="text" size="small" style={{ fontSize: 13, fontWeight: 600 }} onClick={() => setReplyingTo(prev => prev === commentDetail.commentId ? null : commentDetail.commentId)}>Reply</Button>
+            <Button 
+              type="text" 
+              size="small" 
+              icon={<UpOutlined style={{ color: currentVotes[commentDetail.commentId] === true ? '#ff4500' : '#65676b' }} />} 
+              onClick={() => handleVote(commentDetail.commentId, true)} 
+            />
+            <Text style={{ fontSize: 13, fontWeight: 600 }}>
+              {commentDetail.vote + (currentVotes[commentDetail.commentId] === true ? 1 : currentVotes[commentDetail.commentId] === false ? -1 : 0)}
+            </Text>
+            <Button 
+              type="text" 
+              size="small" 
+              icon={<DownOutlined style={{ color: currentVotes[commentDetail.commentId] === false ? '#7193ff' : '#65676b' }} />} 
+              onClick={() => handleVote(commentDetail.commentId, false)} 
+            />
+            {/* Chỉ hiển thị nút Reply cho comment level 0 và level 1 */}
+            {level === 0 && (
+              <Button 
+                type="text" 
+                size="small" 
+                style={{ fontSize: 13, fontWeight: 600 }} 
+                onClick={() => setReplyingTo(prev => prev === commentDetail.commentId ? null : commentDetail.commentId)}
+              >
+                Reply
+              </Button>
+            )}
           </div>
+
+          {/* Reply form */}
           {replyingTo === commentDetail.commentId && (
             <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
               <Avatar size={32} src={commentDetail.user?.avatar} />
@@ -117,15 +162,26 @@ const CommentItem = React.memo(({
                 onChange={(e) => setReplyContent(e.target.value)}
                 placeholder="Viết phản hồi..."
               />
-              <Button type="primary" shape="circle" size="small" icon={<SendOutlined />} onClick={() => handleCreateReply(commentDetail.commentId)} />
+              <Button 
+                type="primary" 
+                shape="circle" 
+                size="small" 
+                icon={<SendOutlined />} 
+                onClick={() => handleCreateReply(commentDetail.commentId)} 
+              />
             </div>
           )}
         </div>
       </div>
-      {!isCollapsed && replies?.map(reply => (
+
+      {/* Chỉ render replies nếu level < 1 (tối đa 2 lớp comment) */}
+      {!isCollapsed && level < 1 && replies.map(reply => (
         <CommentItem
           key={reply.comment?.commentId || reply.commentId}
-          comment={{ comment: reply.comment || reply, replies: reply.replies || [] }}
+          comment={{ 
+            comment: reply.comment || reply, 
+            replies: reply.replies || [] 
+          }}
           level={level + 1}
           handleVote={handleVote}
           replyingTo={replyingTo}
@@ -143,22 +199,25 @@ const CommentItem = React.memo(({
 const Post = ({ currentPost }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [postVote, setPostVote] = useState(0);
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState("");
+  const [postVote, setPostVote] = useState(0);
   const [currentVotes, setCurrentVotes] = useState({});
   const [reportVisible, setReportVisible] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
   
   const comments = useSelector((state) => state.comment.comments) || [];
+  const allComments = useSelector((state) => state.comment.allComments) || [];
   const carouselRef = useRef(null);
   const commentEndRef = useRef(null);
+
 
   useEffect(() => {
     if (currentPost?.post?.id) {
       dispatch(fetchCommentsByPost({ postId: currentPost.post.id }));
+      dispatch(fetchAllCommentsByPostThunk(currentPost.post.id))
     }
   }, [currentPost?.post?.id, dispatch]);
 
@@ -304,7 +363,7 @@ const Post = ({ currentPost }) => {
   const { attachments = [], taggables = [] } = currentPost;
 
   return (
-    <Card variant="outlined" style={{ width: "85%", margin: "auto", marginTop: 20 }}>
+    <Card variant="outlined" style={{ width: "96.7%", margin: "1rem"}}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
         <Avatar src={user?.avatar} size={40} icon={!user?.avatar && <UserOutlined />} />
         <div style={{ marginLeft: 8, flex: 1 }}>
@@ -346,11 +405,11 @@ const Post = ({ currentPost }) => {
             {attachments.map((att, idx) => (
               <div key={idx}>
                 {att.match(/\.(mp4|webm)$/i) ? (
-                  <video controls style={{ width: "100%", maxHeight: 500, borderRadius: 8 }}>
+                  <video controls style={{ width: "100%", maxHeight: 400, borderRadius: 8 }}>
                     <source src={att} type="video/mp4" />
                   </video>
                 ) : (
-                  <img src={att} alt="post-media" style={{ width: "100%", maxHeight: 500, borderRadius: 8 }} />
+                  <img src={att} alt="post-media" style={{ width: "100%", maxHeight: 400, borderRadius: 8 }} />
                 )}
               </div>
             ))}
@@ -383,7 +442,7 @@ const Post = ({ currentPost }) => {
             icon={<MessageOutlined />}
             onClick={() => navigate(`/posts/${currentPost.post.id}#comments`)}
           >
-            {comments.length}
+            {allComments.length}
           </Button>
           <Button shape="round" icon={<ShareAltOutlined />} />
         </Space>
@@ -405,22 +464,25 @@ const Post = ({ currentPost }) => {
       </div>
 
       <div style={{ marginTop: 24 }}>
-        {Array.isArray(comments) && comments.map(item => (
-          <CommentItem
-            key={item.comment.commentId}
-            comment={{ comment: item.comment, replies: item.replies || [] }}
-            level={0}
-            handleVote={handleVote}
-            replyingTo={replyingTo}
-            setReplyingTo={setReplyingTo}
-            replyContent={replyContent}
-            setReplyContent={setReplyContent}
-            handleCreateReply={handleCreateReply}
-            currentVotes={currentVotes}
-          />
-        ))}
-        <div ref={commentEndRef} />
-      </div>
+  {Array.isArray(comments) && comments.map(item => (
+    <CommentItem
+      key={item.comment?.commentId || item.commentId}
+      comment={{ 
+        comment: item.comment || item, 
+        replies: item.replies || [] 
+      }}
+      level={0} // Top-level comments start at 0
+      handleVote={handleVote}
+      replyingTo={replyingTo}
+      setReplyingTo={setReplyingTo}
+      replyContent={replyContent}
+      setReplyContent={setReplyContent}
+      handleCreateReply={handleCreateReply}
+      currentVotes={currentVotes}
+    />
+  ))}
+  <div ref={commentEndRef} />
+</div>
 
       {/* Report Modal */}
       <Modal

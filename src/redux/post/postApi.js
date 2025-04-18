@@ -65,9 +65,14 @@ const votePost = async (postId, userId, vote) => {
         throw new Error(errorMessage);
     }
 };
-const fetchMyPosts = async () => {
+const fetchMyPosts = async (userId) => {
     try {
-        const response = await APIPrivate.get('posts/mine');
+        const response = await APIPrivate.get('posts/mine', {
+            params:{
+                userId:userId
+            }
+        });
+        console.log(response.data)
         return response.data;
     } catch (err) {
         console.error("Error fetching my posts:", err);

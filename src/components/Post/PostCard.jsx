@@ -20,14 +20,16 @@ const PostCard = ({ postResponse }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const carouselRef = useRef(null);
-  
+
   const [userVote, setUserVote] = useState(postResponse?.post.userVote || 0);
-  const [voteCount, setVoteCount] = useState(postResponse?.post.votes || 0);
+  const [newComment, setNewComment] = useState("");
   const [reportVisible, setReportVisible] = useState(false);
-  const [reportReason, setReportReason] = useState('');
-  const [reportDetails, setReportDetails] = useState('');
-  
+  const [reportReason, setReportReason] = useState("");
+  const [reportDetails, setReportDetails] = useState("");
+
   const taggables = postResponse?.taggables || [];
+  const attachments = postResponse?.attachments || [];
+  const currentVote = postResponse?.post.vote || 0;
 
   const formatTimeAgo = (createdAt) => {
     const createdDate = new Date(createdAt);
@@ -54,37 +56,29 @@ const PostCard = ({ postResponse }) => {
   };
 
   const handleVote = async (isUpvote, e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     if (!currentUser?.id) {
       message.error("Vui lòng đăng nhập để thực hiện vote");
       return;
     }
 
-    const currentVote = userVote;
-    let newVote;
-
-    if (isUpvote) {
-      newVote = currentVote === 1 ? 0 : 1;
-    } else {
-      newVote = currentVote === -1 ? 0 : -1;
-    }
-
-    const voteDelta = newVote - currentVote;
-    const updatedVoteCount = voteCount + voteDelta;
+    const newVote = isUpvote 
+      ? (userVote === 1 ? 0 : 1) 
+      : (userVote === -1 ? 0 : -1);
 
     setUserVote(newVote);
-    setVoteCount(updatedVoteCount);
 
     try {
-      await dispatch(votePostThunk({ 
-        postId: postResponse.post.id, 
-        userId: currentUser.id, 
-        vote: newVote 
-      })).unwrap();
+      await dispatch(
+        votePostThunk({
+          postId: postResponse.post.id,
+          userId: currentUser.id,
+          vote: newVote,
+        })
+      ).unwrap();
     } catch (error) {
-      setUserVote(currentVote);
-      setVoteCount(voteCount);
+      setUserVote(userVote); // Rollback nếu có lỗi
       message.error("Lỗi khi gửi vote");
     }
   };
@@ -133,18 +127,14 @@ const PostCard = ({ postResponse }) => {
     setReportVisible(false);
   };
 
-  return (
-    <Card
-      hoverable
-      style={{
-        width: "100%",
-        marginBottom: "20px",
-        borderRadius: "10px",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-        overflow: "hidden",
-        padding: "15px",
-      }}
-    >
+    return (
+      <Card
+        style={{
+          width: "100%",
+          marginBottom: "1rem",
+          borderRadius: "8px",
+        }}
+      >
       {/* Header with user info and tags */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
         <Space>
@@ -289,29 +279,42 @@ const PostCard = ({ postResponse }) => {
           postResponse.post.content}
       </div>
 
-      {/* Action buttons */}
-      <div style={{ display: "flex", justifyContent: "start", alignItems: "center" }}>
-        <Space>
-          <Button 
-            shape="circle" 
-            icon={<UpOutlined style={{ color: userVote === 1 ? "#ff4500" : "#65676b" }} />} 
+      {/* Interaction */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "12px 0",
+          borderTop: "1px solid #f0f0f0",
+          borderBottom: "1px solid #f0f0f0",
+          margin: "16px 0",
+        }}
+      >
+        <Space size="middle">
+          <Button
+            shape="circle"
+            icon={<UpOutlined style={{ color: userVote === 1 ? "#ff4500" : "#65676b" }} />}
             onClick={(e) => handleVote(true, e)}
           />
-          <Text strong>{voteCount}</Text>
-          <Button 
-            shape="circle" 
-            icon={<DownOutlined style={{ color: userVote === -1 ? "#7193ff" : "#65676b" }} />} 
+          <Text strong>{currentVote}</Text> {/* Hiển thị vote từ postResponse */}
+          <Button
+            shape="circle"
+            icon={<DownOutlined style={{ color: userVote === -1 ? "#7193ff" : "#65676b" }} />}
             onClick={(e) => handleVote(false, e)}
           />
-          <Button 
-            shape="circle" 
-            icon={<MessageOutlined />} 
-            onClick={handleCommentClick} 
-          />
-          <Button shape="circle" icon={<ShareAltOutlined />} />
+        </Space>
+        <Space size="middle">
+          <Button
+            shape="round"
+            icon={<MessageOutlined />}
+            onClick={() => navigate(`/posts/${postResponse.post.id}#comments`)}
+          >
+            {postResponse.post.commentCount || 0}
+          </Button>
+          <Button shape="round" icon={<ShareAltOutlined />} />
         </Space>
       </div>
-
       {/* Report modal */}
       <Modal
         title="Report Post"

@@ -3,13 +3,18 @@ import { Button, Dropdown, Menu } from "antd";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
-const ForumHeader = ({ sortBy, setSortBy, viewMode, setViewMode }) => {
+const ForumHeader = ({ sortBy, setSortBy, viewMode, setViewMode, onSortChange }) => {
     const navigate = useNavigate();
+
+    const handleSortChange = (option) => {
+        setSortBy(option);
+        onSortChange(option); // Gọi hàm callback từ component cha
+    };
 
     const sortOptions = (
         <Menu>
             {["Best", "New", "Oldest"].map((option) => (
-                <Menu.Item key={option} onClick={() => setSortBy(option)}>
+                <Menu.Item key={option} onClick={() => handleSortChange(option)}>
                     {option}
                 </Menu.Item>
             ))}

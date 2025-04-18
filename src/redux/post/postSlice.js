@@ -50,8 +50,8 @@
             }
         }
     );
-    export const fetchMyPosts = createAsyncThunk("posts/fetchMyPosts", async () => {
-        return await postApi.fetchMyPosts();
+    export const fetchMyPosts = createAsyncThunk("posts/fetchMyPosts", async (userId) => {
+        return await postApi.fetchMyPosts(userId);
     });
     
     const postSlice = createSlice({

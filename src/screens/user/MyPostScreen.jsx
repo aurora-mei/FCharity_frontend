@@ -12,6 +12,7 @@ const MyPostScreen = () => {
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("all");
   const [filteredPosts, setFilteredPosts] = useState([]);
+  const currentUser = useSelector((state) => state.auth.currentUser);
   const [postCounts, setPostCounts] = useState({
     all: 0,
     pending: 0,
@@ -20,35 +21,36 @@ const MyPostScreen = () => {
   });
 
   const loading = useSelector((state) => state.post.loading);
-  const postsByUserId = useSelector((state) => state.post.postsByUserId) || [];
+  const postsByUserId = useSelector((state) => state.post.myPosts) || [];
   const error = useSelector((state) => state.post.error);
 
   useEffect(() => {
-    dispatch(fetchMyPosts());
+    dispatch(fetchMyPosts(currentUser.id));
   }, [dispatch]);
 
   useEffect(() => {
-    const newCounts = {
-      all: postsByUserId.length,
-      pending: postsByUserId.filter(post => post.status?.toLowerCase() === "pending").length,
-      approved: postsByUserId.filter(post => post.status?.toLowerCase() === "approved").length,
-      rejected: postsByUserId.filter(post => post.status?.toLowerCase() === "rejected").length,
-    };
-  
-    // So sánh trước khi setState để tránh re-render vô hạn
-    if (JSON.stringify(newCounts) !== JSON.stringify(postCounts)) {
-      setPostCounts(newCounts);
-    }
-  
-    const newFiltered = activeTab === "all"
-      ? postsByUserId
-      : postsByUserId.filter(post => post.status?.toLowerCase() === activeTab);
-  
-    if (JSON.stringify(newFiltered) !== JSON.stringify(filteredPosts)) {
-      setFilteredPosts(newFiltered);
-    }
-  }, [postsByUserId, activeTab]);
-  
+    console.log("bbb",postsByUserId)
+  const newCounts = {
+    all: postsByUserId.length,
+    pending: postsByUserId.filter(post => post.status?.toLowerCase() === "pending").length,
+    approved: postsByUserId.filter(post => post.status?.toLowerCase() === "approved").length,
+    rejected: postsByUserId.filter(post => post.status?.toLowerCase() === "rejected").length,
+  };
+
+  // So sánh trước khi setState để tránh re-render vô hạn
+  if (JSON.stringify(newCounts) !== JSON.stringify(postCounts)) {
+    setPostCounts(newCounts);
+  }
+
+  const newFiltered = activeTab === "all"
+    ? postsByUserId
+    : postsByUserId.filter(post => post.status?.toLowerCase() === activeTab);
+
+  if (JSON.stringify(newFiltered) !== JSON.stringify(filteredPosts)) {
+    setFilteredPosts(newFiltered);
+  }
+}, [postsByUserId, activeTab]);
+
 
   if (loading) return <LoadingModal />;
   if (error) {
@@ -70,7 +72,7 @@ const MyPostScreen = () => {
           grid={{ gutter: 16, column: 4 }}
           dataSource={filteredPosts}
           renderItem={(post) => (
-            <List.Item key={post.id}>
+            <List.Item key={post.post.id}>
               <PostBox postData={post} />
             </List.Item>
           )}
@@ -79,7 +81,7 @@ const MyPostScreen = () => {
         <Empty
           description={
             <span>
-              You have no posts. <a href="/posts/create">Create one now</a>
+              You have no posts. <a href="/posts/create-post">Create one now</a>
             </span>
           }
         />
