@@ -21,7 +21,7 @@ const uploadFile = async ({ file, folderName = "default-folder" }) => {
   if (resourceType === "video") {
     uploadUrl = CLOUDINARY_URL.replace("/image/", "/video/");
   } else if (resourceType === "raw") {
-    uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw");
+    uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw/");
   }
 
   const isVideo = file.type.startsWith("video/");
@@ -49,17 +49,13 @@ const uploadFileMedia = async ({ file, folderName = "default-folder",resourceTyp
   formData.append("upload_preset", PRESET_NAME);
   formData.append("folder", folderName); // 🌟 Thêm folder tùy chỉnh
   formData.append("resource_type", resourceType);
-
+ let uploadUrl = CLOUDINARY_URL;
   if (resourceType === "video") {
     uploadUrl = CLOUDINARY_URL.replace("/image/", "/video/");
   } else if (resourceType === "raw") {
-    uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw");
+    uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw/");
   }
 
-  const isVideo = file.type.startsWith("video/");
-  const uploadUrl = isVideo
-    ? `${CLOUDINARY_URL.replace("/image/", "/video/")}`
-    : CLOUDINARY_URL;
   console.log("up url", uploadUrl);
   try {
     const res = await axios.post(uploadUrl, formData, {
