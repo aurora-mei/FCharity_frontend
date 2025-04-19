@@ -1,20 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { FaFileWord } from "react-icons/fa";
-
 import {
+  deleteFileLocal,
   getManagedOrganizationByCeo,
   getOrganizationVerificationDocuments,
   updateOrganization,
   uploadFileLocal,
 } from "../../redux/organization/organizationSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-
-import { FaLink } from "react-icons/fa";
 import { IoCamera } from "react-icons/io5";
 import ColorThief from "colorthief";
-import helperApi from "../../redux/helper/helperApi";
 
 import {
   showSuccess,
@@ -23,6 +18,7 @@ import {
   showInfo,
 } from "../../utils/showMessage";
 import ReferenceLink from "./components/ReferenceLink";
+import FileCard from "./components/FileCard";
 
 const MyOrganization = () => {
   const dispatch = useDispatch();
@@ -98,7 +94,7 @@ const MyOrganization = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    setNewDocuments(files);
+    setNewDocuments((prev) => [...prev, ...files]);
   };
 
   const handleAvatarChange = (e) => {
@@ -135,24 +131,41 @@ const MyOrganization = () => {
   };
 
   const handleSubmitFile = async () => {
-    if (newDocuments.length > 0) {
-      const newDocUrls = await Promise.all(
-        newDocuments.map(
-          async (docFile) =>
-            await dispatch(
-              uploadFileLocal({
-                file: docFile,
-                organizationId: ownedOrganization.organizationId,
-              })
-            ).unwrap()
-        )
-      );
+    try {
+      if (newDocuments.length > 0) {
+        const newDocUrls = await Promise.all(
+          newDocuments.map(
+            async (docFile) =>
+              await dispatch(
+                uploadFileLocal({
+                  file: docFile,
+                  organizationId: ownedOrganization.organizationId,
+                })
+              ).unwrap()
+          )
+        );
+        console.log("newDocUrls 🦔🦔🦔: ", newDocUrls);
+        setNewDocuments([]);
+      } else {
+        showWarning("Chưa chon file");
+      }
 
-      console.log("newDocUrls 🦔🦔🦔: ", newDocUrls);
-
-      setNewDocuments([]);
-    } else {
-      showWarning("Chưa chon file");
+      if (deletedDocuments.length > 0) {
+        await Promise.all(
+          deletedDocuments.map(
+            async (docId) =>
+              await dispatch(
+                deleteFileLocal({
+                  organizationId: ownedOrganization.organizationId,
+                  documentId: docId,
+                })
+              ).unwrap()
+          )
+        );
+        setDeletedDocuments([]);
+      }
+    } catch (err) {
+      console.error("Failed to upload file:", err);
     }
   };
 
@@ -203,19 +216,6 @@ const MyOrganization = () => {
   const rgbToCss = (rgb) =>
     rgb ? `rgb(${rgb[0]},${rgb[1]},${rgb[2]})` : "bg-gray-300";
 
-  const getFileColor = (type) => {
-    switch (type) {
-      case "excel":
-        return "#00B050";
-      case "pdf":
-        return "#E81123";
-      case "word":
-        return "#0070C0";
-      case "powerpoint":
-        return "#FF6600";
-    }
-  };
-
   const getFileType = (type) => {
     switch (type) {
       case "text/csv":
@@ -235,6 +235,17 @@ const MyOrganization = () => {
       case "application/vnd.ms-powerpoint":
         return "powerpoint";
     }
+  };
+
+  const handleDeleteDocument = (fileName) => {
+    if (verificationDocuments.some((d) => d.fileName == fileName)) {
+      const file = verificationDocuments.find((d) => d.fileName == fileName);
+      setDeletedDocuments((prev) => [...prev, file]);
+    }
+  };
+
+  const handleDeleteNewDocument = (index) => {
+    setNewDocuments(newDocuments.filter((_, i) => i !== index));
   };
 
   return (
@@ -341,7 +352,7 @@ const MyOrganization = () => {
         <div className="flex border-b border-gray-200 mb-6 mt-8">
           <button
             onClick={() => setActiveTab("Basic Information")}
-            className={`px-6 py-3 text-lg font-semibold transition-all duration-300 ${
+            className={`px-6 py-3 text-lg font-semibold transition-all duration-300 hover:cursor-pointer ${
               activeTab === "Basic Information"
                 ? "border-b-4 border-blue-500 text-blue-600"
                 : "text-gray-500 hover:text-blue-500"
@@ -351,7 +362,7 @@ const MyOrganization = () => {
           </button>
           <button
             onClick={() => setActiveTab("Verification Documents")}
-            className={`px-6 py-3 text-lg font-semibold transition-all duration-300 ${
+            className={`px-6 py-3 text-lg font-semibold transition-all duration-300 hover:cursor-pointer ${
               activeTab === "Verification Documents"
                 ? "border-b-4 border-blue-500 text-blue-600"
                 : "text-gray-500 hover:text-blue-500"
@@ -575,36 +586,17 @@ const MyOrganization = () => {
                   {newDocuments.length > 0 && (
                     <div className="mt-2 flex gap-2 flex-wrap hover:cursor-pointer">
                       {newDocuments.map((file, index) => (
-                        <div
+                        <FileCard
                           key={index}
-                          className="relative w-24 h-24 border border-gray-300 rounded-md flex flex-col items-center justify-center p-2 bg-gray-50"
-                        >
-                          <div className={`flex flex-col items-center gap-1 `}>
-                            <FaFileWord
-                              className="w-12 h-12"
-                              style={{
-                                color: getFileColor(getFileType(file.type)),
-                              }}
-                            />
-                            <p className="text-xs mt-1 text-center truncate w-[80px]">
-                              {file.name}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() =>
-                              setNewDocuments(
-                                newDocuments.filter((_, i) => i !== index)
-                              )
-                            }
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                          >
-                            ×
-                          </button>
-
-                          <span className="absolute bottom-1 right-1 text-xs text-gray-500">
-                            {(file.size / 1024).toFixed(1)}KB
-                          </span>
-                        </div>
+                          index={index}
+                          fileName={file.name}
+                          type={getFileType(file.type)}
+                          size={file.size}
+                          isEditing={isEditing}
+                          isNew={true}
+                          handleDeleteDocument={handleDeleteDocument}
+                          handleDeleteNewDocument={handleDeleteNewDocument}
+                        />
                       ))}
                     </div>
                   )}
@@ -617,62 +609,21 @@ const MyOrganization = () => {
                     .filter(
                       (v) =>
                         !deletedDocuments.some(
-                          (d) => d.organizationImageId == v.organizationImageId
+                          (d) => d.uploadedFileId == v.uploadedFileId
                         )
                     )
                     .map((file, index) => (
-                      <div
+                      <FileCard
                         key={index}
-                        className="relative w-24 h-24 border border-gray-300 rounded-md flex flex-col items-center justify-center p-2 bg-gray-50 hover:cursor-pointer"
-                      >
-                        {/* Hiển thị preview hoặc icon */}
-                        {String(file.imageUrl).includes("docx") ? (
-                          <img
-                            src={file.imageUrl}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <div
-                            className={`flex flex-col items-center gap-1 ${getFileColor(
-                              String(file.imageUrl)
-                            )}`}
-                          >
-                            <FaFileWord
-                              className="w-12 h-12"
-                              style={{
-                                color: getFileColor(getFileType(file.fileType)),
-                              }}
-                            />
-                            <p className="text-xs mt-1 text-center truncate w-[80px]">
-                              {String(file.fileName).substring(
-                                String(file.fileName).lastIndexOf("_") + 1
-                              )}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Nút xóa */}
-                        <button
-                          onClick={() => {
-                            if (
-                              !deletedDocuments.some(
-                                (d) =>
-                                  d.organizationImageId ==
-                                  file.organizationImageId
-                              )
-                            )
-                              setDeletedDocuments((prev) => [...prev, file]);
-                          }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-
-                        <span className="absolute bottom-1 right-1 text-xs text-gray-500">
-                          {(file.fileSize / 1024).toFixed(1)}KB
-                        </span>
-                      </div>
+                        index={index}
+                        fileName={file.fileName}
+                        type={getFileType(file.fileType)}
+                        size={file.fileSize}
+                        isEditing={isEditing}
+                        isNew={false}
+                        handleDeleteDocument={handleDeleteDocument}
+                        handleDeleteNewDocument={handleDeleteNewDocument}
+                      />
                     ))}
                 </div>
               ) : (
@@ -686,9 +637,9 @@ const MyOrganization = () => {
                   type="button"
                   className="bg-gray-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-gray-700 hover:shadow-md hover:cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
                   onClick={() => {
-                    dispatch(getManagedOrganizationByCeo());
                     setIsEditing(false);
                     setNewDocuments([]);
+                    setDeletedDocuments([]);
                   }}
                 >
                   <span className="text-white">Cancel</span>
@@ -722,32 +673,17 @@ const MyOrganization = () => {
                           )
                       )
                       .map((file, index) => (
-                        <div
+                        <FileCard
                           key={index}
-                          className="relative w-24 h-24 border border-gray-300 rounded-md flex flex-col items-center justify-center p-2 bg-gray-50"
-                        >
-                          <div
-                            className={`flex flex-col items-center gap-1 ${getFileColor(
-                              String(file.imageUrl)
-                            )}`}
-                          >
-                            <FaFileWord
-                              className="w-12 h-12"
-                              style={{
-                                color: getFileColor(getFileType(file.fileType)),
-                              }}
-                            />
-                            <p className="text-xs mt-1 text-center truncate w-[80px]">
-                              {String(file.fileName).substring(
-                                String(file.fileName).lastIndexOf("_") + 1
-                              )}
-                            </p>
-                          </div>
-
-                          <span className="absolute bottom-1 right-1 text-xs text-gray-500">
-                            {(file.fileSize / 1024).toFixed(1)}KB
-                          </span>
-                        </div>
+                          index={index}
+                          fileName={file.fileName}
+                          type={getFileType(file.fileType)}
+                          size={file.fileSize}
+                          isEditing={isEditing}
+                          isNew={false}
+                          handleDeleteDocument={handleDeleteDocument}
+                          handleDeleteNewDocument={handleDeleteNewDocument}
+                        />
                       ))}
                   </div>
                 ) : (

@@ -124,7 +124,10 @@ const InvitationModel = ({
                     >
                       <div className="w-10 h-10 rounded-xl overflow-hidden hover:cursor-pointer">
                         <img
-                          src={"https://avatar.iran.liara.run/public"}
+                          src={
+                            user.avatar ||
+                            "https://avatar.iran.liara.run/public"
+                          }
                           alt=""
                           className="w-full h-full object-cover"
                         />

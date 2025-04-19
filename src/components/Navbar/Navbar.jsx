@@ -165,8 +165,9 @@ const Navbar = () => {
     navigate("/");
   };
 
-  const { ownedOrganization, managedOrganizations } =
-    useSelector((state) => state.organization);
+  const { ownedOrganization, managedOrganizations } = useSelector(
+    (state) => state.organization
+  );
 
   useEffect(() => {
     if (currentUser && currentUser.id !== undefined) {

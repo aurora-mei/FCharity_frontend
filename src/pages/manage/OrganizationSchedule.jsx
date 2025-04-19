@@ -11,9 +11,15 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   addOrganizationEvent,
   getOrganizationEvents,
+  updateOrganizationEvent,
 } from "../../redux/organization/organizationSlice";
 
-Modal.setAppElement("#root");
+import {
+  showError,
+  showSuccess,
+  showWarning,
+  showInfo,
+} from "../../utils/showMessage";
 
 const OrganizationSchedule = () => {
   const dispatch = useDispatch();
@@ -179,6 +185,33 @@ const OrganizationSchedule = () => {
         info.event.title
       }" has been moved to ${info.event.start.toLocaleString()}`
     );
+    try {
+      showInfo("Updating event...");
+      // updateEvent({
+      //   eventId: info.event.id,
+      //   startTime: info.event.start,
+      //   endTime: info.event.end,
+      // })
+
+      // event.setTitle(updatedOrganizationEvent.getTitle());
+      //   event.setStartTime(updatedOrganizationEvent.getStartTime());
+      //   event.setEndTime(updatedOrganizationEvent.getEndTime());
+      //   event.setBackgroundColor(updatedOrganizationEvent.getBackgroundColor());
+      //   event.setBorderColor(updatedOrganizationEvent.getBorderColor());
+      //   event.setTextColor(updatedOrganizationEvent.getTextColor());
+      //   event.setLocation(updatedOrganizationEvent.getLocation());
+      //   event.setMeetingLink(updatedOrganizationEvent.getMeetingLink());
+      //   event.setEventType(updatedOrganizationEvent.getEventType());
+      //   event.setOrganizer(updatedOrganizationEvent.getOrganizer());
+      //   event.setTargetAudience(updatedOrganizationEvent.getTargetAudience());
+      //   event.setSummary(updatedOrganizationEvent.getSummary());
+      //   event.setFullDescription(updatedOrganizationEvent.getFullDescription());
+
+      dispatch(updateOrganizationEvent(info));
+      showSuccess("Event updated successfully");
+    } catch (error) {
+      showError("Failed to update event");
+    }
   };
 
   const handleInputChange = (e) => {
@@ -246,9 +279,7 @@ const OrganizationSchedule = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold mb-4">
-          Organization Event Calendar - Month 4/2025
-        </h1>
+        <h1 className="text-2xl font-bold mb-4">Organization Event Calendar</h1>
         <button
           onClick={() => setIsCreateModalOpen(true)}
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 hover:cursor-pointer"

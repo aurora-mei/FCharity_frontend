@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
 import { Empty } from "antd";
+import { useDispatch } from "react-redux";
+import { cancelInvitationRequest } from "../../../redux/organization/organizationSlice";
 
 const InvitationsReviewModel = ({ invitations, setIsModelOpen }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterByStatus, setFilterByStatus] = useState("All");
+  const dispatch = useDispatch();
 
   const filteredInvitations = invitations
     ?.filter((invitation) => {
@@ -26,6 +29,10 @@ const InvitationsReviewModel = ({ invitations, setIsModelOpen }) => {
       }
       return false;
     });
+
+  const handleDeleteInvitation = (invitation) => {
+    dispatch(cancelInvitationRequest(invitation.invitationId));
+  };
 
   return (
     <div>
@@ -99,7 +106,10 @@ const InvitationsReviewModel = ({ invitations, setIsModelOpen }) => {
                   <div className="flex items-center px-6 py-4 text-gray-800 col-span-2">
                     <img
                       className="w-10 h-10 rounded-full"
-                      src={invitation.user.avatar}
+                      src={
+                        invitation.user?.avatar ||
+                        "https://avatar.iran.liara.run/public"
+                      }
                       alt="avatar image"
                     />
                     <div className="ps-3">
@@ -132,7 +142,7 @@ const InvitationsReviewModel = ({ invitations, setIsModelOpen }) => {
                         className="px-3 py-1 rounded-md bg-gray-300 hover:bg-gray-500 hover:cursor-pointer hover:text-white"
                         style={{ color: "rgb(64, 67, 71)" }}
                         onClick={() => {
-                          handleDeleteInvitation(invitation.user);
+                          handleDeleteInvitation(invitation);
                         }}
                       >
                         Cancel
