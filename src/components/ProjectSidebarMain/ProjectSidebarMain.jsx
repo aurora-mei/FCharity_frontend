@@ -51,7 +51,7 @@ const SideBarMain = () => {
                                     <Button style={{ padding: "1rem" }} icon={<EditOutlined />} type="text"
                                         onClick={() => setIsOpenModal(true)} />
                             </Flex>
-                            <Tag color="blue" style={{width:"fit-content"}}>{currentProject.project.projectStatus}</Tag>
+                            <Tag color="blue" style={{width:"fit-content"}}><b>{currentProject.project.projectStatus}</b></Tag>
                         </Flex>
                     </div>
                     <div style={{ marginTop: 16, textAlign: 'center' }}>

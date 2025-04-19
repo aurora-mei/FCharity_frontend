@@ -447,7 +447,47 @@ export const getItemsByPlan = async (planId) => {
         throw err.response?.data;
     }
 };
-
+//spending details
+export const getSpendingDetailsByProject = async (projectId) => {
+    try {
+        const response = await APIPrivate.get(`projects/spending/${projectId}/details`);
+        console.log("Spending details:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching spending details:", err);
+        throw err.response.data;
+    }
+}
+export const createSpendingDetail = async (detailData) => {
+    try {
+        const response = await APIPrivate.post(`projects/spending/details/create`,detailData);
+        console.log("Spending detail create:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching spending details:", err);
+        throw err.response.data;
+    }
+}
+export const updateSpendingDetail = async ({id,detailData}) => {
+    try {
+        const response = await APIPrivate.put(`projects/spending/details/${id}`,detailData);
+        console.log("Spending detail create:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching spending details:", err);
+        throw err.response.data;
+    }
+}
+export const deleteSpendingDetail = async ({id}) => {
+    try {
+        const response = await APIPrivate.delete(`projects/spending/details/${id}`);
+        console.log("Spending detail create:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching spending details:", err);
+        throw err.response.data;
+    }
+}
 //donations
 const createDonation = async (donationData) => {
     try {
@@ -477,6 +517,7 @@ const projectApi = { fetchProjects, createProject, fetchProjectById, fetchMyProj
     getAllProjectRequest, sendJoinRequest, cancelProjectRequest,approveJoinRequest,rejectJoinRequest,
     approveLeaveRequest,rejectLeaveRequest,
     getSpendingTemplate,importSpendingPlan,approveSpendingPlan,
+    createSpendingDetail,getSpendingDetailsByProject,updateSpendingDetail,deleteSpendingDetail,
     getSpendingPlanOfProject, createSpendingPlan, getSpendingPlanById, updateSpendingPlan, deleteSpendingPlan,
     createSpendingItem,getSpendingItemById,updateSpendingItem,deleteSpendingItem,getItemsByPlan,
      createDonation,getDonationsOfProject};

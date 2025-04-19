@@ -40,7 +40,7 @@ import {
   StarOutlined,
   UnorderedListOutlined
 } from '@ant-design/icons';
-import { fetchProjectById , fetchDonationsOfProject,fetchProjectRequests,fetchActiveProjectMembers } from "../../redux/project/projectSlice";
+import { fetchProjectById, fetchDonationsOfProject, fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
 import styled from "styled-components";
 import LoadingModal from "../../components/LoadingModal";
 import ProjectDonationBoard from "../../containers/ProjectDonationBoard/ProjectDonationBoard";
@@ -245,8 +245,8 @@ const ProjectMoreDetailScreen = () => {
   const currentProject = useSelector((state) => state.project.currentProject);
   const donations = useSelector((state) => state.project.donations);
   const checkoutURL = useSelector((state) => state.helper.checkoutURL);
-    const projectRequests = useSelector((state) => state.project.projectRequests);
-    const projectMembers = useSelector((state) => state.project.projectMembers);
+  const projectRequests = useSelector((state) => state.project.projectRequests);
+  const projectMembers = useSelector((state) => state.project.projectMembers);
   const loading = useSelector((state) => state.project.loading);
 
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -273,7 +273,7 @@ const ProjectMoreDetailScreen = () => {
       dispatch(fetchActiveProjectMembers(project.id));
     }
     console.log("currentProject", currentProject);
-  }, [dispatch, currentProject.project, donations,checkoutURL]);
+  }, [dispatch, currentProject.project, donations, checkoutURL]);
 
   // Lọc ảnh/video (nếu backend trả về attachments)
   const imageUrls = currentProject.attachments?.filter((url) =>
@@ -298,17 +298,17 @@ const ProjectMoreDetailScreen = () => {
     {
       href: '/',
       title: (
-        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }} /> // Increase icon size
+        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem" }} /> // Increase icon size
       ),
     },
     {
       title: (
-        <a style={{ fontSize: "1rem", color: "green" }} onClick={() => { navigate(-1) }}>Project {project.projectName}</a> // Increase text size
+        <a style={{ fontSize: "1rem" }} onClick={() => { navigate(-1) }}>Project {project.projectName}</a> // Increase text size
       ),
     },
     {
       title: (
-        <p style={{ fontSize: "1rem", color: "green" }}>Details</p> // Increase text size
+        <p style={{ fontSize: "1rem" }}>Details</p> // Increase text size
       ),
     },
   ];
@@ -358,11 +358,19 @@ const ProjectMoreDetailScreen = () => {
                 </div>
               )}
 
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <UserOutlined style={{ fontSize: 24 }} />
-                <div>
-                  <strong>{project.leader.fullName}</strong> lead this project <br />
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <Flex gap={10}>
+                  <Avatar src={project.leader.avatar} style={{ fontSize: 24 }} />
+                  <Flex vertical gap={10}>
+                    <span> <strong>{project.leader.fullName}</strong> lead this project</span>
+                    <Flex vertical gap={5} >
+                      <span> <i>Planned start at: </i> {moment(project.plannedStartTime).format("DD/MM/YYYY hh:mm A")} </span>
+                      <span> <i>Planned end at: </i> {moment(project.plannedEndTime).format("DD/MM/YYYY hh:mm A")}</span>
+                      <span> <i>Location: </i> {project.location}</span>
+                    </Flex>
+                  </Flex>
+                </Flex>
+
               </div>
             </Flex>
 

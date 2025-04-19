@@ -12,6 +12,8 @@ const initialState = {
     allProjectMembers: [],
     currentSpendingPlan: {},
     currentSpendingItem: {},
+    spendingDetails: [],
+    currentSpendingDetail:{},
     spendingItems: [],
     userNotInProject: [],
     projectRequests: [],
@@ -124,7 +126,20 @@ export const deleteSpendingItemThunk = createAsyncThunk("project/delete-spending
 export const fetchSpendingItemById = createAsyncThunk("project/get-spending-item-by-id", async (spendingItemId) => {
     return await projectApi.getSpendingItemById(spendingItemId);
 });
-
+//details
+export const fetchSpendingDetailsByProject = createAsyncThunk("project/get-spending-details-by-prid", async (projectId) => {
+    return await projectApi.getSpendingDetailsByProject(projectId);
+});
+export const createSpendingDetailThunk = createAsyncThunk("project/create-spending-details", async (spendingDetails) => {
+    return await projectApi.createSpendingDetail(spendingDetails);
+});
+export const updateSpendingDetailThunk = createAsyncThunk("project/update-spending-detail", async ({id,detailData}) => {
+    return await projectApi.updateSpendingDetail({id,detailData});
+});
+export const deleteSpendingDetailThunk = createAsyncThunk("project/delete-spending-detail", async (spendingDetailId) => {
+    return await projectApi.deleteSpendingDetail(spendingDetailId);
+}
+);
 
 //donations
 export const createDonationThunk = createAsyncThunk("project/create-donation", async (donationData) => {
@@ -584,6 +599,49 @@ const projectSlice = createSlice({
                 state.donations = action.payload;
             })
             .addCase(fetchDonationsOfProject.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            }) 
+            .addCase(fetchSpendingDetailsByProject.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchSpendingDetailsByProject.fulfilled, (state, action) => {
+                state.loading = false;
+                state.spendingDetails = action.payload;
+            })
+            .addCase(fetchSpendingDetailsByProject.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            }) 
+            .addCase(createSpendingDetailThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(createSpendingDetailThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentSpendingDetail = action.payload;
+            })
+            .addCase(createSpendingDetailThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(updateSpendingDetailThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateSpendingDetailThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentSpendingDetail = action.payload;
+            })
+            .addCase(updateSpendingDetailThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(deleteSpendingDetailThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(deleteSpendingDetailThunk.fulfilled, (state, action) => {
+                state.loading = false;
+            })
+            .addCase(deleteSpendingDetailThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             })

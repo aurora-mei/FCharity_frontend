@@ -7,7 +7,7 @@ import { useParams } from 'react-router-dom';
 import { deleteSpendingItemThunk, fetchProjectById } from '../../redux/project/projectSlice';
 import { useEffect } from 'react';
 import {
-    fetchSpendingTemplateThunk, importSpendingPlanThunk,
+    fetchSpendingTemplateThunk, importSpendingPlanThunk,fetchSpendingDetailsByProject ,
     fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, createSpendingPlanThunk
     , createSpendingItemThunk, updateSpendingPlanThunk, updateSpendingItemThunk
 } from '../../redux/project/projectSlice';
@@ -55,22 +55,17 @@ const StyledButtonInvite = styled(Button)`
     border: 1px solid green !important;
     padding: 1rem !important;
       transition: all 0.3s ease;
-    .anticon svg{
-        color: green !important;
-        }
+   
     &:hover{
         background-color: #fff !important;
         border: 1px solid green !important;
         padding: 1rem !important;
          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        .anticon svg{
-            color: green !important;
-            }
+       
         }
 }
     .ant-btn{
         span{
-            color: green !important;
             font-size: 1rem !important;
             }
         }    
@@ -97,12 +92,15 @@ const ProjectFinancePlanContainer = () => {
     const [totalItems, setTotalItems] = useState(0);
     const currentUser = useSelector((state) => state.auth.currentUser);
     const [isLeader, setIsLeader] = useState(false);
+    const spendingDetails = useSelector((state) => state.project.spendingDetails);
+    const currentSpendingDetail = useSelector((state) => state.project.currentSpendingDetail);
     const [form] = Form.useForm();
     useEffect(() => {
         dispatch(fetchProjectById(projectId));
         if (currentProject && currentProject.project) {
             console.log(currentProject.project.id);
             dispatch(fetchSpendingPlanOfProject(currentProject.project.id));
+            dispatch(fetchSpendingDetailsByProject(currentProject.project.id));
         }
     }, [projectId, dispatch]);
     useEffect(() => {
@@ -337,9 +335,21 @@ const ProjectFinancePlanContainer = () => {
                             : (
                                 <Empty title="No spending items found" description="Please add a spending item." style={{ marginTop: '20px' }} />
                             )}
+                            {spendingDetails && spendingDetails.length > 0 && (
+                                <SpendingPlanFlex>
+                                    <Title level={4}>Spending Plan Details</Title>
+                                    {spendingDetails.map((detail) => (
+                                        <SpendingItemRow key={detail.id}>
+                                            <span>{detail.itemName}</span>
+                                            <span>{detail.estimatedCost}</span>
+                                            <span>{detail.note}</span>
+                                        </SpendingItemRow>
+                                    ))}
+                                    </SpendingPlanFlex>
+                            )
+                        }
                     </SpendingPlanFlex>
                 )
-
             )}
         </div>
     );
