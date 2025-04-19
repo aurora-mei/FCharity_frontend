@@ -19,7 +19,6 @@ import {
   Legend,
 } from "chart.js";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
 
 const { Title } = Typography;
 const { Option } = Select;

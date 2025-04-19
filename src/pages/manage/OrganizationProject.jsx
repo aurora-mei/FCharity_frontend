@@ -22,7 +22,6 @@ import ProjectCard from "../../components/ProjectCard/ProjectCard";
 import { Col, Row, Button, Flex, Modal, Skeleton, Empty, Typography,Tag } from "antd";
 const { Title } = Typography;
 import { Table } from "antd";
-import { getManagedOrganizationByCeo } from "../../redux/organization/organizationSlice";
 const OrganizationProject = () => {
   const myOrganization = useSelector((state) => state.organization.ownedOrganization);
 
