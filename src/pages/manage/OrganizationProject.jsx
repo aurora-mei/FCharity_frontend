@@ -10,7 +10,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-
 } from "recharts";
 import { fetchProjectsByOrgThunk, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, approveSpendingPlanThunk } from "../../redux/project/projectSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,12 +34,15 @@ const OrganizationProject = () => {
   const currentSpendingPlan = useSelector((state) => state.project.currentSpendingPlan);
   const spendingItems = useSelector((state) => state.project.spendingItems);
   const [loading, setLoading] = useState(false);
+
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
     status: "Active",
   });
-  const projectByOrg = useSelector(state => state.project.projects);
+
+  const projectByOrg = useSelector((state) => state.project.projects);
+
   useEffect(() => {
     dispatch(getManagedOrganizationByCeo());
     dispatch(getManagedOrganizationsByManager());
@@ -88,7 +90,6 @@ const OrganizationProject = () => {
       dataIndex: "note",
       key: "note",
     },
-
   ];
 
   const renderContent = () => {
@@ -96,10 +97,8 @@ const OrganizationProject = () => {
       case "overview":
         return (
           <>
-
             <Row gutter={[16, 16]}>
-              {
-                projectByOrg &&
+              {projectByOrg &&
                 Array.isArray(projectByOrg) &&
                 projectByOrg.length > 1 && projectByOrg.map(project => (
                   <Col key={project.project.id} span='8' style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
@@ -130,8 +129,7 @@ const OrganizationProject = () => {
                         </Flex>
                       ) : <ProjectCard key={project.project.id} projectData={project} only={false} />}
                   </Col>
-                ))
-              }
+                ))}
             </Row>
             <Modal open={isOpenModal} onCancel={() => setIsOpenModal(false)} footer={null} width={1000}>
               {!loading ? (
@@ -226,10 +224,11 @@ const OrganizationProject = () => {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                className={`py-2 px-4 text-sm font-medium transition-colors duration-200 ${activeTab === tab.id
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-gray-600 hover:text-blue-500"
-                  }`}
+                className={`py-2 px-4 text-sm font-medium transition-colors duration-200 ${
+                  activeTab === tab.id
+                    ? "border-b-2 border-blue-500 text-blue-600"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}

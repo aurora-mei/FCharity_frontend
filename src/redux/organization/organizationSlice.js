@@ -589,6 +589,33 @@ export const uploadFileLocal = createAsyncThunk(
   }
 );
 
+export const deleteFileLocal = createAsyncThunk(
+  "organizations/deleteFileLocal",
+  async (fileName, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.deleteFileLocal(fileName);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error deleting file");
+    }
+  }
+);
+
+export const getFileUrlLocal = createAsyncThunk(
+  "organizations/getFileUrlLocal",
+  async (fileName, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getFileUrlLocal(fileName, {
+        responseType: "blob",
+      });
+      const fileUrl = window.URL.createObjectURL(new Blob([response.data]));
+      return fileUrl;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error getting file url");
+    }
+  }
+);
+
 // ----------------------- End Organization Events --------------
 export const getAllUsersNotInOrganization = createAsyncThunk(
   "organizations/getAllUsersNotInOrganization",
@@ -1143,14 +1170,6 @@ export const organizationSlice = createSlice({
       })
       .addCase(updateOrganizationEvent.fulfilled, (state, action) => {
         state.loading = false;
-        state.organizationEvents = state.organizationEvents.map(
-          (organizationEvent) => {
-            organizationEvent.organizationEventId !==
-            action.payload.organizationEventId
-              ? organizationEvent
-              : action.payload;
-          }
-        );
       })
       .addCase(updateOrganizationEvent.rejected, (state, action) => {
         state.loading = false;

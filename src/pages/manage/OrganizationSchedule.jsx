@@ -11,9 +11,16 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   addOrganizationEvent,
   getOrganizationEvents,
+  updateOrganizationEvent,
 } from "../../redux/organization/organizationSlice";
 
-Modal.setAppElement("#root");
+import {
+  showError,
+  showSuccess,
+  showWarning,
+  showInfo,
+} from "../../utils/showMessage";
+import { Link } from "react-router-dom";
 
 const OrganizationSchedule = () => {
   const dispatch = useDispatch();
@@ -25,18 +32,20 @@ const OrganizationSchedule = () => {
   useEffect(() => {
     if (ownedOrganization)
       dispatch(getOrganizationEvents(ownedOrganization.organizationId));
-  }, [ownedOrganization]);
+  }, [ownedOrganization, dispatch]);
 
   useEffect(() => {
-    if (organizationEvents && organizationEvents.length > 0)
+    if (organizationEvents && organizationEvents.length > 0) {
+      console.log("update events 🦄", organizationEvents);
       setEvents(
         organizationEvents.map((event, index) => ({
           ...event,
           id: index,
-          start: event.startTime,
-          end: event.endTime,
+          start: event?.startTime,
+          end: event?.endTime,
         }))
       );
+    }
   }, [organizationEvents]);
 
   const [calendarView, setCalendarView] = useState("dayGridMonth");
@@ -77,8 +86,6 @@ const OrganizationSchedule = () => {
     const eventStyle = {
       backgroundColor: eventInfo.event.backgroundColor,
       color: eventInfo.event.textColor,
-      // padding: "10px",
-      // borderRadius: "5px",
     };
 
     return (
@@ -154,6 +161,8 @@ const OrganizationSchedule = () => {
       title: info.event.title,
       start: info.event.start,
       end: info.event.end,
+
+      organizationEventId: info.event.extendedProps.organizationEventId,
       startTime: info.event.start,
       endTime: info.event.end,
       backgroundColor: info.event.backgroundColor,
@@ -172,13 +181,38 @@ const OrganizationSchedule = () => {
       event.id === info.event.id ? updatedEvent : event
     );
 
-    setEvents(updatedEvents);
-
     alert(
       `Event "${
         info.event.title
       }" has been moved to ${info.event.start.toLocaleString()}`
     );
+
+    try {
+      showInfo("Updating event...");
+      const savedEvent = {
+        organizer: ownedOrganization,
+        organizationEventId: updatedEvent.organizationEventId,
+        title: updatedEvent.title,
+        startTime: info.event.start,
+        endTime: info.event.end,
+        backgroundColor: updatedEvent.backgroundColor,
+        borderColor: updatedEvent.borderColor,
+        textColor: updatedEvent.textColor,
+        location: updatedEvent.location,
+        meetingLink: updatedEvent.meetingLink,
+        eventType: updatedEvent.eventType,
+        organizer: updatedEvent.organizer,
+        targetAudience: updatedEvent.targetAudience,
+        summary: updatedEvent.summary,
+        fullDescription: updatedEvent.fullDescription,
+      };
+
+      dispatch(updateOrganizationEvent(savedEvent));
+      // setEvents(updatedEvents);
+      showSuccess("Event updated successfully");
+    } catch (error) {
+      showError("Failed to update event");
+    }
   };
 
   const handleInputChange = (e) => {
@@ -211,16 +245,26 @@ const OrganizationSchedule = () => {
     if (!validateForm()) return;
 
     const newEventData = {
-      backgroundColor: "#3788d8",
-      borderColor: "#3788d8",
-      textColor: "#ffffff",
-      ...newEvent,
-      startTime: newEvent.start.toISOString(),
-      endTime: newEvent.end.toISOString(),
+      organizerId: ownedOrganization.organizationId,
+      title: newEvent.title,
+      startTime: newEvent.start,
+      endTime: newEvent.end,
+      backgroundColor: newEvent.backgroundColor || "#3788d8",
+      borderColor: newEvent.borderColor || "#3788d8",
+      textColor: newEvent.textColor,
+      location: newEvent.location,
+      meetingLink: newEvent.meetingLink,
+      eventType: newEvent.eventType,
+      organizer: newEvent.organizer,
+      targetAudience: newEvent.targetAudience,
+      summary: newEvent.summary,
+      fullDescription: newEvent.fullDescription,
     };
 
-    dispatch(addOrganizationEvent(newEvent));
-    dispatch(getOrganizationEvents(ownedOrganization?.organizationId));
+    console.log("New Event Data: 🧊🧊", newEventData);
+    console.log("Organizer: ", ownedOrganization);
+
+    dispatch(addOrganizationEvent(newEventData));
 
     setIsCreateModalOpen(false);
     setNewEvent({
@@ -246,9 +290,7 @@ const OrganizationSchedule = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold mb-4">
-          Organization Event Calendar - Month 4/2025
-        </h1>
+        <h1 className="text-2xl font-bold mb-4">Organization Event Schedule</h1>
         <button
           onClick={() => setIsCreateModalOpen(true)}
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 hover:cursor-pointer"
@@ -330,18 +372,15 @@ const OrganizationSchedule = () => {
             <strong>Location:</strong> {selectedEvent.location}
             {selectedEvent.meetingLink && (
               <span>
-                {" "}
-                (
-                <a
-                  href={selectedEvent.meetingLink}
+                <Link
+                  to={selectedEvent.meetingLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-green-500 underline"
                 >
                   Join Online
-                </a>
+                </Link>
                 <span className="live-dot w-3 h-3 bg-green-500 rounded-full inline-block ml-2 animate-pulse"></span>
-                )
               </span>
             )}
           </p>

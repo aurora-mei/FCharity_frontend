@@ -1,5 +1,5 @@
-import React from 'react';
-import './HomeContainer.pcss';
+import React from "react";
+import "./HomeContainer.pcss";
 import Banner from "../../components/Banner/Banner";
 import Noting from "../../components/Noting/Noting";
 import FundraiserBoard from "../FundraiserBoard/FundraiserBoard";

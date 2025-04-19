@@ -3,12 +3,7 @@ import React, { useState, useEffect } from "react";
 import ManagerLayout from "../../components/Layout/ManagerLayout";
 import { IoSearch } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  getAllUsersNotInOrganization,
-  getAllMembersInOrganization,
-  getAllInvitationRequestsByOrganizationId,
-  getAllJoinRequestsByOrganizationId,
-} from "../../redux/organization/organizationSlice";
+import { getAllMembersInOrganization } from "../../redux/organization/organizationSlice";
 
 import MemberCard from "./components/MemberCard.jsx";
 import ReferenceLink from "./components/ReferenceLink.jsx";
@@ -18,15 +13,8 @@ import JoinRequestReviewModel from "./components/JoinRequestReviewModel.jsx";
 
 const OrganizationMember = () => {
   const dispatch = useDispatch();
-  const {
-    loading,
-    error,
-    ownedOrganization,
-    currentOrganizationMembers,
-    usersOutsideOrganization,
-    invitations,
-    joinRequests,
-  } = useSelector((state) => state.organization);
+  const { loading, error, ownedOrganization, currentOrganizationMembers } =
+    useSelector((state) => state.organization);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isModelOpen, setIsModelOpen] = useState({
@@ -34,39 +22,13 @@ const OrganizationMember = () => {
     content: 0,
   });
 
-  const [suggestedUsers, setSuggestedUsers] = useState([]);
-
   console.log("organizationMembers", currentOrganizationMembers);
-  console.log("suggested users: ", suggestedUsers);
-  console.log("invitations: ", invitations);
 
   useEffect(() => {
     if (ownedOrganization?.organizationId) {
       dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
-      dispatch(getAllUsersNotInOrganization(ownedOrganization.organizationId));
-      dispatch(
-        getAllInvitationRequestsByOrganizationId(
-          ownedOrganization.organizationId
-        )
-      );
-      dispatch(
-        getAllInvitationRequestsByOrganizationId(
-          ownedOrganization.organizationId
-        )
-      );
-      dispatch(
-        getAllJoinRequestsByOrganizationId(ownedOrganization.organizationId)
-      );
     }
   }, [dispatch, ownedOrganization]);
-
-  useEffect(() => {
-    if (usersOutsideOrganization && usersOutsideOrganization.length > 0) {
-      setSuggestedUsers(
-        usersOutsideOrganization?.map((user) => ({ ...user, invited: false }))
-      );
-    }
-  }, [usersOutsideOrganization]);
 
   return (
     <div className="min-h-[600px]">
@@ -111,11 +73,6 @@ const OrganizationMember = () => {
               type="button"
               className="text-gray-800 rounded-xl bg-gray-300 px-4 py-2 hover:bg-gray-400 hover:cursor-pointer transition duration-200"
               onClick={() => {
-                dispatch(
-                  getAllInvitationRequestsByOrganizationId(
-                    ownedOrganization.organizationId
-                  )
-                );
                 setIsModelOpen({ open: true, content: 2 });
               }}
             >
@@ -125,11 +82,6 @@ const OrganizationMember = () => {
               type="button"
               className="text-gray-800 rounded-xl bg-gray-300 px-4 py-2 hover:bg-gray-400 hover:cursor-pointer transition duration-200"
               onClick={() => {
-                dispatch(
-                  getAllJoinRequestsByOrganizationId(
-                    ownedOrganization.organizationId
-                  )
-                );
                 setIsModelOpen({ open: true, content: 3 });
               }}
             >
@@ -167,23 +119,13 @@ const OrganizationMember = () => {
           />
           <div className="bg-white rounded-lg shadow-lg px-3 py-3 w-[800px] h-[500px] max-w-full max-h-full transform transition-all duration-300 animate-fade-in z-50">
             {isModelOpen?.content === 1 && (
-              <InvitationModel
-                suggestedUsers={suggestedUsers}
-                setSuggestedUsers={setSuggestedUsers}
-                setIsModelOpen={setIsModelOpen}
-              />
+              <InvitationModel setIsModelOpen={setIsModelOpen} />
             )}
             {isModelOpen?.content === 2 && (
-              <InvitationsReviewModel
-                invitations={invitations}
-                setIsModelOpen={setIsModelOpen}
-              />
+              <InvitationsReviewModel setIsModelOpen={setIsModelOpen} />
             )}
             {isModelOpen?.content === 3 && (
-              <JoinRequestReviewModel
-                joinRequests={joinRequests}
-                setIsModelOpen={setIsModelOpen}
-              />
+              <JoinRequestReviewModel setIsModelOpen={setIsModelOpen} />
             )}
           </div>
         </div>

@@ -79,7 +79,10 @@ const organizationApi = {
   getOrganizationEvents: (organizationId) =>
     api.get(`/events/organizations/${organizationId}`),
   addOrganizationEvent: (organizationEventData) =>
-    api.post("/events", organizationEventData),
+    api.post(
+      `/events/${organizationEventData.organizerId}`,
+      organizationEventData
+    ),
   updateOrganizationEvent: (organizationEventData) =>
     api.put("/events", organizationEventData),
   deleteOrganizationEvent: (organizationEventId) =>
@@ -105,6 +108,17 @@ const organizationApi = {
       throw error.response?.data || error.message;
     }
   },
+
+  deleteFileLocal: async (fileName) => {
+    try {
+      return await api.delete(`/files/${encodeURIComponent(fileName)}`);
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getFileUrlLocal: (fileName) =>
+    api.get(`/files/${encodeURIComponent(fileName)}`, { responseType: "blob" }),
   // ---------------------------  End OrganizationEvent RestController ----------------------------
   // ----------------- User ------------------------------
 

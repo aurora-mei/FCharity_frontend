@@ -51,7 +51,7 @@ const UserInfoCard = ({
                 </h3>
                 <p className="flex items-center gap-2 text-gray-600">
                   <FaIdCard className="text-gray-500" />
-                  <span className="font-semibold">ID:</span> {selectedUser.id}
+                  <span className="font-semibold">ID:</span> {selectedUser?.id}
                 </p>
                 <p className="flex items-center gap-2 text-gray-600">
                   <MdAttachEmail className="text-gray-500" />

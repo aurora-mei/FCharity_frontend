@@ -3,7 +3,7 @@ import { Card, Typography, Space, Button, Avatar, Progress, Modal, Skeleton } fr
 import { ShareAltOutlined, DollarOutlined, RiseOutlined, UserOutlined, FlagOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import moment from "moment-timezone";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { sendJoinRequestThunk, fetchProjectRequests, fetchActiveProjectMembers, fetchSpendingPlanOfProject } from "../../redux/project/projectSlice";
 import PropTypes from "prop-types";
@@ -255,7 +255,7 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                             <br />
                             <Text type="secondary">{
                                 recentDonation[0]?.amount.toLocaleString() || 0
-                            } VND · <a href="#">Recent donation</a></Text>
+                            } VND · <Link to="#">Recent donation</Link></Text>
                         </div>
                     </div>
 
@@ -268,7 +268,7 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                                 {
                                     topDonation[0]?.amount.toLocaleString() || 0
                                 }
-                                VND · <a href="#">Top donation</a></Text>
+                                VND · <Link to="#">Top donation</Link></Text>
                         </div>
                     </div>
 
@@ -279,7 +279,7 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                             <br />
                             <Text type="secondary"> {
                                 firstDonation[0]?.amount.toLocaleString() || 0
-                            } VND · <a href="#">First donation</a></Text>
+                            } VND · <Link to="#">First donation</Link></Text>
                         </div>
                     </div>
                 </Space>

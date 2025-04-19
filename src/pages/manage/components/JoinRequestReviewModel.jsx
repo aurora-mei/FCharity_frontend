@@ -1,11 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
 import { Empty } from "antd";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllJoinRequestsByOrganizationId } from "../../../redux/organization/organizationSlice";
 
-const JoinRequestReviewModel = ({ joinRequests, setIsModelOpen }) => {
+const JoinRequestReviewModel = ({ setIsModelOpen }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterByStatus, setFilterByStatus] = useState("All");
+
+  const dispatch = useDispatch();
+  const { joinRequests, ownedOrganization } = useSelector(
+    (state) => state.organization
+  );
+
+  useEffect(() => {
+    if (ownedOrganization?.organizationId) {
+      dispatch(
+        getAllJoinRequestsByOrganizationId(ownedOrganization.organizationId)
+      );
+    }
+  }, [dispatch, ownedOrganization]);
 
   const filteredJoinRequests = joinRequests
     ?.filter((joinRequest) => {

@@ -51,9 +51,13 @@ function parseLocationString(locationString = "") {
 
   const detail = detailParts.join(", ");
   // For province, remove common prefixes (tỉnh, thành phố, tp)
-  const provinceName = provincePart.replace(/^(tỉnh|thành phố|tp)\s*/i, "").trim();
+  const provinceName = provincePart
+    .replace(/^(tỉnh|thành phố|tp)\s*/i, "")
+    .trim();
   // For district, even if it contains "thành phố" keyword, treat it as district
-  const districtName = districtPart.replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "").trim();
+  const districtName = districtPart
+    .replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "")
+    .trim();
   // For commune, remove the commune keywords
   const communeName = communePart.replace(/^(xã|phường|thị trấn)\s*/i, "").trim();
 
@@ -62,7 +66,10 @@ function parseLocationString(locationString = "") {
 
 // Normalize a string (remove diacritics and convert to lowercase)
 const normalizeString = (str = "") =>
-  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 // Get an array of years from (currentYear - 10) to currentYear
 const getYearOptions = () => {
@@ -114,7 +121,8 @@ const MyRequestScreen = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const loading = useSelector((state) => state.request.loading);
-  const requestsByUserId = useSelector((state) => state.request.requestsByUserId) || [];
+  const requestsByUserId =
+    useSelector((state) => state.request.requestsByUserId) || [];
   const error = useSelector((state) => state.request.error);
   const listBank = useSelector((state) => state.helper.listBank) || [];
   const [transferRequestModalOpen, setTransferRequestModalOpen] = useState(false);
@@ -135,12 +143,24 @@ const MyRequestScreen = () => {
   useEffect(() => {
     const counts = {
       all: requestsByUserId.length,
-      pending: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "pending").length,
-      approved: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "approved").length,
-      rejected: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "rejected").length,
-      completed: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "completed").length,
-      hidden: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "hidden").length,
-      registered: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "registered").length,
+      pending: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "pending"
+      ).length,
+      approved: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "approved"
+      ).length,
+      rejected: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "rejected"
+      ).length,
+      completed: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "completed"
+      ).length,
+      hidden: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "hidden"
+      ).length,
+      registered: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "registered"
+      ).length,
     };
     setRequestCounts(counts);
   }, [requestsByUserId]);
@@ -192,46 +212,62 @@ const MyRequestScreen = () => {
 
     // Filter by status tab
     if (activeTab !== "all") {
-      data = data.filter(item => item.helpRequest.status.toLowerCase() === activeTab);
+      data = data.filter(
+        (item) => item.helpRequest.status.toLowerCase() === activeTab
+      );
     }
 
     // Filter by search keyword
     if (filters.search && filters.search.trim()) {
       const keyword = filters.search.toLowerCase();
-      data = data.filter(item => {
+      data = data.filter((item) => {
         const title = item.helpRequest.title.toLowerCase();
         const content = item.helpRequest.content.toLowerCase();
         const email = item.helpRequest.email.toLowerCase();
-        return title.includes(keyword) || content.includes(keyword) || email.includes(keyword);
+        return (
+          title.includes(keyword) ||
+          content.includes(keyword) ||
+          email.includes(keyword)
+        );
       });
     }
 
     // Filter by category
     if (filters.categoryId) {
-      data = data.filter(item => item.helpRequest.category.id === filters.categoryId);
+      data = data.filter(
+        (item) => item.helpRequest.category.id === filters.categoryId
+      );
     }
 
     // Filter by tags
     if (filters.requestTags && filters.requestTags.length > 0) {
-      data = data.filter(item => {
-        const requestTagIds = item.requestTags.map(t => t.tag.id);
-        return filters.requestTags.some(filterTag => requestTagIds.includes(filterTag));
+      data = data.filter((item) => {
+        const requestTagIds = item.requestTags.map((t) => t.tag.id);
+        return filters.requestTags.some((filterTag) =>
+          requestTagIds.includes(filterTag)
+        );
       });
     }
 
     // Filter by province
     if (filters.province) {
       const filterProv = normalizeString(filters.province);
-      data = data.filter(item => {
+      data = data.filter((item) => {
         let requestProvName = "";
         if (item.helpRequest?.provinceCode) {
-          const provObj = provinces.find(p => p.code === item.helpRequest.provinceCode);
+          const provObj = provinces.find(
+            (p) => p.code === item.helpRequest.provinceCode
+          );
           if (provObj) {
-            const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+            const noPrefix = provObj.name
+              .replace(/^(Tỉnh|Thành phố|TP)\s+/i, "")
+              .trim();
             requestProvName = normalizeString(noPrefix);
           }
         } else {
-          const { provinceName } = parseLocationString(item.helpRequest?.location || "");
+          const { provinceName } = parseLocationString(
+            item.helpRequest?.location || ""
+          );
           requestProvName = normalizeString(provinceName);
         }
         return requestProvName.includes(filterProv);
@@ -240,7 +276,7 @@ const MyRequestScreen = () => {
 
     // Filter by year if provided
     if (filters.year) {
-      data = data.filter(item => {
+      data = data.filter((item) => {
         const date = new Date(item.helpRequest.creationDate);
         return date.getFullYear().toString() === filters.year;
       });
@@ -259,7 +295,10 @@ const MyRequestScreen = () => {
 
   // Prepare data for monthly chart (for the selected year from the filter)
   const selectedYear = filters.year || new Date().getFullYear().toString();
-  const { labels: months, data: requestCountsByMonth } = processRequestsByMonth(filteredRequests, selectedYear);
+  const { labels: months, data: requestCountsByMonth } = processRequestsByMonth(
+    filteredRequests,
+    selectedYear
+  );
 
   const barChartData = {
     labels: months,
@@ -324,9 +363,11 @@ const MyRequestScreen = () => {
   };
   if (loading) return <LoadingModal />;
   if (error) {
-    return <p style={{ color: "red" }}>
-      Failed to load your requests: {error.message || error}
-    </p>;
+    return (
+      <p style={{ color: "red" }}>
+        Failed to load your requests: {error.message || error}
+      </p>
+    );
   }
 
   return (
@@ -343,7 +384,14 @@ const MyRequestScreen = () => {
         </Form.Item>
       </Form>
       {/* Charts for monthly trend */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "2rem" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "2rem",
+          marginBottom: "2rem",
+        }}
+      >
         <div style={{ width: "45%" }}>
           <h3>Monthly Trend (Bar Chart)</h3>
           <Bar data={barChartData} />
@@ -355,13 +403,27 @@ const MyRequestScreen = () => {
       </div>
 
       {/* Filter Form */}
-      <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
+      <Form
+        layout="inline"
+        form={form}
+        onValuesChange={onValuesChange}
+        style={{ marginBottom: "1rem" }}
+      >
         <Form.Item name="search" label="Search">
-          <Input placeholder="Search requests" allowClear size="small" style={{ height: 31 }} />
+          <Input
+            placeholder="Search requests"
+            allowClear
+            size="small"
+            style={{ height: 31 }}
+          />
         </Form.Item>
         <Form.Item name="categoryId" label="Category">
-          <Select placeholder="Select category" allowClear style={{ minWidth: 150 }}>
-            {categories.map(cat => (
+          <Select
+            placeholder="Select category"
+            allowClear
+            style={{ minWidth: 150 }}
+          >
+            {categories.map((cat) => (
               <Option key={cat.id} value={cat.id}>
                 {cat.categoryName}
               </Option>
@@ -369,8 +431,13 @@ const MyRequestScreen = () => {
           </Select>
         </Form.Item>
         <Form.Item name="requestTags" label="Tags">
-          <Select mode="multiple" placeholder="Select tags" allowClear style={{ minWidth: 150 }}>
-            {tags.map(tag => (
+          <Select
+            mode="multiple"
+            placeholder="Select tags"
+            allowClear
+            style={{ minWidth: 150 }}
+          >
+            {tags.map((tag) => (
               <Option key={tag.id} value={tag.id}>
                 {tag.tagName}
               </Option>
@@ -379,9 +446,15 @@ const MyRequestScreen = () => {
         </Form.Item>
         {/* Province filter */}
         <Form.Item name="province" label="Province">
-          <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
-            {provinces.map(prov => {
-              const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+          <Select
+            placeholder="Select province"
+            allowClear
+            style={{ minWidth: 150 }}
+          >
+            {provinces.map((prov) => {
+              const noPrefix = prov.name
+                .replace(/^(Tỉnh|Thành phố|TP)\s+/i, "")
+                .trim();
               return (
                 <Option key={prov.code} value={noPrefix}>
                   {prov.name}
@@ -626,7 +699,7 @@ const MyRequestScreen = () => {
           description={
             <span>
               You have no request.{" "}
-              <a href="/requests/create">Create one now</a>
+              <Link to="/requests/create">Create one now</Link>
             </span>
           }
         />
