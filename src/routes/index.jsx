@@ -46,7 +46,6 @@ import ProjectMemberContainer from "../containers/ProjectMemberContainer/Project
 import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer.jsx";
 import ProjectDonationContainer from "../containers/ProjectDonationContainer/ProjectDonationContainer.jsx";
 
-import OrganizationsOverview from "../pages/guest/OrganizationsOverview.jsx";
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
 import UserRankings from "../pages/manage/components/UserRankings.jsx";
@@ -131,7 +130,6 @@ const AppRoutes = () => {
         </Route>
         <Route path="/" element={<UserLayout />}>
           <Route path="organizations">
-            <Route index element={<OrganizationsOverview />} />
             <Route path=":organizationId" element={<OrganizationDetails />} />
             <Route path="create" element={<CreateOrganization />} />
           </Route>

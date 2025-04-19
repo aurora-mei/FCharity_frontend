@@ -9,7 +9,7 @@ const MemberCard = ({ member }) => {
       <div className="flex items-center justify-between gap-2">
         <div className="w-20 h-20 rounded-xl overflow-hidden hover:cursor-pointer">
           <img
-            src={"https://avatar.iran.liara.run/public"}
+            src={member.avatar || "https://avatar.iran.liara.run/public"}
             alt=""
             className="w-full h-full object-cover"
           />

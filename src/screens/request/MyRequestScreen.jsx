@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Empty, List, Typography, Form, Input, Select, Tabs, Badge } from "antd";
+import {
+  Empty,
+  List,
+  Typography,
+  Form,
+  Input,
+  Select,
+  Tabs,
+  Badge,
+} from "antd";
 import LoadingModal from "../../components/LoadingModal";
 import RequestCard from "../../components/RequestCard/RequestCard";
 import { fetchRequestsByUserIdThunk } from "../../redux/request/requestSlice";
@@ -17,6 +26,7 @@ import {
   Legend,
 } from "chart.js";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -35,32 +45,46 @@ ChartJS.register(
 
 // Hàm parse location
 function parseLocationString(locationString = "") {
-  const parts = locationString.split(",").map(p => p.trim());
-  
+  const parts = locationString.split(",").map((p) => p.trim());
+
   // If there are less than 3 parts, return what we can.
-  if(parts.length < 3) {
-    return { detail: locationString, communeName: "", districtName: "", provinceName: "" };
+  if (parts.length < 3) {
+    return {
+      detail: locationString,
+      communeName: "",
+      districtName: "",
+      provinceName: "",
+    };
   }
-  
+
   const provincePart = parts[parts.length - 1];
   const districtPart = parts[parts.length - 2];
-  const communePart  = parts[parts.length - 3];
-  const detailParts  = parts.slice(0, parts.length - 3);
-  
+  const communePart = parts[parts.length - 3];
+  const detailParts = parts.slice(0, parts.length - 3);
+
   const detail = detailParts.join(", ");
   // For province, remove common prefixes (tỉnh, thành phố, tp)
-  const provinceName = provincePart.replace(/^(tỉnh|thành phố|tp)\s*/i, "").trim();
+  const provinceName = provincePart
+    .replace(/^(tỉnh|thành phố|tp)\s*/i, "")
+    .trim();
   // For district, even if it contains "thành phố" keyword, treat it as district
-  const districtName = districtPart.replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "").trim();
+  const districtName = districtPart
+    .replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "")
+    .trim();
   // For commune, remove the commune keywords
-  const communeName  = communePart.replace(/^(xã|phường|thị trấn)\s*/i, "").trim();
-  
+  const communeName = communePart
+    .replace(/^(xã|phường|thị trấn)\s*/i, "")
+    .trim();
+
   return { detail, communeName, districtName, provinceName };
 }
 
 // Normalize a string (remove diacritics and convert to lowercase)
 const normalizeString = (str = "") =>
-  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 // Get an array of years from (currentYear - 10) to currentYear
 const getYearOptions = () => {
@@ -109,10 +133,11 @@ const MyRequestScreen = () => {
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState("all");
   const [provinces, setProvinces] = useState([]);
-  
+
   const dispatch = useDispatch();
   const loading = useSelector((state) => state.request.loading);
-  const requestsByUserId = useSelector((state) => state.request.requestsByUserId) || [];
+  const requestsByUserId =
+    useSelector((state) => state.request.requestsByUserId) || [];
   const error = useSelector((state) => state.request.error);
 
   // Get user from localStorage
@@ -131,12 +156,24 @@ const MyRequestScreen = () => {
   useEffect(() => {
     const counts = {
       all: requestsByUserId.length,
-      pending: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "pending").length,
-      approved: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "approved").length,
-      rejected: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "rejected").length,
-      completed: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "completed").length,
-      hidden: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "hidden").length,
-      registered: requestsByUserId.filter(req => req.helpRequest.status.toLowerCase() === "registered").length,
+      pending: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "pending"
+      ).length,
+      approved: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "approved"
+      ).length,
+      rejected: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "rejected"
+      ).length,
+      completed: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "completed"
+      ).length,
+      hidden: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "hidden"
+      ).length,
+      registered: requestsByUserId.filter(
+        (req) => req.helpRequest.status.toLowerCase() === "registered"
+      ).length,
     };
     setRequestCounts(counts);
   }, [requestsByUserId]);
@@ -168,46 +205,62 @@ const MyRequestScreen = () => {
 
     // Filter by status tab
     if (activeTab !== "all") {
-      data = data.filter(item => item.helpRequest.status.toLowerCase() === activeTab);
+      data = data.filter(
+        (item) => item.helpRequest.status.toLowerCase() === activeTab
+      );
     }
 
     // Filter by search keyword
     if (filters.search && filters.search.trim()) {
       const keyword = filters.search.toLowerCase();
-      data = data.filter(item => {
+      data = data.filter((item) => {
         const title = item.helpRequest.title.toLowerCase();
         const content = item.helpRequest.content.toLowerCase();
         const email = item.helpRequest.email.toLowerCase();
-        return title.includes(keyword) || content.includes(keyword) || email.includes(keyword);
+        return (
+          title.includes(keyword) ||
+          content.includes(keyword) ||
+          email.includes(keyword)
+        );
       });
     }
 
     // Filter by category
     if (filters.categoryId) {
-      data = data.filter(item => item.helpRequest.category.id === filters.categoryId);
+      data = data.filter(
+        (item) => item.helpRequest.category.id === filters.categoryId
+      );
     }
 
     // Filter by tags
     if (filters.requestTags && filters.requestTags.length > 0) {
-      data = data.filter(item => {
-        const requestTagIds = item.requestTags.map(t => t.tag.id);
-        return filters.requestTags.some(filterTag => requestTagIds.includes(filterTag));
+      data = data.filter((item) => {
+        const requestTagIds = item.requestTags.map((t) => t.tag.id);
+        return filters.requestTags.some((filterTag) =>
+          requestTagIds.includes(filterTag)
+        );
       });
     }
 
     // Filter by province
     if (filters.province) {
       const filterProv = normalizeString(filters.province);
-      data = data.filter(item => {
+      data = data.filter((item) => {
         let requestProvName = "";
         if (item.helpRequest?.provinceCode) {
-          const provObj = provinces.find(p => p.code === item.helpRequest.provinceCode);
+          const provObj = provinces.find(
+            (p) => p.code === item.helpRequest.provinceCode
+          );
           if (provObj) {
-            const noPrefix = provObj.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+            const noPrefix = provObj.name
+              .replace(/^(Tỉnh|Thành phố|TP)\s+/i, "")
+              .trim();
             requestProvName = normalizeString(noPrefix);
           }
         } else {
-          const { provinceName } = parseLocationString(item.helpRequest?.location || "");
+          const { provinceName } = parseLocationString(
+            item.helpRequest?.location || ""
+          );
           requestProvName = normalizeString(provinceName);
         }
         return requestProvName.includes(filterProv);
@@ -216,7 +269,7 @@ const MyRequestScreen = () => {
 
     // Filter by year if provided
     if (filters.year) {
-      data = data.filter(item => {
+      data = data.filter((item) => {
         const date = new Date(item.helpRequest.creationDate);
         return date.getFullYear().toString() === filters.year;
       });
@@ -235,7 +288,10 @@ const MyRequestScreen = () => {
 
   // Prepare data for monthly chart (for the selected year from the filter)
   const selectedYear = filters.year || new Date().getFullYear().toString();
-  const { labels: months, data: requestCountsByMonth } = processRequestsByMonth(filteredRequests, selectedYear);
+  const { labels: months, data: requestCountsByMonth } = processRequestsByMonth(
+    filteredRequests,
+    selectedYear
+  );
 
   const barChartData = {
     labels: months,
@@ -270,20 +326,30 @@ const MyRequestScreen = () => {
     yearOptions.push(y.toString());
   }
 
-
   if (loading) return <LoadingModal />;
   if (error) {
-    return <p style={{ color: "red" }}>
-      Failed to load your requests: {error.message || error}
-    </p>;
+    return (
+      <p style={{ color: "red" }}>
+        Failed to load your requests: {error.message || error}
+      </p>
+    );
   }
 
   return (
     <div style={{ padding: "0 2rem" }}>
-      <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
-      <Form.Item name="year" label="Year">
-          <Select placeholder="Select year" allowClear style={{ minWidth: 100 }}>
-            {yearOptions.map(year => (
+      <Form
+        layout="inline"
+        form={form}
+        onValuesChange={onValuesChange}
+        style={{ marginBottom: "1rem" }}
+      >
+        <Form.Item name="year" label="Year">
+          <Select
+            placeholder="Select year"
+            allowClear
+            style={{ minWidth: 100 }}
+          >
+            {yearOptions.map((year) => (
               <Option key={year} value={year}>
                 {year}
               </Option>
@@ -292,7 +358,14 @@ const MyRequestScreen = () => {
         </Form.Item>
       </Form>
       {/* Charts for monthly trend */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "2rem" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "2rem",
+          marginBottom: "2rem",
+        }}
+      >
         <div style={{ width: "45%" }}>
           <h3>Monthly Trend (Bar Chart)</h3>
           <Bar data={barChartData} />
@@ -304,13 +377,27 @@ const MyRequestScreen = () => {
       </div>
 
       {/* Filter Form */}
-      <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
+      <Form
+        layout="inline"
+        form={form}
+        onValuesChange={onValuesChange}
+        style={{ marginBottom: "1rem" }}
+      >
         <Form.Item name="search" label="Search">
-          <Input placeholder="Search requests" allowClear size="small" style={{ height: 31 }} />
+          <Input
+            placeholder="Search requests"
+            allowClear
+            size="small"
+            style={{ height: 31 }}
+          />
         </Form.Item>
         <Form.Item name="categoryId" label="Category">
-          <Select placeholder="Select category" allowClear style={{ minWidth: 150 }}>
-            {categories.map(cat => (
+          <Select
+            placeholder="Select category"
+            allowClear
+            style={{ minWidth: 150 }}
+          >
+            {categories.map((cat) => (
               <Option key={cat.id} value={cat.id}>
                 {cat.categoryName}
               </Option>
@@ -318,8 +405,13 @@ const MyRequestScreen = () => {
           </Select>
         </Form.Item>
         <Form.Item name="requestTags" label="Tags">
-          <Select mode="multiple" placeholder="Select tags" allowClear style={{ minWidth: 150 }}>
-            {tags.map(tag => (
+          <Select
+            mode="multiple"
+            placeholder="Select tags"
+            allowClear
+            style={{ minWidth: 150 }}
+          >
+            {tags.map((tag) => (
               <Option key={tag.id} value={tag.id}>
                 {tag.tagName}
               </Option>
@@ -328,9 +420,15 @@ const MyRequestScreen = () => {
         </Form.Item>
         {/* Province filter */}
         <Form.Item name="province" label="Province">
-          <Select placeholder="Select province" allowClear style={{ minWidth: 150 }}>
-            {provinces.map(prov => {
-              const noPrefix = prov.name.replace(/^(Tỉnh|Thành phố|TP)\s+/i, "").trim();
+          <Select
+            placeholder="Select province"
+            allowClear
+            style={{ minWidth: 150 }}
+          >
+            {provinces.map((prov) => {
+              const noPrefix = prov.name
+                .replace(/^(Tỉnh|Thành phố|TP)\s+/i, "")
+                .trim();
               return (
                 <Option key={prov.code} value={noPrefix}>
                   {prov.name}
@@ -342,14 +440,32 @@ const MyRequestScreen = () => {
         {/* Year filter */}
       </Form>
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
-  <TabPane key="all" tab={<Badge count={requestCounts.all}>All</Badge>} />
-  <TabPane key="pending" tab={<Badge count={requestCounts.pending}>Pending</Badge>} />
-  <TabPane key="approved" tab={<Badge count={requestCounts.approved}>Approved</Badge>} />
-  <TabPane key="rejected" tab={<Badge count={requestCounts.rejected}>Rejected</Badge>} />
-  <TabPane key="completed" tab={<Badge count={requestCounts.completed}>Completed</Badge>} />
-  <TabPane key="hidden" tab={<Badge count={requestCounts.hidden}>Hidden</Badge>} />
-  <TabPane key="registered" tab={<Badge count={requestCounts.registered}>Registered</Badge>} />
-  </Tabs>
+        <TabPane key="all" tab={<Badge count={requestCounts.all}>All</Badge>} />
+        <TabPane
+          key="pending"
+          tab={<Badge count={requestCounts.pending}>Pending</Badge>}
+        />
+        <TabPane
+          key="approved"
+          tab={<Badge count={requestCounts.approved}>Approved</Badge>}
+        />
+        <TabPane
+          key="rejected"
+          tab={<Badge count={requestCounts.rejected}>Rejected</Badge>}
+        />
+        <TabPane
+          key="completed"
+          tab={<Badge count={requestCounts.completed}>Completed</Badge>}
+        />
+        <TabPane
+          key="hidden"
+          tab={<Badge count={requestCounts.hidden}>Hidden</Badge>}
+        />
+        <TabPane
+          key="registered"
+          tab={<Badge count={requestCounts.registered}>Registered</Badge>}
+        />
+      </Tabs>
 
       {/* List of Requests */}
       {filteredRequests.length > 0 ? (
@@ -367,7 +483,7 @@ const MyRequestScreen = () => {
           description={
             <span>
               You have no request.{" "}
-              <a href="/requests/create">Create one now</a>
+              <Link to="/requests/create">Create one now</Link>
             </span>
           }
         />

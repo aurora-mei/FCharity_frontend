@@ -182,11 +182,11 @@ const CreateEventModal = ({
                   className="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
                 >
                   <option value="">Select event type</option>
-                  <option value="Hỗ trợ cộng đồng">Community Support</option>
-                  <option value="Hội thảo">Seminar</option>
-                  <option value="Tình nguyện">Volunteer</option>
-                  <option value="Gây quỹ">Fundraising</option>
-                  <option value="Tập huấn">Training</option>
+                  <option value="COMMUNITY_SUPPORT">Community Support</option>
+                  <option value="SEMINAR">Seminar</option>
+                  <option value="VOLUNTEER">Volunteer</option>
+                  <option value="FUNDRAISING">Fundraising</option>
+                  <option value="TRAINING">Training</option>
                 </select>
                 {errors.eventType && (
                   <p className="text-red-500 text-xs mt-1">
@@ -261,22 +261,6 @@ const CreateEventModal = ({
                 </div>
               </div>
             </div>
-
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Organization
-              </label>
-              <input
-                type="text"
-                name="organizer"
-                value={newEvent.organizer}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-              />
-              {errors.organizer && (
-                <p className="text-red-500 text-xs mt-1">{errors.organizer}</p>
-              )}
-            </div> */}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

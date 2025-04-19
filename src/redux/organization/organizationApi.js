@@ -79,7 +79,10 @@ const organizationApi = {
   getOrganizationEvents: (organizationId) =>
     api.get(`/events/organizations/${organizationId}`),
   addOrganizationEvent: (organizationEventData) =>
-    api.post("/events", organizationEventData),
+    api.post(
+      `/events/${organizationEventData.organizerId}`,
+      organizationEventData
+    ),
   updateOrganizationEvent: (organizationEventData) =>
     api.put("/events", organizationEventData),
   deleteOrganizationEvent: (organizationEventId) =>

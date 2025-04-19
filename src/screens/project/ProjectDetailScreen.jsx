@@ -673,7 +673,7 @@ const ProjectDetailScreen = () => {
 
                 <StyledSection.Meta>
                   Created {moment().diff(moment(project.createdAt), "days")} d
-                  ago · <a href="#">{project.categoryName}</a>
+                  ago · <Link to="#">{project.categoryName}</Link>
                 </StyledSection.Meta>
 
                 <Divider />

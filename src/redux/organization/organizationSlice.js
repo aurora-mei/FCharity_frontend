@@ -1168,14 +1168,6 @@ export const organizationSlice = createSlice({
       })
       .addCase(updateOrganizationEvent.fulfilled, (state, action) => {
         state.loading = false;
-        state.organizationEvents = state.organizationEvents.map(
-          (organizationEvent) => {
-            organizationEvent.organizationEventId !==
-            action.payload.organizationEventId
-              ? organizationEvent
-              : action.payload;
-          }
-        );
       })
       .addCase(updateOrganizationEvent.rejected, (state, action) => {
         state.loading = false;
