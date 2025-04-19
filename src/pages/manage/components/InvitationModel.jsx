@@ -1,23 +1,40 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { IoWarningOutline } from "react-icons/io5";
 import { UserOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-import { createInvitationRequest } from "../../../redux/organization/organizationSlice";
+import {
+  createInvitationRequest,
+  getAllUsersNotInOrganization,
+} from "../../../redux/organization/organizationSlice";
 import UserInfoCard from "./UserInfoCard";
 
-const InvitationModel = ({
-  suggestedUsers,
-  setSuggestedUsers,
-  setIsModelOpen,
-}) => {
+const InvitationModel = ({ setIsModelOpen }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const dispatch = useDispatch();
-  const { ownedOrganization } = useSelector((state) => state.organization);
+
+  const { ownedOrganization, usersOutsideOrganization } = useSelector(
+    (state) => state.organization
+  );
+
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
+  console.log("suggested users: ", suggestedUsers);
+
+  useEffect(() => {
+    if (usersOutsideOrganization && usersOutsideOrganization.length > 0) {
+      setSuggestedUsers(
+        usersOutsideOrganization?.map((user) => ({ ...user, invited: false }))
+      );
+    }
+  }, [usersOutsideOrganization]);
+
+  useEffect(() => {
+    dispatch(getAllUsersNotInOrganization(ownedOrganization.organizationId));
+  }, [dispatch, ownedOrganization]);
 
   const handleInvitation = (user) => {
     try {

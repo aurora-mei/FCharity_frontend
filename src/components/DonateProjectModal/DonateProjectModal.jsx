@@ -2,21 +2,22 @@ import { useState } from "react";
 import { Modal, Form, Input, InputNumber, Button } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 
 const StyledButton = styled(Button)`
-    background-color: green;
-    border-radius: 0.5rem;
-    color: white;
-    font-size: 1rem !important;
-    font-weight: 500;
-    padding: 1rem;
+  background-color: green;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem !important;
+  font-weight: 500;
+  padding: 1rem;
 
-    &:hover {
-        box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 8px 0px;
-        background-color: green !important;
-        border-color: black !important;
-        color: white !important;
-    }
+  &:hover {
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 8px 0px;
+    background-color: green !important;
+    border-color: black !important;
+    color: white !important;
+  }
 `;
 
 const DonateProjectModal = ({ form, isOpenModal, setIsOpenModal, project, handleDonate }) => {
@@ -99,14 +100,14 @@ const DonateProjectModal = ({ form, isOpenModal, setIsOpenModal, project, handle
                     />
                 </Form.Item>
 
-                <Form.Item>
-                    <StyledButton type="primary" htmlType="submit">
-                        Donate
-                    </StyledButton>
-                </Form.Item>
-            </Form>
-        </Modal>
-    );
+        <Form.Item>
+          <StyledButton type="primary" htmlType="submit">
+            Donate
+          </StyledButton>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
 };
 
 export default DonateProjectModal;

@@ -1,14 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
 import { Empty } from "antd";
-import { useDispatch } from "react-redux";
-import { cancelInvitationRequest } from "../../../redux/organization/organizationSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  cancelInvitationRequest,
+  getAllInvitationRequestsByOrganizationId,
+} from "../../../redux/organization/organizationSlice";
 
-const InvitationsReviewModel = ({ invitations, setIsModelOpen }) => {
+const InvitationsReviewModel = ({ setIsModelOpen }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterByStatus, setFilterByStatus] = useState("All");
   const dispatch = useDispatch();
+
+  const { invitations, ownedOrganization } = useSelector(
+    (state) => state.organization
+  );
+
+  console.log("invitations: ", invitations);
+
+  useEffect(() => {
+    dispatch(
+      getAllInvitationRequestsByOrganizationId(ownedOrganization.organizationId)
+    );
+  }, [dispatch, ownedOrganization]);
 
   const filteredInvitations = invitations
     ?.filter((invitation) => {
