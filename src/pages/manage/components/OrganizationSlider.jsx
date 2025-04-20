@@ -3,62 +3,11 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import OrganizationCard from "./OrganizationCard";
-
-// Giả lập API lấy danh sách tổ chức
-const fetchOrganizations = async () => {
-  // Giả lập dữ liệu API
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: 1,
-          name: "Vietnam Travel Guide VN",
-          image: "https://via.placeholder.com/300x150",
-          title: "Hello Viet Nam",
-          members: "664K",
-          postsPerDay: "10+",
-          joined: false,
-        },
-        {
-          id: 2,
-          name: "Hanoi Foodies",
-          image: "https://via.placeholder.com/300x150",
-          title: "Taste Hanoi",
-          members: "450K",
-          postsPerDay: "8+",
-          joined: false,
-        },
-        {
-          id: 3,
-          name: "Saigon Explorers",
-          image: "https://via.placeholder.com/300x150",
-          title: "Discover Saigon",
-          members: "300K",
-          postsPerDay: "5+",
-          joined: false,
-        },
-        {
-          id: 4,
-          name: "Da Nang Adventures",
-          image: "https://via.placeholder.com/300x150",
-          title: "Explore Da Nang",
-          members: "200K",
-          postsPerDay: "3+",
-          joined: false,
-        },
-        {
-          id: 5,
-          name: "Da Nang Adventures",
-          image: "https://via.placeholder.com/300x150",
-          title: "Explore Da Nang",
-          members: "200K",
-          postsPerDay: "3+",
-          joined: false,
-        },
-      ]);
-    }, 1000); // Giả lập thời gian gọi API
-  });
-};
+import { useDispatch, useSelector } from "react-redux";
+import {
+  createJoinRequest,
+  getRecommendedOrganizations,
+} from "../../../redux/organization/organizationSlice";
 
 const sliderSettings = {
   dots: false,
@@ -87,41 +36,43 @@ const sliderSettings = {
 
 const OrganizationSlider = () => {
   const [organizations, setOrganizations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderRef = useRef(null);
 
+  const dispatch = useDispatch();
+
+  const { recommendedOrganizations, loading, error } = useSelector(
+    (state) => state.organization
+  );
+
   // Lấy dữ liệu tổ chức từ API (giả lập)
   useEffect(() => {
-    const loadOrganizations = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchOrganizations();
-        setOrganizations(data);
-      } catch (err) {
-        setError("Failed to load organizations");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadOrganizations();
-  }, []);
+    if (recommendedOrganizations.length == 0)
+      dispatch(getRecommendedOrganizations());
+    setOrganizations(recommendedOrganizations);
+  }, [dispatch, recommendedOrganizations]);
+
+  console.log("recommendedOrganizations", recommendedOrganizations);
 
   // Xử lý sự kiện Tham gia nhóm
-  const handleJoinGroup = (orgId) => {
-    setOrganizations((prev) =>
-      prev.map((org) => (org.id === orgId ? { ...org, joined: true } : org))
-    );
-    // Gọi API tham gia nhóm nếu cần
-    console.log(`Joined group with ID: ${orgId}`);
-  };
+  const handleJoinOrganization = async (organizationId) => {
+    const joinRequestData = {
+      organizationId: organizationId,
+      userId: JSON.parse(localStorage.getItem("currentUser"))?.id,
+    };
 
-  // Xử lý sự kiện Đóng card
-  const handleCloseCard = (orgId) => {
-    setOrganizations((prev) => prev.filter((org) => org.id !== orgId));
-    console.log(`Closed card with ID: ${orgId}`);
+    console.log("joinRequestData", joinRequestData);
+
+    try {
+      dispatch(createJoinRequest(joinRequestData));
+      setOrganizations((prev) =>
+        prev.map((org) =>
+          org.organizationId === organizationId ? { ...org, joined: true } : org
+        )
+      );
+    } catch (error) {
+      console.error("Failed to create join request:", error);
+    }
   };
 
   // Điều hướng slider
@@ -150,35 +101,17 @@ const OrganizationSlider = () => {
       ? organizations.length / 2 - 1
       : Math.floor(organizations.length / 2));
 
-  if (loading) {
-    return (
-      <div className="py-4 px-2 text-center text-white">
-        <p>Loading organizations...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="py-4 px-2 text-center text-red-500">
-        <p>{error}</p>
-      </div>
-    );
-  }
-
-  if (organizations.length === 0) {
-    return (
-      <div className="py-4 px-2 text-center text-white">
-        <p>No organizations found.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="mt-6 mb-6">
-      <p className="text-2xl font-bold mb-4 text-gray-800">
-        Organizational suggestions
+      <p
+        className="text-2xl font-bold mb-4 text-gray-800"
+        style={{
+          marginBottom: "8px",
+        }}
+      >
+        Recommended Organizations
       </p>
+      <p>Total: {organizations.length}</p>
       <div className="">
         <div className="relative">
           {/* Nút điều hướng trái */}
@@ -210,14 +143,14 @@ const OrganizationSlider = () => {
             {...sliderSettings}
             beforeChange={(oldIndex, newIndex) => handleSlideChange(newIndex)}
           >
-            {organizations.map((org) => (
-              <OrganizationCard
-                key={org.id}
-                org={org}
-                handleCloseCard={handleCloseCard}
-                handleJoinGroup={handleJoinGroup}
-              />
-            ))}
+            {organizations &&
+              organizations.map((org) => (
+                <OrganizationCard
+                  key={org.organizationId}
+                  org={org}
+                  handleJoinOrganization={handleJoinOrganization}
+                />
+              ))}
           </Slider>
 
           {/* Nút điều hướng phải */}

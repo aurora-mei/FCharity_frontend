@@ -52,6 +52,7 @@ import UserRankings from "../pages/manage/components/UserRankings.jsx";
 import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
 import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
+import Organizations from "../pages/guest/Organizations.jsx";
 
 const AppRoutes = () => {
   return (
@@ -108,6 +109,7 @@ const AppRoutes = () => {
               path="projects/create/:requestId"
               element={<CreateProjectScreen />}
             />
+
             <Route path="requests" element={<OrganizationRequest />} />
             <Route path="schedule" element={<OrganizationSchedule />} />
           </Route>
@@ -130,6 +132,7 @@ const AppRoutes = () => {
         </Route>
         <Route path="/" element={<UserLayout />}>
           <Route path="organizations">
+            <Route index element={<Organizations />} />
             <Route path=":organizationId" element={<OrganizationDetails />} />
             <Route path="create" element={<CreateOrganization />} />
           </Route>

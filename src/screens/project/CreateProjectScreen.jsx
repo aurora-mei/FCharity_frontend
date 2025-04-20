@@ -94,7 +94,9 @@ const CreateProjectScreen = () => {
   const navigate = useNavigate();
   const myProjectMembers = useSelector((state) => state.project.projectMembers);
   const newProject = useSelector((state) => state.project.currentProject);
+
   const { ownedOrganization } = useSelector((state) => state.organization);
+
   const { currentOrganizationMembers } = useSelector(
     (state) => state.organization
   );
@@ -229,19 +231,29 @@ const CreateProjectScreen = () => {
       render: (text, record) => <Tag>{text}</Tag>,
     },
   ];
+
+  useEffect(() => {
+    dispatch(getManagedOrganizationByCeo());
+  }, []);
+
+  console.log("Organization Members:", currentOrganizationMembers);
+
   useEffect(() => {
     console.log("New Project:", newProject);
-    dispatch(getManagedOrganizationByCeo()); // tự động lấy id người dùng phía backend
-    dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
+
+    dispatch(getAllMembersInOrganization(ownedOrganization?.organizationId));
+
     if (newProject && newProject.project)
       dispatch(fetchAllProjectMembersThunk(newProject.project.id));
+
     console.log("Project Members:", myProjectMembers);
-    console.log("Organization Members:", organizationMembers);
-    if (isFirstMount && organizationMembers?.length > 0) {
-      setAvailableMembers(organizationMembers);
+
+    if (isFirstMount && currentOrganizationMembers?.length > 0) {
+      setAvailableMembers(currentOrganizationMembers);
       setIsFirstMount(false); // Sau lần đầu, không gán lại nữa
     }
-  }, [dispatch, newProject, myOrganization.organizationId]);
+  }, [dispatch, newProject, ownedOrganization]);
+
   return (
     <ScreenStyled>
       <Row
@@ -251,7 +263,10 @@ const CreateProjectScreen = () => {
         style={{ minHeight: "100vh" }}
       >
         <Col span={12}>
-          <ProjectForm requestId={requestId} myOrganization={myOrganization} />
+          <ProjectForm
+            requestId={requestId}
+            ownedOrganization={ownedOrganization}
+          />
         </Col>
         <Col span={12}>
           {newProject.project ? (
@@ -364,7 +379,7 @@ const CreateProjectScreen = () => {
               </StyledContainer>
               <StyledButton
                 onClick={() => {
-                  navigate("/manage-organization/projects");
+                  navigate("/my-organization/projects");
                 }}
               >
                 Save changes

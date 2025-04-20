@@ -47,7 +47,7 @@ const FormStyled = styled.div`
   }
 `;
 
-const ProjectForm = ({ requestId, myOrganization }) => {
+const ProjectForm = ({ requestId, ownedOrganization }) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -69,14 +69,14 @@ const ProjectForm = ({ requestId, myOrganization }) => {
     dispatch(fetchRequestById(requestId));
     dispatch(fetchCategories());
     dispatch(fetchTags());
-    console.log("myOrganization", myOrganization);
-    if (myOrganization.organizationId) {
-      dispatch(getAllMembersInOrganization(myOrganization.organizationId));
+    console.log("owned organization", ownedOrganization);
+    if (ownedOrganization?.organizationId) {
+      dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
     }
     if (form.getFieldValue("email") === undefined) {
       initFormData();
     }
-  }, [dispatch, myOrganization.organizationId]);
+  }, [dispatch, ownedOrganization]);
 
   const initFormData = async () => {
     console.log("myOrganizationmember", currentOrganizationMembers);
@@ -214,37 +214,25 @@ const ProjectForm = ({ requestId, myOrganization }) => {
     setInitialLoading(false);
   };
   const onFinish = async (values) => {
-       // Lấy userId
-      //  let myOrganization = {};
-      //  const storedMyOrganization = localStorage.getItem("myOrganization");
-      //  if (storedMyOrganization) {
-      //    try {
-      //     myOrganization = JSON.parse(storedMyOrganization);
-      //    } catch (error) {
-      //      console.error("Error parsing myOrganization:", error);
-      //    }
-      //  }
-   
-       // Tạo object gửi lên API
-       const projectData = {
-         ...values,
-         requestId:requestId,
-         organizationId: myOrganization.organizationId,
-         tagIds: values.tagIds,
-         imageUrls: attachments.images,
-         videoUrls: attachments.videos,
-       };
-   
-       console.log("Final Project Data:", projectData);
-       try {
-         await dispatch(createProjectThunk(projectData)).unwrap();
-         setCreatedSuccess(true);
-         message.success("Create project successfully!");
-       } catch (error) {
-         console.error("Error creating Project:", error);
-         message.error("Failed to create project");
-       }
-    
+    // Tạo object gửi lên API
+    const projectData = {
+      ...values,
+      requestId: requestId,
+      organizationId: ownedOrganization.organizationId,
+      tagIds: values.tagIds,
+      imageUrls: attachments.images,
+      videoUrls: attachments.videos,
+    };
+
+    console.log("Final Project Data:", projectData);
+    try {
+      await dispatch(createProjectThunk(projectData)).unwrap();
+      setCreatedSuccess(true);
+      message.success("Create project successfully!");
+    } catch (error) {
+      console.error("Error creating Project:", error);
+      message.error("Failed to create project");
+    }
   };
   if (loadingUI || loading || initialLoading) {
     return <LoadingModal />;
@@ -388,7 +376,13 @@ const ProjectForm = ({ requestId, myOrganization }) => {
               <Form.Item
                 label="Location"
                 name="location"
-                rules={[{ required: true, message: "Address is required" }]}
+                rules={[
+                  {
+                    // required: true,
+                    required: false,
+                    message: "Address is required",
+                  },
+                ]}
               >
                 <Input readOnly />
               </Form.Item>
@@ -460,7 +454,7 @@ const ProjectForm = ({ requestId, myOrganization }) => {
 };
 ProjectForm.propTypes = {
   requestId: PropTypes.string.isRequired,
-  myOrganization: PropTypes.shape({
+  ownedOrganization: PropTypes.shape({
     organizationId: PropTypes.string,
   }).isRequired,
 };

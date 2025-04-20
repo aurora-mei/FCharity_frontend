@@ -26,9 +26,13 @@ import FileCard from "./components/FileCard";
 const MyOrganization = () => {
   const dispatch = useDispatch();
 
-  const { ownedOrganization, verificationDocuments } = useSelector(
-    (state) => state.organization
+  const ownedOrganization = useSelector(
+    (state) => state.organization.ownedOrganization
   );
+  const verificationDocuments = useSelector(
+    (state) => state.organization.verificationDocuments
+  );
+
   console.log(" owned organization: ", ownedOrganization);
   console.log("verificationDocuments: ", verificationDocuments);
 
@@ -77,6 +81,32 @@ const MyOrganization = () => {
       });
     }
   }, [ownedOrganization, dispatch]);
+
+  useEffect(() => {
+    if (ownedOrganization?.backgroundUrl) {
+      const img = new Image();
+      img.crossOrigin = "Anonymous"; // Hỗ trợ CORS
+      img.src = ownedOrganization.backgroundUrl;
+
+      img.onload = () => {
+        try {
+          const colorThief = new ColorThief();
+          const dominantColor = colorThief.getColor(img);
+          console.log("dominant: ", dominantColor);
+          setBackgroundColor(dominantColor);
+        } catch (error) {
+          console.error("Lỗi khi lấy màu chủ đạo: ", error);
+        }
+      };
+
+      img.onerror = () => {
+        console.error(
+          "Lỗi khi tải hình ảnh: ",
+          ownedOrganization.backgroundUrl
+        );
+      };
+    }
+  }, [ownedOrganization?.backgroundUrl]);
 
   const [background, setBackground] = useState(null);
   const [backgroundColor, setBackgroundColor] = useState(null);
@@ -241,7 +271,7 @@ const MyOrganization = () => {
         }}
       >
         <div
-          className="w-[96%] aspect-video  overflow-hidden rounded-xs relative bg-gray-300"
+          className="w-[90%] aspect-video overflow-hidden rounded-md relative bg-gray-300"
           style={{ maxWidth: "1250px", maxHeight: "260px" }}
         >
           {(background || ownedOrganization?.backgroundUrl) && (
@@ -271,9 +301,9 @@ const MyOrganization = () => {
             </div>
           )}
         </div>
-        <div className="ml-20 mt-6 self-start">
+        <div className="ml-24 mt-6 self-start">
           <div className="flex flex-col gap-2 mb-4">
-            <div className="flex gap-2 items-center justify-between">
+            <div className="flex gap-2 items-center">
               <p className="font-semibold text-3xl" style={{ margin: 0 }}>
                 {orgInfo.organizationName || "Organization Name"}
               </p>
@@ -423,7 +453,7 @@ const MyOrganization = () => {
               <div className="flex flex-row-reverse mt-8 gap-3">
                 <button
                   type="button"
-                  className="bg-gray-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-gray-700 hover:shadow-md hover:cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
+                  className="bg-gray-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-gray-700 hover:shadow-md hover:cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   onClick={() => {
                     dispatch(getManagedOrganizationByCeo());
                     setIsEditing(false);
@@ -433,7 +463,7 @@ const MyOrganization = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-green-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-green-700 hover:shadow-md  hover:cursor-pointer  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
+                  className="bg-blue-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-blue-700 hover:shadow-md  hover:cursor-pointer  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   onClick={() => {
                     setIsEditing(false);
                     handleSubmit();
@@ -445,7 +475,7 @@ const MyOrganization = () => {
             </div>
           </div>
         ) : (
-          <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-xl p-8 animate-fadeIn relative">
+          <div className="p-8 relative pb-20">
             {/* Thông tin tổ chức */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
@@ -507,7 +537,7 @@ const MyOrganization = () => {
                 onClick={() => {
                   setIsEditing(true);
                 }}
-                className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-green-500 hover:bg-green-600`}
+                className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-blue-500 hover:bg-blue-600`}
               >
                 Update
               </button>
@@ -516,7 +546,7 @@ const MyOrganization = () => {
         ))}
       {activeTab === "Verification Documents" &&
         (isEditing ? (
-          <div className="flex flex-col gap-10">
+          <div className="flex flex-col gap-10 m-6">
             <div className="flex gap-3 items-start min-h-[50px]">
               <label
                 htmlFor="verificationDocs"
@@ -586,7 +616,7 @@ const MyOrganization = () => {
             <div className="flex flex-row-reverse mt-8 gap-3">
               <button
                 type="button"
-                className="bg-gray-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-gray-700 hover:shadow-md hover:cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
+                className="bg-gray-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-gray-700 hover:shadow-md hover:cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 onClick={() => {
                   setIsEditing(false);
                   setNewDocuments([]);
@@ -597,7 +627,7 @@ const MyOrganization = () => {
               </button>
               <button
                 type="submit"
-                className="bg-green-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-green-700 hover:shadow-md  hover:cursor-pointer  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300"
+                className="bg-blue-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-blue-700 hover:shadow-md  hover:cursor-pointer  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 onClick={() => {
                   setIsEditing(false);
                   handleSubmitFile();
@@ -608,11 +638,9 @@ const MyOrganization = () => {
             </div>
           </div>
         ) : (
-          <div className="relative">
-            <div className="bg-gradient-to-r from-blue-50 to-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Verification Documents
-              </h2>
+          <div className="relative pb-20">
+            <div className="p-8 pt-0">
+              <p className="text-xl text-gray-800">Documents</p>
               {verificationDocuments?.length > 0 ? (
                 <div className="flex gap-4 flex-wrap hover:cursor-pointer">
                   {verificationDocuments
@@ -647,7 +675,7 @@ const MyOrganization = () => {
                 onClick={() => {
                   setIsEditing(true);
                 }}
-                className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-green-500 hover:bg-green-600`}
+                className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-blue-500 hover:bg-blue-600`}
               >
                 Edit
               </button>

@@ -235,10 +235,10 @@ const RequestDetailScreen = () => {
                 block
                 style={{ flex: 1 }}
                 onClick={() => {
-                  if (myOrganization) {
-                    if (myOrganization.organizationStatus === "APPROVED") {
+                  if (ownedOrganization) {
+                    if (ownedOrganization.organizationStatus === "APPROVED") {
                       if (
-                        orgMembers.filter(
+                        currentOrganizationMembers.filter(
                           (member) => member.user.userRole !== "Leader"
                         ).length === 0
                       ) {
@@ -247,7 +247,7 @@ const RequestDetailScreen = () => {
                         );
                       } else {
                         navigate(
-                          `/manage-organization/projects/create/${requestData.helpRequest.id}`
+                          `/my-organization/projects/create/${requestData.helpRequest.id}`
                         );
                       }
                     } else {

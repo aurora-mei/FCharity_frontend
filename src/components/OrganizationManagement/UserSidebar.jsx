@@ -32,7 +32,7 @@ const UserSidebar = () => {
           <span className="text-base font-medium">Organizations</span>
         </Link>
         <Link
-          to={`/rankings`}
+          to={`/rankings/organizations`}
           className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200"
         >
           <FaArrowTrendUp style={{ fontSize: "24px" }} />

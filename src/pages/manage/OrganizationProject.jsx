@@ -58,7 +58,7 @@ const OrganizationProject = () => {
   const projectByOrg = useSelector((state) => state.project.projects);
 
   useEffect(() => {
-    dispatch(fetchProjectsByOrgThunk(ownedOrganization.organizationId));
+    dispatch(fetchProjectsByOrgThunk(ownedOrganization?.organizationId));
   }, [dispatch, ownedOrganization]);
 
   const projectStatusData = [
