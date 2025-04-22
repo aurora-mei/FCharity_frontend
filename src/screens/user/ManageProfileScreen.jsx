@@ -1,56 +1,55 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { Layout, Menu, Button, theme } from "antd";
-import { UserOutlined, HistoryOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-import MyProfileScreen from "./MyProfileScreen";  // Component hiển thị thông tin người dùng
-import MyRequestScreen from "../request/MyRequestScreen";  // Component hiển thị danh sách yêu cầu
-import { ReadOutlined } from '@ant-design/icons';
-import MyPostsScreen from "./MyPostScreen";
+import {
+  UserOutlined,
+  HistoryOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  WalletOutlined,
+} from "@ant-design/icons";
+
 const { Header, Sider, Content } = Layout;
 
 const ManageProfileScreen = () => {
   const navigate = useNavigate();
-  const { keyTab } = useParams(); // Giá trị truyền qua URL: "profile" hoặc "myrequests"
-  
-  // Nếu không có keyTab, mặc định hiển thị MyProfileScreen
-  const initialTab = keyTab || "profile";
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  // Danh sách menu với key, icon, label và component tương ứng
   const menuItems = [
     {
       key: "profile",
       icon: <UserOutlined />,
       label: "My Profile",
-      component: MyProfileScreen,
+    },
+    {
+      key: "mydonations",
+      icon: <WalletOutlined />,
+      label: "My Donations",
     },
     {
       key: "myrequests",
       icon: <HistoryOutlined />,
       label: "My Requests",
-      component: MyRequestScreen,
     },
     {
       key: "myposts",
-      icon: <ReadOutlined />, // Hoặc dùng icon khác phù hợp hơn, như <ReadOutlined />
+      icon: <HistoryOutlined />,
       label: "My Posts",
-      component: MyPostsScreen,
+    },
+    {
+      key: "invitations",
+      icon: <HistoryOutlined />,
+      label: "Invitations",
     },
   ];
 
-  // Khi keyTab thay đổi trong URL, cập nhật activeTab
-  useEffect(() => {
-    if (keyTab && (keyTab === "profile" || keyTab === "myrequests")) {
-      setActiveTab(keyTab);
-    }
-  }, [keyTab]);
-
-  // Tìm component tương ứng với activeTab
-  const ActiveComponent = menuItems.find((item) => item.key === activeTab)?.component;
+  // Lấy tab hiện tại từ URL
+  const currentKey = location.pathname.split("/").pop();
 
   return (
     <Layout style={{ padding: "1rem 6rem", borderRadius: 10, minHeight: "100vh" }}>
@@ -74,16 +73,11 @@ const ManageProfileScreen = () => {
         </div>
         <Menu
           mode="inline"
-          selectedKeys={[activeTab]}
+          selectedKeys={[currentKey]}
           onClick={({ key }) => {
-            setActiveTab(key);
             navigate(`/user/manage-profile/${key}`);
           }}
-          items={menuItems.map((item) => ({
-            key: item.key,
-            icon: item.icon,
-            label: item.label,
-          }))}
+          items={menuItems}
         />
       </Sider>
 
@@ -105,14 +99,12 @@ const ManageProfileScreen = () => {
         </Header>
         <Content
           style={{
-            margin: "1rem 0 0 1rem",
             overflow: "initial",
-            padding: 24,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
         >
-          {ActiveComponent && <ActiveComponent />}
+          <Outlet />
         </Content>
       </Layout>
     </Layout>

@@ -1,82 +1,134 @@
-import { APIPrivate } from "../../config/API/api";
+import { data } from "react-router-dom";
 import api from "../../services/api";
 
 const organizationApi = {
-  getAllOrganizations: () => APIPrivate.get("/api/organizations"),
+  // -------------------- For Admin ---------------------
+  getOrganizationsWaitingForCreation: () =>
+    api.get("/organizations/admin-review/waiting-for-creation"),
+  getOrganizationsWaitingForDeletion: () =>
+    api.get("/organizations/admin-review/waiting-for-deletion"),
+  // --------------------------------- Start Organization RestController ------------------------
+  getRecommendedOrganizations: () => api.get("/organizations/recommended"),
+  getAllOrganizations: () => api.get("/organizations"),
+  getJoinedOrganizations: () => api.get(`/organizations/joined-organizations`),
+  getOrganizationById: (organizationId) =>
+    api.get(`/organizations/${organizationId}`),
+  getManagedOrganizationByCeo: () => api.get("/organization/managedByCeo"),
+  getManagedOrganizationsByManager: () =>
+    api.get("/organizations/managedByManager"),
+
   createOrganization: (orgData) => api.post("/organizations", orgData),
+  updateOrganization: (orgData) => api.put("/organizations", orgData),
   deleteOrganization: (organizationId) =>
     api.delete(`/organizations/${organizationId}`),
-  getOrganization: (organizationId) =>
-    api.get(`/organizations/${organizationId}`),
-  updateOrganization: (orgData) => api.put(`/organizations`, orgData),
 
-  // getOrganizationMembers: (organizationId) =>
-  //   api.get(`/organization-members/${organizationId}`),
-  removeOrganizationMember: (membershipId) =>
+  // ----------------------------   End Organization RestController -------------------------------
+
+  // ----------------------------   Start OrganizationMember RestController -------------------------------
+  getAllMembers: (organizationId) => api.get(`/organization-members`),
+  getAllMembersInOrganization: (organizationId) =>
+    api.get(`/organization-members/${organizationId}`),
+  addOrganizationMember: (organizationMemberData) =>
+    api.post(
+      `/organization-members/${organizationMemberData.organizationId}/${organizationMemberData.userId}`
+    ),
+  updateOrganizationMemberRole: (organizationMemberData) =>
+    api.put(`/organization-members/update-role`, organizationMemberData),
+  deleteOrganizationMember: (membershipId) =>
     api.delete(`/organization-members/${membershipId}`),
 
-  getJoinRequestsByOrganizationId: (organizationId) =>
+  // ----------------------------   End OrganizationMember RestController -------------------------------
+
+  // ---------------------------  Start OrganizationRequest RestController ------------------------------
+  getAllJoinInvitationRequests: () => api.get("/join-invitation-requests"),
+  getAllJoinRequestsByOrganizationId: (organizationId) =>
     api.get(`/join-requests/organizations/${organizationId}`),
-  updateJoinRequest: (inviteJoinRequest) =>
-    api.put(`/join-requests`, inviteJoinRequest),
-  deleteJoinRequest: (requestId) => api.delete(`/join-requests/${requestId}`),
-
-  getOrganizationInviteRequests: (organizationId) =>
-    APIPrivate.get(`api/invite-requests/organizations/${organizationId}`),
-  inviteMember: (requestInfo) => api.post("/invite-requests", requestInfo),
-  getInviteRequestId: (organizationId, userId) =>
-    api.get(`/invite-requests/request-id/${organizationId}/${userId}`),
-  updateInviteRequest: (inviteRequest) => 
-    api.put(`/invite-requests`, inviteRequest),
-  deleteInviteRequest: (requestId) =>
-    api.delete(`/invite-requests/${requestId}`),
-
-  transferCEO: (organizationId, newCeoId) =>
-    api.put(`/organizations/${organizationId}/transfer-ceo`, {
-      new_ceo_id: newCeoId,
-    }),
-
-  getManagedOrganizations: () => api.get("/organizations/managed"),
-  getAllUsersNotInOrganization: (organizationId) =>
-    APIPrivate.get(`/users/organizations/${organizationId}`),
-
-  getAllRequests: () => api.get("/requests"),
-  getAllRequestsByOrganization: (organizationId) =>
-    api.get(`/requests?organization_id=${organizationId}`),
-  getAllReports: () => api.get("/reports"),
-  getAllReportsByOrganization: (organizationId) =>
-    api.get(`/reports?organization_id=${organizationId}`),
-  donate: (donationData) => api.post("/donate", donationData),
-
-  getAllJoinRequestByOrganizationId: (organizationId) =>
-    api.get(`/join-requests/organizations/${organizationId}`),
+  getAllJoinRequestsByUserId: (userId) =>
+    api.get(`/join-requests/users/${userId}`),
   getJoinRequestById: (joinRequestId) =>
     api.get(`/join-requests/${joinRequestId}`),
-  getJoinRequestByUserId: (userId) => api.get(`/join-requests/users/${userId}`),
   createJoinRequest: (joinRequestData) =>
-    api.post("/join-requests", joinRequestData),
+    api.post(
+      `/join-requests/${joinRequestData.userId}/${joinRequestData.organizationId}`
+    ),
+  acceptJoinRequest: (joinRequestId) =>
+    api.put(`/join-requests/${joinRequestId}/accept`),
+  rejectJoinRequest: (joinRequestId) =>
+    api.put(`/join-requests/${joinRequestId}/reject`),
+  cancelJoinRequest: (joinRequestId) =>
+    api.delete(`/join-requests/${joinRequestId}/cancel`),
 
-  getMyOrganization: async (userId) => {
+  getAllInvitationRequestsByOrganizationId: (organizationId) =>
+    api.get(`invitation-requests/organizations/${organizationId}`),
+  getAllInvitationRequestsByUserId: (userId) =>
+    api.get(`invitation-requests/users/${userId}`),
+  getInvitationRequestById: (invitationRequestId) =>
+    api.get(`/invitation-requests/${invitationRequestId}`),
+  createInvitationRequest: (invitationRequestData) =>
+    api.post(
+      `/invitation-requests/${invitationRequestData.organizationId}/${invitationRequestData.userId}`
+    ),
+
+  acceptInvitationRequest: (invitationRequestId) =>
+    api.put(`/invitation-requests/${invitationRequestId}/accept`),
+  rejectInvitationRequest: (invitationRequestId) =>
+    api.put(`/invitation-requests/${invitationRequestId}/reject`),
+  cancelInvitationRequest: (invitationRequestId) =>
+    api.delete(`/invitation-requests/${invitationRequestId}/cancel`),
+
+  // ---------------------------  End OrganizationRequest RestController ------------------------------
+
+  // ---------------------------  Start OrganizationEvent RestController ------------------------------
+  getOrganizationEvents: (organizationId) =>
+    api.get(`/events/organizations/${organizationId}`),
+  addOrganizationEvent: (organizationEventData) =>
+    api.post(
+      `/events/${organizationEventData.organizerId}`,
+      organizationEventData
+    ),
+  updateOrganizationEvent: (organizationEventData) =>
+    api.put("/events", organizationEventData),
+  deleteOrganizationEvent: (organizationEventId) =>
+    api.delete(`/events/${organizationEventId}`),
+
+  getOrganizationVerificationDocuments: (organizationId) =>
+    api.get(`/files/organizations/${organizationId}`),
+
+  uploadFileLocal: async (dataInfo) => {
+    const formData = new FormData();
+    formData.append("file", dataInfo.file);
     try {
-      const response = await api.get(`/organizations/my-organization/${userId}`);
-      console.log("My org:", response.data);
-      return response.data;
-    } catch (err) {
-      console.error("Error get my org:", err);
-      throw err.response?.data;
+      return await api.post(
+        `/files/organizations/${dataInfo.organizationId}/save`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+    } catch (error) {
+      throw error.response?.data || error.message;
     }
   },
 
-  getOrganizationMembers: async (organizationId) => {
+  deleteFileLocal: async (fileName) => {
     try {
-      const response = await api.get(`/organization-members/${organizationId}`);
-      console.log("organizationId members:", response.data);
-      return response.data;
-    } catch (err) {
-      console.error("Error get org members:", err);
-      throw err.response?.data;
+      return await api.delete(`/files/${encodeURIComponent(fileName)}`);
+    } catch (error) {
+      throw error.response?.data || error.message;
     }
-  }
+  },
+
+  getFileUrlLocal: (fileName) =>
+    api.get(`/files/${encodeURIComponent(fileName)}`, { responseType: "blob" }),
+  // ---------------------------  End OrganizationEvent RestController ----------------------------
+  // ----------------- User ------------------------------
+
+  getAllUsersNotInOrganization: (organizationId) =>
+    api.get(
+      `/organization-members/${organizationId}/users-not-in-organization`
+    ),
 };
 
 export default organizationApi;

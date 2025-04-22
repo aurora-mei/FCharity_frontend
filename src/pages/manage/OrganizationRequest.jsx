@@ -161,7 +161,7 @@ const OrganizationRequest = () => {
   };
 
   return (
-    <ManagerLayout>
+    <div>
       <div className="pl-2">
         <div className="inline-flex gap-2 items-baseline">
           <FaLink />
@@ -205,7 +205,7 @@ const OrganizationRequest = () => {
           </div>
         </div>
       </div>
-    </ManagerLayout>
+    </div>
   );
 };
 

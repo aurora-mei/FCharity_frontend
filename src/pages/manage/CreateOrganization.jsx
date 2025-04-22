@@ -1,16 +1,13 @@
 import ManagerLayout from "../../components/Layout/ManagerLayout";
 import React, { useRef, useState } from "react";
-import {
-  createOrganization,
-  getManagedOrganizations,
-} from "../../redux/organization/organizationSlice";
+import { createOrganization } from "../../redux/organization/organizationSlice";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
 import { FaLink } from "react-icons/fa";
 import { IoCamera } from "react-icons/io5";
 import ColorThief from "colorthief";
-import { uploadFile } from "../../redux/helper/helperApi";
+import helperApi from "../../redux/helper/helperApi";
 import {
   showSuccess,
   showError,
@@ -89,18 +86,18 @@ const CreateOrganization = () => {
       let updatedOrgInfo = { ...orgInfo };
       showInfo("Đang tạo tổ chức...");
       if (avatarInputRef.current?.files[0]) {
-        const avatarUrl = await uploadFile(
-          {file:avatarInputRef.current.files[0],
-          folderName:"organizations"}
-        );
+        const avatarUrl = await uploadFile({
+          file: avatarInputRef.current.files[0],
+          folderName: "organizations",
+        });
         updatedOrgInfo = { ...updatedOrgInfo, avatarUrl };
       }
 
       if (backgroundInputRef.current?.files[0]) {
-        const backgroundUrl = await uploadFile(
-          {file:backgroundInputRef.current.files[0],
-          folderName:"organizations"}
-        );
+        const backgroundUrl = await uploadFile({
+          file: backgroundInputRef.current.files[0],
+          folderName: "organizations",
+        });
         updatedOrgInfo = { ...updatedOrgInfo, backgroundUrl };
       }
 
@@ -126,7 +123,7 @@ const CreateOrganization = () => {
           setBackground(null);
           avatarInputRef.current.value = null;
           backgroundInputRef.current.value = null;
-          navigate("/manage-organization");
+          navigate("/my-organization");
         })
         .catch((error) => {
           showError("Tạo tổ chức that bai!");
@@ -142,7 +139,7 @@ const CreateOrganization = () => {
     rgb ? `rgb(${rgb[0]},${rgb[1]},${rgb[2]})` : "bg-gray-300";
 
   return (
-    <ManagerLayout>
+    <div>
       <div className="pl-2">
         <div className="inline-flex gap-2 items-baseline">
           <FaLink />
@@ -332,7 +329,7 @@ const CreateOrganization = () => {
           </form>
         </div>
       </div>
-    </ManagerLayout>
+    </div>
   );
 };
 

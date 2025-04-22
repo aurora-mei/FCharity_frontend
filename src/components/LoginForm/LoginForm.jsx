@@ -1,9 +1,9 @@
 import { Flex } from "antd";
 import { Button, Form, Input, Divider } from "antd";
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
-import { Typography } from "antd";
+import { Typography,message } from "antd";
 import LoadingModal from "../LoadingModal";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useLoading from "../../hooks/useLoading";
 import { useSelector, useDispatch } from "react-redux";
 import { logIn, getCurrentUser, googleLogIn } from "../../redux/auth/authSlice";
@@ -27,7 +27,7 @@ const LoginForm = () => {
       navigate("/", { replace: true });
     } catch (error) {
       console.error("Login error:", error);
-      alert(error.message);
+      message.error(error.message);
     }
   };
 
@@ -40,13 +40,13 @@ const LoginForm = () => {
       navigate("/", { replace: true });
     } catch (error) {
       console.error("Google login error:", error);
-      alert(error.message);
+      message.error(error.message);
     }
   };
 
   const handleGoogleFailure = (error) => {
     console.log("Google login failed:", error);
-    alert("Google login failed!");
+    message.error("Google login failed!");
   };
 
   if (loadingUI || loading) return <LoadingModal />;
@@ -56,10 +56,10 @@ const LoginForm = () => {
       <div className="container-login">
         <div className="login-box">
           <Flex justify="center" align="center">
-            <a href="/">
+            <Link to="/">
               {" "}
               <img src={logo} alt="FCharity logo" width="110" height="50" />
-            </a>
+            </Link>
           </Flex>
           <Title level={2} style={{ lineHeight: "1" }} className="title">
             Welcome
@@ -103,9 +103,9 @@ const LoginForm = () => {
               />
             </Form.Item>
             <div className="sub-title-div">
-              <a href="/auth/otp-reset-password" className="sub-title-a">
+              <Link to="/auth/otp-reset-password" className="sub-title-a">
                 Forgot your password?
-              </a>
+              </Link>
             </div>
 
             {/* Submit Button */}
@@ -118,9 +118,9 @@ const LoginForm = () => {
 
           <p className="sub-ending">
             First time with FCharity?{" "}
-            <a href="/auth/signup" className="sub-title">
+            <Link to="/auth/signup" className="sub-title">
               Sign up
-            </a>
+            </Link>
           </p>
         </div>
       </div>

@@ -5,7 +5,9 @@ const initialState = {
   loading: false,
   error: null,
   currentUser: {},
+  currentBalance: 0,
   users: [],
+  transactionHistory: [],
 };
 export const getCurrentUser = createAsyncThunk("users/my-profile", async () => {
   return await userApi.getCurrentUser();
@@ -15,6 +17,12 @@ export const updateProfile = createAsyncThunk(
   "users/update-profile",
   async (profileData) => {
     return await userApi.updateProfile(profileData);
+  }
+);
+export const getTransactionHistoryOfUser = createAsyncThunk(
+  "users/transaction-history",
+  async (userId) => {
+    return await userApi.getTransactionHistoryOfUser(userId);
   }
 );
 
@@ -73,7 +81,19 @@ export const userSlice = createSlice({
       .addCase(getAllUsers.pending, (state, action) => {
         state.loading = true;
         state.users = [];
-      });
+      })
+      .addCase(getTransactionHistoryOfUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getTransactionHistoryOfUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.transactionHistory = action.payload;
+      })
+      .addCase(getTransactionHistoryOfUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      ;
   },
 });
 
