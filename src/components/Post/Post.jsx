@@ -353,11 +353,6 @@ const handleDeletePost = async (e) => {
   };
 
   const handleCreateReply = async (parentCommentId) => {
-    if (!replyContent.trim()) {
-      message.error("Vui lòng nhập nội dung phản hồi");
-      return;
-    }
-
     if (!replyContent.trim()) return message.error("Vui lòng nhập nội dung phản hồi");
     try {
       const currentUser = JSON.parse(localStorage.getItem("currentUser"));

@@ -1,89 +1,31 @@
-import { createSlice, createAsyncThunk, current } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import organizationApi from "./organizationApi.js";
-import { useSelector } from "react-redux";
 
 const initialState = {
-  organizationsWaitingForCreation: [],
-  organizationsWaitingForDeletion: [],
-  joinInvitationRequests: [],
-
-  currentOrganization: null,
-  currentOrganizationMembers: [],
-  usersOutsideOrganization: [],
-
-  invitations: [],
-  currentInvitation: null,
-
-  joinRequests: [],
-  currentJoinRequest: null,
-
-  membersInAllOrganizations: [],
-
-  recommendedOrganizations: [],
-  organizations: [], // for guest, member, manager, ceo, admin
+  organizations: [],
+  myOrganization:{},
+  myOrganizationMembers:[],
+  managedOrganizations: [],
   selectedOrganization: 0,
-
-  joinedOrganizations: [],
-  selectedOrganizationByMember: 0, // for member
-
-  managedOrganizations: [], // for manager
-  selectedOrganizationByManager: 0,
-
-  ownedOrganization: null, // for ceo only one organization
-  organizationEvents: [],
-  verificationDocuments: [],
-
-  allJoinInvitationRequests: [],
+  usersOutside: [],
+  requests: [],
+  currentOrganization: null,
+  members: [],
+  joinRequests: [],
+  inviteRequests: [],
+  currentJoinRequest: null,
+  reports: [],
   loading: false,
   error: null,
 };
+export const fetchMyOrganization = createAsyncThunk("organization/my-org", async (userId) => {
+    return await organizationApi.getMyOrganization(userId);
+});
 
-// ------------------ Organization -------------------
-
-export const getOrganizationsWaitingForCreation = createAsyncThunk(
-  "organizations/getWaitingForCreation",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response =
-        await organizationApi.getOrganizationsWaitingForCreation();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching organizations"
-      );
-    }
-  }
-);
-
-export const getOrganizationsWaitingForDeletion = createAsyncThunk(
-  "organizations/getWaitingForDeletion",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response =
-        await organizationApi.getOrganizationsWaitingForDeletion();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching organizations"
-      );
-    }
-  }
-);
-
-export const getRecommendedOrganizations = createAsyncThunk(
-  "organizations/getRecommended",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getRecommendedOrganizations();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching organizations"
-      );
-    }
-  }
-);
-
+export const fetchOrganizationMembers = createAsyncThunk("organization/members", async (organizationId) => {
+    return await organizationApi.getOrganizationMembers(organizationId);
+});
+// Async Thunks
 export const getAllOrganizations = createAsyncThunk(
   "organizations/getAll",
   async (_, { rejectWithValue }) => {
@@ -98,71 +40,11 @@ export const getAllOrganizations = createAsyncThunk(
   }
 );
 
-export const getJoinedOrganizations = createAsyncThunk(
-  "organizations/getJoinedOrganizations",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getJoinedOrganizations();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching organizations"
-      );
-    }
-  }
-);
-
-export const getOrganizationById = createAsyncThunk(
-  "organizations/getById",
-  async (organizationId, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getOrganizationById(
-        organizationId
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching organization"
-      );
-    }
-  }
-);
-
-export const getManagedOrganizationByCeo = createAsyncThunk(
-  "organizations/getManagedByCeo",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getManagedOrganizationByCeo();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching organizations"
-      );
-    }
-  }
-);
-
-export const getManagedOrganizationsByManager = createAsyncThunk(
-  "organizations/getManagedByManager",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getManagedOrganizationsByManager();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching organizations"
-      );
-    }
-  }
-);
-
 export const createOrganization = createAsyncThunk(
   "organizations/create",
   async (orgData, { rejectWithValue }) => {
     try {
-      console.log("createOrganization: 🕷️🕷️ ", orgData);
       const response = await organizationApi.createOrganization(orgData);
-      console.log("createOrganization: 🕷️🕷️🍎 ", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -177,11 +59,24 @@ export const updateOrganization = createAsyncThunk(
   async (orgData, { rejectWithValue }) => {
     try {
       const response = await organizationApi.updateOrganization(orgData);
-      console.log("updateOrganization: 🕷️🕷️🍎 ", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Error updating organization"
+      );
+    }
+  }
+);
+
+export const getOrganization = createAsyncThunk(
+  "organizations/getOne",
+  async (organizationId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getOrganization(organizationId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error fetching organization"
       );
     }
   }
@@ -201,10 +96,8 @@ export const deleteOrganization = createAsyncThunk(
   }
 );
 
-// ---------------------- Organization Members -------------------
-
 export const getOrganizationMembers = createAsyncThunk(
-  "organizations/getOrganizationMembers",
+  "organizations/getMembers",
   async (organizationId, { rejectWithValue }) => {
     try {
       const response = await organizationApi.getOrganizationMembers(
@@ -220,88 +113,25 @@ export const getOrganizationMembers = createAsyncThunk(
   }
 );
 
-export const getAllMembersInOrganization = createAsyncThunk(
-  "organizations/getAllMembersInOrganization",
-  async (organizationId, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getAllMembersInOrganization(
-        organizationId
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching all members"
-      );
-    }
-  }
-);
-
-export const addOrganizationMember = createAsyncThunk(
-  "organizations/addMember",
-  async (organizationMemberData, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.addOrganizationMember(
-        organizationMemberData
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error adding organization member"
-      );
-    }
-  }
-);
-
-export const updateOrganizationMemberRole = createAsyncThunk(
-  "organizations/updateMember",
-  async (organizationMemberData, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.updateOrganizationMemberRole(
-        organizationMemberData
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error updating organization member"
-      );
-    }
-  }
-);
-
-export const deleteOrganizationMember = createAsyncThunk(
-  "organizations/deleteMember",
+export const removeOrganizationMember = createAsyncThunk(
+  "organizations/removeMember",
   async (membershipId, { rejectWithValue }) => {
     try {
-      await organizationApi.deleteOrganizationMember(membershipId);
-      return membershipId;
+      await organizationApi.removeOrganizationMember(membershipId);
+      return membershipId; // Trả về ID để xóa trong state
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "Error deleting organization member"
+        error.response?.data || "Error removing organization member"
       );
     }
   }
 );
 
-// ---------------------- Organization Requests -------------------
-export const getAllJoinInvitationRequests = createAsyncThunk(
-  "organizations/getAllJoinInvitationRequests",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getAllJoinInvitationRequests();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching join invitation requests"
-      );
-    }
-  }
-);
-
-export const getAllJoinRequestsByOrganizationId = createAsyncThunk(
-  "organizations/getAllJoinRequestsByOrganizationId",
+export const getOrganizationJoinRequests = createAsyncThunk(
+  "organizations/getJoinRequests",
   async (organizationId, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.getAllJoinRequestsByOrganizationId(
+      const response = await organizationApi.getJoinRequestsByOrganizationId(
         organizationId
       );
       return response.data;
@@ -313,11 +143,73 @@ export const getAllJoinRequestsByOrganizationId = createAsyncThunk(
   }
 );
 
-export const getAllJoinRequestsByUserId = createAsyncThunk(
-  "organizations/getAllJoinRequestsByUserId",
-  async (userId, { rejectWithValue }) => {
+export const getOrganizationInviteRequests = createAsyncThunk(
+  "organizations/getInviteRequests",
+  async (organizationId, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.getAllJoinRequestsByUserId(userId);
+      const response = await organizationApi.getOrganizationInviteRequests(
+        organizationId
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error fetching invite requests"
+      );
+    }
+  }
+);
+
+export const createMemberInviteRequest = createAsyncThunk(
+  "organizations/createMemberInviteRequest",
+  async (requestInfo, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.inviteMember(requestInfo);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error creating organization"
+      );
+    }
+  }
+);
+
+export const deleteInviteRequest = createAsyncThunk(
+  "organizations/deleteInviteRequest",
+  async (requestId, { rejectWithValue }) => {
+    try {
+      await organizationApi.deleteInviteRequest(requestId);
+      return requestId; // Trả về ID để xóa trong state
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error deleting invite request"
+      );
+    }
+  }
+);
+
+export const getManagedOrganizations = createAsyncThunk(
+  "organizations/getManagedOrganizations",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getManagedOrganizations();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch managed organizations"
+      );
+    }
+  }
+);
+
+// Organization Requests
+
+export const getAllJoinRequestByOrganizationId = createAsyncThunk(
+  "organizationRequests/getAllJoinRequestByOrganizationId",
+  async (organizationId, { rejectWithValue }) => {
+    try {
+      const response = await requestApi.getAllJoinRequestByOrganizationId(
+        organizationId
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -328,10 +220,24 @@ export const getAllJoinRequestsByUserId = createAsyncThunk(
 );
 
 export const getJoinRequestById = createAsyncThunk(
-  "organizations/getJoinRequestById",
+  "organizationRequests/getJoinRequestById",
   async (joinRequestId, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.getJoinRequestById(joinRequestId);
+      const response = await requestApi.getJoinRequestById(joinRequestId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error fetching join request"
+      );
+    }
+  }
+);
+
+export const getJoinRequestByUserId = createAsyncThunk(
+  "organizationRequests/getJoinRequestByUserId",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await requestApi.getJoinRequestByUserId(userId);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -342,10 +248,10 @@ export const getJoinRequestById = createAsyncThunk(
 );
 
 export const createJoinRequest = createAsyncThunk(
-  "organizations/createJoinRequest",
+  "organizationRequests/createJoinRequest",
   async (joinRequestData, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.createJoinRequest(joinRequestData);
+      const response = await requestApi.createJoinRequest(joinRequestData);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -355,294 +261,114 @@ export const createJoinRequest = createAsyncThunk(
   }
 );
 
-export const acceptJoinRequest = createAsyncThunk(
-  "organizations/acceptJoinRequest",
-  async (joinRequestId, { rejectWithValue }) => {
+export const updateJoinRequest = createAsyncThunk(
+  "organizationRequests/updateJoinRequest",
+  async (joinRequestData, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.acceptJoinRequest(joinRequestId);
+      const response = await requestApi.updateJoinRequest(joinRequestData);
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "Error accepting join request"
+        error.response?.data || "Error updating join request"
       );
     }
   }
 );
 
-export const rejectJoinRequest = createAsyncThunk(
-  "organizations/rejectJoinRequest",
+export const deleteJoinRequest = createAsyncThunk(
+  "organizationRequests/deleteJoinRequest",
   async (joinRequestId, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.rejectJoinRequest(joinRequestId);
-      return response.data;
+      await requestApi.deleteJoinRequest(joinRequestId);
+      return joinRequestId; // Trả về ID để xóa trong state
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "Error rejecting join request"
+        error.response?.data || "Error deleting join request"
       );
     }
   }
 );
 
-export const cancelJoinRequest = createAsyncThunk(
-  "organizations/cancelJoinRequest",
-  async (joinRequestId, { rejectWithValue }) => {
+export const getAllRequests = createAsyncThunk(
+  "organizationRequests/getAll",
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.cancelJoinRequest(joinRequestId);
+      const response = await requestApi.getAllRequests();
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error canceling join request"
-      );
+      return rejectWithValue(error.response?.data || "Error fetching requests");
     }
   }
 );
 
-export const getAllInvitationRequestsByOrganizationId = createAsyncThunk(
-  "organizations/getAllInvitationRequestsByOrganizationId",
+export const getAllRequestsByOrganization = createAsyncThunk(
+  "organizationRequests/getAllByOrg",
   async (organizationId, { rejectWithValue }) => {
     try {
-      const response =
-        await organizationApi.getAllInvitationRequestsByOrganizationId(
-          organizationId
-        );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching invitation requests"
-      );
-    }
-  }
-);
-
-export const getAllInvitationRequestsByUserId = createAsyncThunk(
-  "organizations/getAllInvitationRequestsByUserId",
-  async (userId, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getAllInvitationRequestsByUserId(
-        userId
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching invitation requests"
-      );
-    }
-  }
-);
-
-export const getInvitationRequestById = createAsyncThunk(
-  "organizations/getInvitationRequestById",
-  async (invitationRequestId, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getInvitationRequestById(
-        invitationRequestId
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error fetching invitation request"
-      );
-    }
-  }
-);
-
-export const createInvitationRequest = createAsyncThunk(
-  "organizations/createInvitationRequest",
-  async (invitationRequestData, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.createInvitationRequest(
-        invitationRequestData
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error creating invitation request"
-      );
-    }
-  }
-);
-
-export const acceptInvitationRequest = createAsyncThunk(
-  "organizations/acceptInvitationRequest",
-  async (invitationRequestId, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.acceptInvitationRequest(
-        invitationRequestId
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error accepting invitation request"
-      );
-    }
-  }
-);
-
-export const rejectInvitationRequest = createAsyncThunk(
-  "organizations/rejectInvitationRequest",
-  async (invitationRequestId, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.rejectInvitationRequest(
-        invitationRequestId
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error rejecting invitation request"
-      );
-    }
-  }
-);
-
-export const cancelInvitationRequest = createAsyncThunk(
-  "organizations/cancelInvitationRequest",
-  async (invitationRequestId, { rejectWithValue }) => {
-    try {
-      await organizationApi.cancelInvitationRequest(invitationRequestId);
-      return invitationRequestId;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error canceling invitation request"
-      );
-    }
-  }
-);
-
-// ------------------------ Organization Events -----------------
-export const getOrganizationEvents = createAsyncThunk(
-  "events/getAllInOrganization",
-  async (organizationId, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getOrganizationEvents(
+      const response = await requestApi.getAllRequestsByOrganization(
         organizationId
       );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "Error getOrganizationEvents"
+        error.response?.data || "Error fetching requests by org"
       );
     }
   }
 );
 
-export const addOrganizationEvent = createAsyncThunk(
-  "events/addOrganizationEvent",
-  async (organizationEventData, { rejectWithValue }) => {
+export const getAllReports = createAsyncThunk(
+  "organizationReports/getAllReports",
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.addOrganizationEvent(
-        organizationEventData
-      );
+      const response = await requestApi.getAllReports();
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error addOrganizationEvent"
-      );
+      return rejectWithValue(error.response?.data || "Error fetching reports");
     }
   }
 );
 
-export const updateOrganizationEvent = createAsyncThunk(
-  "events/updateOrganizationEvent",
-  async (organizationEventData, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.updateOrganizationEvent(
-        organizationEventData
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error updateOrganizationEvent"
-      );
-    }
-  }
-);
-
-export const deleteOrganizationEvent = createAsyncThunk(
-  "events/deleteOrganizationEvent",
+export const getAllReportsByOrganization = createAsyncThunk(
+  "organizationReports/getAllReportsByOrg",
   async (organizationId, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.deleteOrganizationEvent(
+      const response = await requestApi.getAllReportsByOrganization(
         organizationId
       );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "Error deleteOrganizationEvent"
+        error.response?.data || "Error fetching reports by org"
       );
     }
   }
 );
 
-export const getOrganizationVerificationDocuments = createAsyncThunk(
-  "organizations/getOrganizationVerificationDocuments",
-  async (organizationId, { rejectWithValue }) => {
+export const donate = createAsyncThunk(
+  "requests/donate",
+  async (donationData, { rejectWithValue }) => {
     try {
-      const response =
-        await organizationApi.getOrganizationVerificationDocuments(
-          organizationId
-        );
+      const response = await requestApi.donate(donationData);
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error getOrganizationVerificationDocuments"
-      );
+      return rejectWithValue(error.response?.data || "Error donating");
     }
   }
 );
 
-export const uploadFileLocal = createAsyncThunk(
-  "organizations/uploadFileLocal",
-  async (dataInfo, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.uploadFileLocal(dataInfo);
-      console.log("file saved response: ", response.data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Error uploading file");
-    }
-  }
-);
-
-export const deleteFileLocal = createAsyncThunk(
-  "organizations/deleteFileLocal",
-  async (fileName, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.deleteFileLocal(fileName);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Error deleting file");
-    }
-  }
-);
-
-export const getFileUrlLocal = createAsyncThunk(
-  "organizations/getFileUrlLocal",
-  async (fileName, { rejectWithValue }) => {
-    try {
-      const response = await organizationApi.getFileUrlLocal(fileName, {
-        responseType: "blob",
-      });
-      const fileUrl = window.URL.createObjectURL(new Blob([response.data]));
-      return fileUrl;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Error getting file url");
-    }
-  }
-);
-
-// ----------------------- End Organization Events --------------
 export const getAllUsersNotInOrganization = createAsyncThunk(
-  "organizations/getAllUsersNotInOrganization",
+  "organizations/outsideOrganization",
   async (organizationId, { rejectWithValue }) => {
     try {
       const response = await organizationApi.getAllUsersNotInOrganization(
         organizationId
       );
-      console.log("🍎🍎🍎 users not in org: ", response.data);
+      console.log("users outside: ", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "Error fetching users not in organization"
+        error.response?.data || "Error get users outside an organization"
       );
     }
   }
@@ -657,52 +383,7 @@ export const organizationSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(getOrganizationsWaitingForCreation.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(
-        getOrganizationsWaitingForCreation.fulfilled,
-        (state, action) => {
-          state.loading = false;
-          state.organizationsWaitingForCreation = action.payload;
-        }
-      )
-      .addCase(getOrganizationsWaitingForCreation.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(getOrganizationsWaitingForDeletion.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(
-        getOrganizationsWaitingForDeletion.fulfilled,
-        (state, action) => {
-          state.loading = false;
-          state.organizationsWaitingForDeletion = action.payload;
-        }
-      )
-      .addCase(getOrganizationsWaitingForDeletion.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(getRecommendedOrganizations.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getRecommendedOrganizations.fulfilled, (state, action) => {
-        state.loading = false;
-        state.recommendedOrganizations = action.payload;
-      })
-      .addCase(getRecommendedOrganizations.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
+    builder 
       .addCase(getAllOrganizations.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -715,116 +396,51 @@ export const organizationSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(getJoinedOrganizations.pending, (state) => {
+      .addCase(deleteInviteRequest.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getJoinedOrganizations.fulfilled, (state, action) => {
+      .addCase(deleteInviteRequest.fulfilled, (state, action) => {
         state.loading = false;
-        state.joinedOrganizations = action.payload;
+        state.inviteRequests = state.inviteRequests.filter((inviteRequest) => inviteRequest.organizationRequestId !== action.payload); 
       })
-      .addCase(getJoinedOrganizations.rejected, (state, action) => {
+      .addCase(deleteInviteRequest.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      })
-
-      .addCase(getOrganizationById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getOrganizationById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentOrganization = action.payload;
-      })
-      .addCase(getOrganizationById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(getManagedOrganizationByCeo.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getManagedOrganizationByCeo.fulfilled, (state, action) => {
-        state.loading = false;
-        state.ownedOrganization = action.payload;
-      })
-      .addCase(getManagedOrganizationByCeo.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(getManagedOrganizationsByManager.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getManagedOrganizationsByManager.fulfilled, (state, action) => {
-        state.loading = false;
-        state.managedOrganizations = action.payload;
-      })
-      .addCase(getManagedOrganizationsByManager.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(createOrganization.pending, (state) => {
-        state.loading = true;
-        state.error = null;
       })
       .addCase(createOrganization.fulfilled, (state, action) => {
         state.loading = false;
-        state.ownedOrganization = action.payload;
-        state.organizations.push(action.payload);
-        state.currentOrganization = action.payload;
+        state.myOrganization = action.payload;
+        console.log("myOrganization: ", action.payload);
       })
       .addCase(createOrganization.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(updateOrganization.pending, (state) => {
+      .addCase(createOrganization.pending, (state, action) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateOrganization.fulfilled, (state, action) => {
-        console.log("updateOrganization: 🕷️🕷️ ", action.payload);
         state.loading = false;
-        state.currentOrganization = action.payload;
-
-        let index = state.organizations.findIndex(
-          (org) => org.id === action.payload.id
-        );
-        if (index !== -1) {
-          state.organizations[index] = action.payload;
-        }
-
-        index = state.joinedOrganizations.findIndex(
-          (org) => org.id === action.payload.id
-        );
-        if (index !== -1) {
-          state.joinedOrganizations[index] = action.payload;
-        }
-
-        index = state.managedOrganizations.findIndex(
-          (org) => org.id === action.payload.id
-        );
-        if (index !== -1) {
-          state.managedOrganizations[index] = action.payload;
-        }
-
-        if (state.ownedOrganization.id === action.payload.id) {
-          state.ownedOrganization = action.payload;
-        }
+        state.organizations = state.organizations.map((org) => {
+          if (org.id === action.payload.id) {
+            return action.payload;
+          }
+          return org;
+        });
       })
       .addCase(updateOrganization.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(deleteOrganization.pending, (state) => {
+      .addCase(updateOrganization.pending, (state, action) => {
         state.loading = true;
         state.error = null;
+      })
+      .addCase(getOrganization.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentOrganization = action.payload;
       })
       .addCase(deleteOrganization.fulfilled, (state, action) => {
         state.loading = false;
@@ -832,139 +448,93 @@ export const organizationSlice = createSlice({
           (org) => org.id !== action.payload
         );
       })
-      .addCase(deleteOrganization.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(getOrganizationMembers.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
       .addCase(getOrganizationMembers.fulfilled, (state, action) => {
         state.loading = false;
-        state.membersInAllOrganizations = action.payload;
+        state.members = action.payload;
       })
       .addCase(getOrganizationMembers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(getAllMembersInOrganization.pending, (state) => {
+      .addCase(getOrganizationMembers.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAllMembersInOrganization.fulfilled, (state, action) => {
+      .addCase(removeOrganizationMember.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentOrganizationMembers = action.payload;
-      })
-      .addCase(getAllMembersInOrganization.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(addOrganizationMember.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(addOrganizationMember.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentOrganizationMembers.push(action.payload);
-        state.membersInAllOrganizations.push(action.payload);
-      })
-      .addCase(addOrganizationMember.rejected, (state) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(updateOrganizationMemberRole.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateOrganizationMemberRole.fulfilled, (state, action) => {
-        state.loading = false;
-        const index = state.currentOrganizationMembers.findIndex(
-          (member) => member.membershipId === action.payload.membershipId
+        state.members = state.members.filter(
+          (member) => member.membershipId !== action.payload
         );
-        if (index !== -1) {
-          state.currentOrganizationMembers[index] = action.payload;
-        }
-
-        const indexAll = state.membersInAllOrganizations.findIndex(
-          (member) => member.membershipId === action.payload.membershipId
-        );
-        if (indexAll !== -1) {
-          state.membersInAllOrganizations[indexAll] = action.payload;
-        }
       })
-      .addCase(updateOrganizationMemberRole.rejected, (state, action) => {
+      .addCase(removeOrganizationMember.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(deleteOrganizationMember.pending, (state) => {
+      .addCase(removeOrganizationMember.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteOrganizationMember.fulfilled, (state, action) => {
+      .addCase(getOrganizationInviteRequests.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentOrganizationMembers =
-          state.currentOrganizationMembers.filter(
-            (member) => member.membershipId !== action.payload
-          );
-        state.membersInAllOrganizations =
-          state.membersInAllOrganizations.filter(
-            (member) => member.membershipId !== action.payload
-          );
+        state.inviteRequests =action.payload;
       })
-      .addCase(deleteOrganizationMember.rejected, (state, action) => {
+      .addCase(getOrganizationInviteRequests.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(getAllJoinInvitationRequests.pending, (state) => {
+      .addCase(getOrganizationInviteRequests.pending, (state, action) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAllJoinInvitationRequests.fulfilled, (state, action) => {
-        state.loading = false;
-        state.joinInvitationRequests = action.payload;
-      })
-      .addCase(getAllJoinInvitationRequests.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(getAllJoinRequestsByOrganizationId.pending, (state) => {
+      .addCase(getAllRequests.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        getAllJoinRequestsByOrganizationId.fulfilled,
-        (state, action) => {
-          state.loading = false;
-          state.joinRequests = action.payload;
-        }
-      )
-      .addCase(getAllJoinRequestsByOrganizationId.rejected, (state, action) => {
+      .addCase(getAllRequests.fulfilled, (state, action) => {
+        state.loading = false;
+        state.requests = action.payload;
+      })
+      .addCase(getAllRequests.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(getAllJoinRequestsByUserId.pending, (state) => {
+      // getAllRequestsByOrganization
+      .addCase(getAllRequestsByOrganization.fulfilled, (state, action) => {
+        state.loading = false;
+        state.requests = action.payload;
+      })
+      // getAllReports
+      .addCase(getAllReports.fulfilled, (state, action) => {
+        state.loading = false;
+        state.reports = action.payload;
+      })
+      // getAllReportsByOrganization
+      .addCase(getAllReportsByOrganization.fulfilled, (state, action) => {
+        state.loading = false;
+        state.reports = action.payload;
+      })
+      // donate
+      .addCase(donate.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAllJoinRequestsByUserId.fulfilled, (state, action) => {
+      .addCase(donate.fulfilled, (state, action) => {
+        state.loading = false;
+        // Có thể thêm logic nếu cần, ví dụ: cập nhật danh sách requests/reports
+      })
+      .addCase(donate.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getAllJoinRequestByOrganizationId.fulfilled, (state, action) => {
         state.loading = false;
         state.joinRequests = action.payload;
       })
-      .addCase(getAllJoinRequestsByUserId.rejected, (state, action) => {
+      .addCase(getAllJoinRequestByOrganizationId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(getJoinRequestById.pending, (state) => {
+      .addCase(getAllJoinRequestByOrganizationId.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -976,276 +546,108 @@ export const organizationSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(createJoinRequest.pending, (state) => {
+      .addCase(getJoinRequestById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getJoinRequestByUserId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.joinRequests = action.payload;
+      })
+      .addCase(getJoinRequestByUserId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getJoinRequestByUserId.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createJoinRequest.fulfilled, (state, action) => {
         state.loading = false;
         state.joinRequests.push(action.payload);
-        state.currentJoinRequest = action.payload;
       })
       .addCase(createJoinRequest.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(acceptJoinRequest.pending, (state) => {
+      .addCase(createJoinRequest.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(acceptJoinRequest.fulfilled, (state, action) => {
+      .addCase(updateJoinRequest.fulfilled, (state, action) => {
         state.loading = false;
-
-        state.joinRequests = state.joinRequests.map((request) =>
-          request.organizationRequestId !== action.payload.organizationRequestId
-            ? request
-            : action.payload
-        );
+        state.currentJoinRequest = action.payload;
       })
-      .addCase(acceptJoinRequest.rejected, (state, action) => {
+      .addCase(updateJoinRequest.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(rejectJoinRequest.pending, (state) => {
+      .addCase(updateJoinRequest.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(rejectJoinRequest.fulfilled, (state, action) => {
+      .addCase(deleteJoinRequest.fulfilled, (state, action) => {
         state.loading = false;
-        state.joinRequests = state.joinRequests.map((request) =>
-          request.organizationRequestId !== action.payload.organizationRequestId
-            ? request
-            : action.payload
-        );
-      })
-      .addCase(rejectJoinRequest.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(cancelJoinRequest.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(cancelJoinRequest.fulfilled, (state, action) => {
-        state.loading = false;
-        const joinRequestId = action.payload;
         state.joinRequests = state.joinRequests.filter(
-          (request) => request.id !== joinRequestId
+          (joinRequest) => joinRequest !== action.payload.joinRequestId
         );
       })
-      .addCase(cancelJoinRequest.rejected, (state, action) => {
+      .addCase(deleteJoinRequest.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      .addCase(getAllInvitationRequestsByOrganizationId.pending, (state) => {
+      .addCase(deleteJoinRequest.pending, (state, action) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        getAllInvitationRequestsByOrganizationId.fulfilled,
-        (state, action) => {
-          state.loading = false;
-          state.invitations = action.payload;
-        }
-      )
-      .addCase(
-        getAllInvitationRequestsByOrganizationId.rejected,
-        (state, action) => {
-          state.loading = false;
-          state.error = action.payload;
-        }
-      )
-
-      .addCase(getAllInvitationRequestsByUserId.pending, (state) => {
+      .addCase(getManagedOrganizations.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAllInvitationRequestsByUserId.fulfilled, (state) => {
+      .addCase(getManagedOrganizations.fulfilled, (state, action) => {
         state.loading = false;
-        state.invitations = action.payload;
+        state.managedOrganizations = action.payload;
       })
-      .addCase(getAllInvitationRequestsByUserId.rejected, (state) => {
+      .addCase(getManagedOrganizations.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      })
-
-      .addCase(getInvitationRequestById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getInvitationRequestById.fulfilled, (state) => {
-        state.loading = false;
-        state.currentInvitation = action.payload;
-      })
-      .addCase(getInvitationRequestById.rejected, (state) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(createInvitationRequest.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(createInvitationRequest.fulfilled, (state, action) => {
-        state.loading = false;
-        state.invitations.push(action.payload);
-        state.currentInvitation = action.payload;
-      })
-      .addCase(createInvitationRequest.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(acceptInvitationRequest.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(acceptInvitationRequest.fulfilled, (state) => {
-        state.loading = false;
-        const invitationRequestId = action.payload;
-        state.invitations = state.invitations.map((request) =>
-          request.id !== invitationRequestId
-            ? request
-            : { ...request, status: "Accepted" }
-        );
-      })
-      .addCase(acceptInvitationRequest.rejected, (state) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(rejectInvitationRequest.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(rejectInvitationRequest.fulfilled, (state) => {
-        state.loading = false;
-        const invitationRequestId = action.payload;
-        state.invitations = state.invitations.map((request) =>
-          request.id !== invitationRequestId
-            ? request
-            : { ...request, status: "Rejected" }
-        );
-      })
-      .addCase(rejectInvitationRequest.rejected, (state) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(cancelInvitationRequest.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(cancelInvitationRequest.fulfilled, (state, action) => {
-        state.loading = false;
-        state.invitations = state.invitations.filter(
-          (request) => request.organizationRequestId !== action.payload
-        );
-      })
-      .addCase(cancelInvitationRequest.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(getAllUsersNotInOrganization.pending, (state) => {
-        state.loading = true;
-        state.error = null;
       })
       .addCase(getAllUsersNotInOrganization.fulfilled, (state, action) => {
         state.loading = false;
-        state.usersOutsideOrganization = action.payload;
+        state.usersOutside = action.payload;
       })
       .addCase(getAllUsersNotInOrganization.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(getOrganizationEvents.pending, (state) => {
+      .addCase(getAllUsersNotInOrganization.pending, (state, action) => {
         state.loading = true;
-        state.error = null;
+        state.usersOutside = [];
       })
-      .addCase(getOrganizationEvents.fulfilled, (state, action) => {
-        state.loading = false;
-        state.organizationEvents = action.payload;
-      })
-      .addCase(getOrganizationEvents.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(addOrganizationEvent.pending, (state) => {
+      .addCase(fetchMyOrganization.pending, (state) => {
         state.loading = true;
-        state.error = null;
-      })
-      .addCase(addOrganizationEvent.fulfilled, (state, action) => {
+    })
+    .addCase(fetchMyOrganization.fulfilled, (state, action) => {
         state.loading = false;
-        state.organizationEvents.push(action.payload);
-      })
-      .addCase(addOrganizationEvent.rejected, (state, action) => {
+        state.myOrganization = action.payload;
+        localStorage.setItem("myOrganization", JSON.stringify(action.payload));
+    })
+    .addCase(fetchMyOrganization.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(updateOrganizationEvent.pending, (state) => {
+        state.error = action.error;
+    })
+    .addCase(fetchOrganizationMembers.pending, (state) => {
         state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateOrganizationEvent.fulfilled, (state, action) => {
+    })
+    .addCase(fetchOrganizationMembers.fulfilled, (state, action) => {
         state.loading = false;
-      })
-      .addCase(updateOrganizationEvent.rejected, (state, action) => {
+        state.myOrganizationMembers = action.payload;
+    })
+    .addCase(fetchOrganizationMembers.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(deleteOrganizationEvent.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteOrganizationEvent.fulfilled, (state, action) => {
-        state.loading = false;
-        state.organizationEvents = state.organizationEvents.filter(
-          (organizationEvent) =>
-            organizationEvent.organizationEventId !==
-            action.payload.organizationEventId
-        );
-      })
-      .addCase(deleteOrganizationEvent.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      .addCase(getOrganizationVerificationDocuments.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(
-        getOrganizationVerificationDocuments.fulfilled,
-        (state, action) => {
-          state.loading = false;
-          state.verificationDocuments = action.payload;
-        }
-      )
-      .addCase(
-        getOrganizationVerificationDocuments.rejected,
-        (state, action) => {
-          state.loading = false;
-          state.error = action.payload;
-        }
-      )
-
-      .addCase(uploadFileLocal.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(uploadFileLocal.fulfilled, (state, action) => {
-        state.loading = false;
-      })
-      .addCase(uploadFileLocal.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
+        state.error = action.error;
+    })
+      ;
   },
 });
 

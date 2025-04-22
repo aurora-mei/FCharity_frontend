@@ -6,7 +6,6 @@ const initialState = {
     requests: [],
     activeRequests: [],
     currentRequest: {},
-    currentTransferRequest: {},
     requestsByUserId: [],
     error: null,
 };
@@ -35,9 +34,6 @@ export const deleteRequest = createAsyncThunk("requests/delete", async (id) => {
     await requestApi.deleteRequest(id);
     return id;
 });
-export const fetchTransferRequestByRequest = createAsyncThunk("requests/fetchConfirmRequestByRequest", async (requestId) => {
-    return await requestApi.fetchTransferRequestByRequestId(requestId);
-});
 
 // Thunk mới để lấy requests theo userId
 export const fetchRequestsByUserIdThunk = createAsyncThunk(
@@ -45,24 +41,11 @@ export const fetchRequestsByUserIdThunk = createAsyncThunk(
     async (userId) => {
         return await requestApi.fetchRequestsByUserId(userId);
     });
-export const updateBankInfoThunk = createAsyncThunk("requests/updateBankInfo", async ({ id, bankInfo }) => {
-    return await requestApi.updateBankInfo({id, bankInfo});
-});
-export const updateConfirmTransferThunk = createAsyncThunk("requests/updateConfirmTransfer", async (id) => {
-    return await requestApi.updateConfirmTransfer(id);
-});
-export const updateErrorTransferThunk = createAsyncThunk("requests/updateErrorTransfer", async ({id,note}) => {
-    return await requestApi.updateErrorTransfer({id,note});
-});
+
 const requestSlice = createSlice({
     name: 'request',
     initialState,
-    reducers: {
-        setCurrentTransferRequest(state, action) {
-          state.currentTransferRequest = action.payload;
-        },
-      },
-      
+    reducers: {},
     extraReducers: (builder) => {
         builder
             .addCase(fetchRequests.pending, (state) => {
@@ -146,54 +129,8 @@ const requestSlice = createSlice({
             .addCase(fetchRequestsByUserIdThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error;
-            }) 
-            .addCase(fetchTransferRequestByRequest.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(fetchTransferRequestByRequest.fulfilled, (state, action) => {
-                state.loading = false;
-                state.currentTransferRequest = action.payload;
-            })
-            .addCase(fetchTransferRequestByRequest.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload || action.error;
-            }) 
-            .addCase(updateBankInfoThunk.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(updateBankInfoThunk.fulfilled, (state, action) => {
-                state.loading = false;
-                state.currentTransferRequest = action.payload;
-            })
-            .addCase(updateBankInfoThunk.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload || action.error;
-            }) 
-            .addCase(updateConfirmTransferThunk.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(updateConfirmTransferThunk.fulfilled, (state, action) => {
-                state.loading = false;
-                state.currentTransferRequest = action.payload;
-            })
-            .addCase(updateConfirmTransferThunk.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload || action.error;
-            })
-            .addCase(updateErrorTransferThunk.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(updateErrorTransferThunk.fulfilled, (state, action) => {
-                state.loading = false;
-                state.currentTransferRequest = action.payload;
-            })
-            .addCase(updateErrorTransferThunk.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload || action.error;
-            })
-            ;
-
+            });
     },
 });
-export const { setCurrentTransferRequest } = requestSlice.actions;
+
 export default requestSlice.reducer;

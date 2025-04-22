@@ -1,19 +1,14 @@
 import React from "react";
 import Navbar from "../Navbar/Navbar";
-import ManagerSidebar from "../OrganizationManagement/ManagerSidebar";
+import Sidebar from "../OrganizationManagement/Sidebar";
 import { ToastContainer } from "react-toastify";
-import AppFooter from "../AppFooter/AppFooter";
-import { Outlet } from "react-router-dom";
-import { StompSessionProvider } from "react-stomp-hooks";
+
 const ManagerLayout = ({ children }) => {
   return (
-    <StompSessionProvider url={"ws://localhost:8080/ws/websocket"}>
-    <div>
       <div className="relative">
-        <ManagerSidebar />
+        <Sidebar />
         <main className="flex-1 ml-64 pt-6">
-          
-          <Outlet />
+          <div>{children}</div>
           <ToastContainer
             position="bottom-right"
             autoClose={3000}
@@ -25,9 +20,7 @@ const ManagerLayout = ({ children }) => {
             style={{ background: "white" }}
           />
         </main>
-      </div>
     </div>
-    </StompSessionProvider>
   );
 };
 
