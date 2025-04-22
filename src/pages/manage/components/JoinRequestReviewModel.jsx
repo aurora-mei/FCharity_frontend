@@ -3,15 +3,22 @@ import { IoClose } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
 import { Empty } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllJoinRequestsByOrganizationId } from "../../../redux/organization/organizationSlice";
+import {
+  acceptJoinRequest,
+  getAllJoinRequestsByOrganizationId,
+  getAllMembersInOrganization,
+  rejectJoinRequest,
+} from "../../../redux/organization/organizationSlice";
 
 const JoinRequestReviewModel = ({ setIsModelOpen }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterByStatus, setFilterByStatus] = useState("All");
 
   const dispatch = useDispatch();
-  const { joinRequests, ownedOrganization } = useSelector(
-    (state) => state.organization
+
+  const joinRequests = useSelector((state) => state.organization.joinRequests);
+  const ownedOrganization = useSelector(
+    (state) => state.organization.ownedOrganization
   );
 
   useEffect(() => {
@@ -41,6 +48,17 @@ const JoinRequestReviewModel = ({ setIsModelOpen }) => {
       }
       return false;
     });
+
+  const handleAcceptJoinRequest = async (joinRequest) => {
+    await dispatch(
+      acceptJoinRequest(joinRequest.organizationRequestId)
+    ).unwrap();
+    dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
+  };
+
+  const handleRejectJoinRequest = (joinRequest) => {
+    dispatch(rejectJoinRequest(joinRequest.organizationRequestId));
+  };
 
   return (
     <div>
@@ -91,15 +109,18 @@ const JoinRequestReviewModel = ({ setIsModelOpen }) => {
         </div>
         <div className="text-sm text-gray-500">
           <div className="text-xs text-gray-700 uppercase bg-gray-50">
-            <div className="grid grid-cols-6 ">
-              <div className="px-6 py-3 col-span-2">Name</div>
-              <div scope="col" className="px-6 py-3 col-span-2">
+            <div className="grid grid-cols-9 ">
+              <div className="px-3 py-2 col-span-3">Name</div>
+              <div scope="col" className="px-3 py-2 col-span-3">
                 Email
               </div>
-              <div scope="col" className="px-6 py-3 col-span-1">
+              <div scope="col" className="px-3 py-2 col-span-1">
                 Status
               </div>
-              <div scope="col" className="px-6 py-3 col-span-1">
+              <div
+                scope="col"
+                className="px-3 py-2 col-span-2 flex justify-center -ml-6"
+              >
                 Action
               </div>
             </div>
@@ -109,24 +130,31 @@ const JoinRequestReviewModel = ({ setIsModelOpen }) => {
               filteredJoinRequests.map((joinRequest, index) => (
                 <div
                   key={index}
-                  className="bg-white border-b border-gray-200 hover:bg-gray-50 grid grid-cols-6"
+                  className="bg-white border-b border-gray-200 hover:bg-gray-50 grid grid-cols-9"
                 >
-                  <div className="flex items-center px-6 py-4 text-gray-800 col-span-2">
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 text-gray-800 col-span-3 hover:cursor-pointer"
+                    onClick={() => {
+                      //TODO: navigate to user profile
+                    }}
+                  >
                     <img
                       className="w-10 h-10 rounded-full"
-                      src={joinRequest.user.avatar}
+                      src={
+                        joinRequest?.user?.avatar ||
+                        "https://avatar.iran.liara.run/public"
+                      }
                       alt="avatar image"
                     />
-                    <div className="ps-3">
-                      <div className="text-base font-semibold">
-                        {joinRequest.user.fullName}
-                      </div>
+
+                    <div className="text-base font-semibold hover:underline">
+                      {joinRequest.user.fullName}
                     </div>
                   </div>
-                  <div className="px-6 py-4  col-span-2">
+                  <div className="px-3 py-2 col-span-3 flex items-center">
                     {joinRequest.user.email}
                   </div>
-                  <div className="px-6 py-4  col-span-1">
+                  <div className="px-3 py-2  col-span-1  flex items-center">
                     <div className="flex items-center">
                       {joinRequest.status === "Pending" && (
                         <div className="h-2.5 w-2.5 rounded-full bg-yellow-500 me-2"></div>
@@ -140,27 +168,35 @@ const JoinRequestReviewModel = ({ setIsModelOpen }) => {
                       {joinRequest.status}
                     </div>
                   </div>
-                  <div className="px-6 py-4  col-span-1">
+                  <div className="px-3 py-2 col-span-2 flex items-center justify-center">
                     {joinRequest.status === "Pending" && (
-                      <button
-                        type="button"
-                        className="px-3 py-1 rounded-md bg-gray-300 hover:bg-gray-500 hover:cursor-pointer hover:text-white"
-                        style={{ color: "rgb(64, 67, 71)" }}
-                        onClick={() => {
-                          handleDeleteInvitation(invitation.user);
-                        }}
-                      >
-                        Cancel
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="px-3 py-1 rounded-md bg-green-500 hover:bg-green-700 hover:cursor-pointer hover:text-white"
+                          style={{ color: "white" }}
+                          onClick={() => {
+                            handleAcceptJoinRequest(joinRequest);
+                          }}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          type="button"
+                          className="px-3 py-1 rounded-md  bg-red-500 hover:bg-red-600 hover:cursor-pointer hover:text-white"
+                          style={{ color: "rgb(64, 67, 71)" }}
+                          onClick={() => {
+                            handleRejectJoinRequest(joinRequest);
+                          }}
+                        >
+                          Reject
+                        </button>
+                      </div>
                     )}
                     {joinRequest.status !== "Pending" && (
-                      <button
-                        type="button"
-                        className="px-3 py-1 rounded-md bg-green-500 hover:bg-green-700 hover:cursor-pointer hover:text-white"
-                        style={{ color: "white" }}
-                      >
-                        Delete
-                      </button>
+                      <div className="flex justify-center items-center">
+                        No action
+                      </div>
                     )}
                   </div>
                 </div>

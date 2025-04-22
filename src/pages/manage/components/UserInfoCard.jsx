@@ -29,11 +29,10 @@ const UserInfoCard = ({
   };
   return (
     <div className="relative">
-      <div className="w-[470px] h-[390px] overflow-y-scroll mx-3 p-5 bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-lg transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-        <h2 className="text-2xl font-bold text-gray-700 mb-4 text-center">
-          Candidate information
-        </h2>
-
+      <h2 className="ml-3 text-2xl font-bold text-gray-700 mb-4">
+        Candidate information
+      </h2>
+      <div className="w-[520px] h-[390px] overflow-y-scroll mx-3 p-5 pb-18">
         {selectedUser ? (
           <div className="space-y-6">
             {/* Phần thông tin chính */}
@@ -95,13 +94,13 @@ const UserInfoCard = ({
                   <p className="text-lg font-bold text-blue-600">0</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-green-100 rounded-lg shadow-sm transform transition-transform duration-300 hover:scale-105">
-                <FaProjectDiagram className="text-green-600 text-2xl" />
+              <div className="flex items-center gap-3 p-3 bg-blue-100 rounded-lg shadow-sm transform transition-transform duration-300 hover:scale-105">
+                <FaProjectDiagram className="text-blue-600 text-2xl" />
                 <div>
                   <p className="text-sm font-semibold text-gray-600">
                     Projects
                   </p>
-                  <p className="text-lg font-bold text-green-600">0</p>
+                  <p className="text-lg font-bold text-blue-600">0</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-orange-100 rounded-lg shadow-sm transform transition-transform duration-300 hover:scale-105">
@@ -128,18 +127,19 @@ const UserInfoCard = ({
         )}
       </div>
 
-      <div className="absolute -bottom-2 right-4">
+      <div className="absolute bottom-2 right-10">
         <button
           onClick={() => {
             selectedUser?.invited
               ? handleDeleteInvitation(selectedUser)
               : handleInvitation(selectedUser);
           }}
-          className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 ${
+          className={`px-4 py-2 rounded-lg font-semibold transform transition-all duration-300 hover:cursor-pointer hover:scale-105 ${
             selectedUser?.invited
               ? "bg-red-500 hover:bg-red-600"
-              : "bg-green-500 hover:bg-green-600"
+              : "bg-blue-500 hover:bg-blue-600"
           }`}
+          style={{ color: "white" }}
         >
           {selectedUser?.invited ? "Hủy mời" : "Mời tham gia"}
         </button>

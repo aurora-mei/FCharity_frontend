@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, current } from "@reduxjs/toolkit";
 import organizationApi from "./organizationApi.js";
+import { useSelector } from "react-redux";
 
 const initialState = {
   organizationsWaitingForCreation: [],
@@ -18,6 +19,7 @@ const initialState = {
 
   membersInAllOrganizations: [],
 
+  recommendedOrganizations: [],
   organizations: [], // for guest, member, manager, ceo, admin
   selectedOrganization: 0,
 
@@ -59,6 +61,20 @@ export const getOrganizationsWaitingForDeletion = createAsyncThunk(
     try {
       const response =
         await organizationApi.getOrganizationsWaitingForDeletion();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error fetching organizations"
+      );
+    }
+  }
+);
+
+export const getRecommendedOrganizations = createAsyncThunk(
+  "organizations/getRecommended",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getRecommendedOrganizations();
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -236,11 +252,11 @@ export const addOrganizationMember = createAsyncThunk(
   }
 );
 
-export const updateOrganizationMember = createAsyncThunk(
+export const updateOrganizationMemberRole = createAsyncThunk(
   "organizations/updateMember",
   async (organizationMemberData, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.updateOrganizationMember(
+      const response = await organizationApi.updateOrganizationMemberRole(
         organizationMemberData
       );
       return response.data;
@@ -257,7 +273,7 @@ export const deleteOrganizationMember = createAsyncThunk(
   async (membershipId, { rejectWithValue }) => {
     try {
       await organizationApi.deleteOrganizationMember(membershipId);
-      return membershipId; // Trả về ID để xóa trong state
+      return membershipId;
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Error deleting organization member"
@@ -482,10 +498,8 @@ export const cancelInvitationRequest = createAsyncThunk(
   "organizations/cancelInvitationRequest",
   async (invitationRequestId, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.cancelInvitationRequest(
-        invitationRequestId
-      );
-      return response.data;
+      await organizationApi.cancelInvitationRequest(invitationRequestId);
+      return invitationRequestId;
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Error canceling invitation request"
@@ -676,6 +690,19 @@ export const organizationSlice = createSlice({
         state.error = action.payload;
       })
 
+      .addCase(getRecommendedOrganizations.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getRecommendedOrganizations.fulfilled, (state, action) => {
+        state.loading = false;
+        state.recommendedOrganizations = action.payload;
+      })
+      .addCase(getRecommendedOrganizations.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       .addCase(getAllOrganizations.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -850,27 +877,27 @@ export const organizationSlice = createSlice({
         state.error = action.payload;
       })
 
-      .addCase(updateOrganizationMember.pending, (state) => {
+      .addCase(updateOrganizationMemberRole.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateOrganizationMember.fulfilled, (state, action) => {
+      .addCase(updateOrganizationMemberRole.fulfilled, (state, action) => {
         state.loading = false;
         const index = state.currentOrganizationMembers.findIndex(
-          (member) => member.id === action.payload.id
+          (member) => member.membershipId === action.payload.membershipId
         );
         if (index !== -1) {
           state.currentOrganizationMembers[index] = action.payload;
         }
 
         const indexAll = state.membersInAllOrganizations.findIndex(
-          (member) => member.id === action.payload.id
+          (member) => member.membershipId === action.payload.membershipId
         );
         if (indexAll !== -1) {
           state.membersInAllOrganizations[indexAll] = action.payload;
         }
       })
-      .addCase(updateOrganizationMember.rejected, (state, action) => {
+      .addCase(updateOrganizationMemberRole.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -881,14 +908,13 @@ export const organizationSlice = createSlice({
       })
       .addCase(deleteOrganizationMember.fulfilled, (state, action) => {
         state.loading = false;
-        const membershipId = action.payload;
         state.currentOrganizationMembers =
           state.currentOrganizationMembers.filter(
-            (member) => member.membershipId !== membershipId
+            (member) => member.membershipId !== action.payload
           );
         state.membersInAllOrganizations =
           state.membersInAllOrganizations.filter(
-            (member) => member.membershipId !== membershipId
+            (member) => member.membershipId !== action.payload
           );
       })
       .addCase(deleteOrganizationMember.rejected, (state, action) => {
@@ -971,11 +997,11 @@ export const organizationSlice = createSlice({
       })
       .addCase(acceptJoinRequest.fulfilled, (state, action) => {
         state.loading = false;
-        const joinRequestId = action.payload;
+
         state.joinRequests = state.joinRequests.map((request) =>
-          request.id !== joinRequestId
+          request.organizationRequestId !== action.payload.organizationRequestId
             ? request
-            : { ...request, status: "Approved" }
+            : action.payload
         );
       })
       .addCase(acceptJoinRequest.rejected, (state, action) => {
@@ -989,11 +1015,10 @@ export const organizationSlice = createSlice({
       })
       .addCase(rejectJoinRequest.fulfilled, (state, action) => {
         state.loading = false;
-        const joinRequestId = action.payload;
         state.joinRequests = state.joinRequests.map((request) =>
-          request.id !== joinRequestId
+          request.organizationRequestId !== action.payload.organizationRequestId
             ? request
-            : { ...request, status: "Rejected" }
+            : action.payload
         );
       })
       .addCase(rejectJoinRequest.rejected, (state, action) => {
@@ -1116,14 +1141,13 @@ export const organizationSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(cancelInvitationRequest.fulfilled, (state) => {
+      .addCase(cancelInvitationRequest.fulfilled, (state, action) => {
         state.loading = false;
-        const invitationRequestId = action.payload;
         state.invitations = state.invitations.filter(
-          (request) => request.id !== invitationRequestId
+          (request) => request.organizationRequestId !== action.payload
         );
       })
-      .addCase(cancelInvitationRequest.rejected, (state) => {
+      .addCase(cancelInvitationRequest.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

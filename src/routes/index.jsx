@@ -53,6 +53,7 @@ import UserRankings from "../pages/manage/components/UserRankings.jsx";
 import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
 import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
+import Organizations from "../pages/guest/Organizations.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -128,6 +129,7 @@ const AppRoutes = () => {
               path="projects/create/:requestId"
               element={<CreateProjectScreen />}
             />
+
             <Route path="requests" element={<OrganizationRequest />} />
             <Route path="schedule" element={<OrganizationSchedule />} />
           </Route>
@@ -135,6 +137,7 @@ const AppRoutes = () => {
 
         <Route path="/" element={<UserLayout />}>
           <Route path="organizations">
+            <Route index element={<Organizations />} />
             <Route path=":organizationId" element={<OrganizationDetails />} />
             <Route path="create" element={<CreateOrganization />} />
           </Route>

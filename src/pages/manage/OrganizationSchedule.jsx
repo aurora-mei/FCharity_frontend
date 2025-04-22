@@ -201,7 +201,7 @@ const OrganizationSchedule = () => {
         location: updatedEvent.location,
         meetingLink: updatedEvent.meetingLink,
         eventType: updatedEvent.eventType,
-        organizer: updatedEvent.organizer,
+        // organizer: updatedEvent.organizer,
         targetAudience: updatedEvent.targetAudience,
         summary: updatedEvent.summary,
         fullDescription: updatedEvent.fullDescription,

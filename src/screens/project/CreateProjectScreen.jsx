@@ -93,7 +93,9 @@ const CreateProjectScreen = () => {
   const navigate = useNavigate();
   const myProjectMembers = useSelector((state) => state.project.projectMembers);
   const newProject = useSelector((state) => state.project.currentProject);
+
   const { ownedOrganization } = useSelector((state) => state.organization);
+
   const { currentOrganizationMembers } = useSelector(
     (state) => state.organization
   );
@@ -225,11 +227,19 @@ const CreateProjectScreen = () => {
       render: (text, record) => <Tag>{text}</Tag>,
     },
   ];
+
+  useEffect(() => {
+    dispatch(getManagedOrganizationByCeo());
+  }, []);
+
+  console.log("Organization Members:", currentOrganizationMembers);
+
   useEffect(() => {
     console.log("New Project:", newProject);
     dispatch(getManagedOrganizationByCeo()); // tự động lấy id người dùng phía backend
     if (newProject && newProject.project)
       dispatch(fetchAllProjectMembersThunk(newProject.project.id));
+
     console.log("Project Members:", myProjectMembers);
     console.log("Organization Members:", currentOrganizationMembers);
     if (isFirstMount && currentOrganizationMembers?.length > 0) {

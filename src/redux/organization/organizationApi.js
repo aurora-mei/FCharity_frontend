@@ -8,6 +8,7 @@ const organizationApi = {
   getOrganizationsWaitingForDeletion: () =>
     api.get("/organizations/admin-review/waiting-for-deletion"),
   // --------------------------------- Start Organization RestController ------------------------
+  getRecommendedOrganizations: () => api.get("/organizations/recommended"),
   getAllOrganizations: () => api.get("/organizations"),
   getJoinedOrganizations: () => api.get(`/organizations/joined-organizations`),
   getOrganizationById: (organizationId) =>
@@ -31,8 +32,8 @@ const organizationApi = {
     api.post(
       `/organization-members/${organizationMemberData.organizationId}/${organizationMemberData.userId}`
     ),
-  updateOrganizationMember: (organizationMemberData) =>
-    api.put(`/organization-members`, organizationMemberData),
+  updateOrganizationMemberRole: (organizationMemberData) =>
+    api.put(`/organization-members/update-role`, organizationMemberData),
   deleteOrganizationMember: (membershipId) =>
     api.delete(`/organization-members/${membershipId}`),
 
@@ -47,7 +48,9 @@ const organizationApi = {
   getJoinRequestById: (joinRequestId) =>
     api.get(`/join-requests/${joinRequestId}`),
   createJoinRequest: (joinRequestData) =>
-    api.post("/join-requests", joinRequestData),
+    api.post(
+      `/join-requests/${joinRequestData.userId}/${joinRequestData.organizationId}`
+    ),
   acceptJoinRequest: (joinRequestId) =>
     api.put(`/join-requests/${joinRequestId}/accept`),
   rejectJoinRequest: (joinRequestId) =>

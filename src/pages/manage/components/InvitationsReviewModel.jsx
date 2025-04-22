@@ -13,8 +13,9 @@ const InvitationsReviewModel = ({ setIsModelOpen }) => {
   const [filterByStatus, setFilterByStatus] = useState("All");
   const dispatch = useDispatch();
 
-  const { invitations, ownedOrganization } = useSelector(
-    (state) => state.organization
+  const invitations = useSelector((state) => state.organization.invitations);
+  const ownedOrganization = useSelector(
+    (state) => state.organization.ownedOrganization
   );
 
   console.log("invitations: ", invitations);
@@ -46,7 +47,7 @@ const InvitationsReviewModel = ({ setIsModelOpen }) => {
     });
 
   const handleDeleteInvitation = (invitation) => {
-    dispatch(cancelInvitationRequest(invitation.invitationId));
+    dispatch(cancelInvitationRequest(invitation.organizationRequestId));
   };
 
   return (
@@ -133,10 +134,10 @@ const InvitationsReviewModel = ({ setIsModelOpen }) => {
                       </div>
                     </div>
                   </div>
-                  <div className="px-6 py-4  col-span-2">
+                  <div className="px-6 py-4 col-span-2 flex items-center">
                     {invitation.user.email}
                   </div>
-                  <div className="px-6 py-4  col-span-1">
+                  <div className="px-6 py-4 col-span-1 flex items-center">
                     <div className="flex items-center">
                       {invitation.status === "Pending" && (
                         <div className="h-2.5 w-2.5 rounded-full bg-yellow-500 me-2"></div>
@@ -150,7 +151,7 @@ const InvitationsReviewModel = ({ setIsModelOpen }) => {
                       {invitation.status}
                     </div>
                   </div>
-                  <div className="px-6 py-4  col-span-1">
+                  <div className="px-6 py-4 col-span-1 flex items-center">
                     {invitation.status === "Pending" && (
                       <button
                         type="button"
