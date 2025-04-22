@@ -95,6 +95,9 @@ export const importSpendingPlanThunk = createAsyncThunk("project/import-spending
 export const approveSpendingPlanThunk = createAsyncThunk("project/approve-spending-plan", async (planId) => {
     return await projectApi.approveSpendingPlan(planId);
 });
+export const rejectSpendingPlanThunk = createAsyncThunk("project/reject-spending-plan", async ({planId,reason}) => {
+    return await projectApi.rejectSpendingPlan({planId,reason});
+});
 export const createSpendingPlanThunk = createAsyncThunk("project/create-spending-plan", async (spendingPlanData) => {
     return await projectApi.createSpendingPlan(spendingPlanData);
 });
@@ -291,8 +294,8 @@ const projectSlice = createSlice({
             })
             .addCase(removeProjectMemberThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.allProjectMembers = state.allProjectMembers.filter(item => item.id !== action.payload);
-                state.projectMembers = state.projectMembers.filter(item => item.id !== action.payload);
+                state.allProjectMembers = state.allProjectMembers.filter(item => item.id !== action.payload.id);
+                state.projectMembers = state.projectMembers.filter(item => item.id !== action.payload.id);
             })
             .addCase(removeProjectMemberThunk.rejected, (state, action) => {
                 state.loading = false;
@@ -454,6 +457,17 @@ const projectSlice = createSlice({
                 state.currentSpendingPlan = action.payload;
             })
             .addCase(approveSpendingPlanThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            }) 
+            .addCase(rejectSpendingPlanThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(rejectSpendingPlanThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentSpendingPlan = action.payload;
+            })
+            .addCase(rejectSpendingPlanThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             })

@@ -464,7 +464,7 @@ const ProjectDetailScreen = () => {
         userId: currentUser.id,
         objectId: project.id,
         amount: values.amount,
-        paymentContent: values.message,
+        paymentContent: values.message??"Donation for project",
         objectType: "PROJECT",
         returnUrl: `projects/${project.id}`,
       })

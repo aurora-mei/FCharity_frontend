@@ -50,6 +50,7 @@ import LoadingModal from "../../components/LoadingModal";
 import ProjectDonationBoard from "../../containers/ProjectDonationBoard/ProjectDonationBoard";
 import moment from "moment-timezone";
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
+import ProjectFinancePlanContainer from "../../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer";
 const { Title, Paragraph, Text } = Typography;
 
 const StyledScreen = styled.div`
@@ -248,13 +249,8 @@ const ProjectDonationContainer = () => {
 
   const currentProject = useSelector((state) => state.project.currentProject);
   const donations = useSelector((state) => state.project.donations);
-  const currentOrganization = useSelector(
-    (state) => state.organization.currentOrganization
-  );
-  const loading = useSelector((state) => state.project.loading);
 
-  const [expanded, setExpanded] = useState(false);
-  const [isOpenModal, setIsOpenModal] = useState(false);
+  const loading = useSelector((state) => state.project.loading);
 
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -295,66 +291,15 @@ const ProjectDonationContainer = () => {
   if (loading || !currentProject.project) {
     return <LoadingModal />;
   }
-  const { project, projectTags } = currentProject;
-
-  const items = [
-    {
-      href: "/",
-      // Increase icon size
-      title: (
-        <HomeOutlined
-          style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }}
-        />
-      ),
-    },
-    {
-      // Increase text size
-      title: (
-        <a
-          style={{ fontSize: "1rem", color: "green" }}
-          onClick={() => {
-            navigate(-1);
-          }}
-        >
-          Project {project.projectName}
-        </a>
-      ),
-    },
-    {
-      // Increase text size
-      title: <p style={{ fontSize: "1rem", color: "green" }}>Details</p>,
-    },
-  ];
-  const handleDonate = async (values) => {
-    console.log(values);
-    dispatch(
-      createDonationThunk({
-        projectId: project.id,
-        userId: currentUser.id,
-        amount: values.amount,
-        message: values.message,
-      })
-    );
-    setIsOpenModal(false);
-    form.resetFields();
-  };
-
   return (
     // <div>   </div>
-    <StyledScreen>
-      <Flex
-        vertical
-        gap={0}
-        className="details-containter"
-        style={{ margin: "0 auto", width: "100%" }}
-      >
-        {donations && donations.length > 0 ? (
+    <>
+      {donations && donations.length > 0 ? (
           <ProjectDonationBoard donations={donations} />
         ) : (
           <Empty title="No donations available"></Empty>
         )}
-      </Flex>
-    </StyledScreen>
+    </>
   );
 };
 export default ProjectDonationContainer;

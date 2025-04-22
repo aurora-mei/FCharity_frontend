@@ -140,7 +140,7 @@ const ProjectMemberContainer = () => {
     }, [currentProject, allProjectMembers.length, currentUser.id, projectRequests.length]);
 
     return (
-        <Flex vertical gap={25} style={{ overflowY: "auto", height: "100vh", padding: "0 2rem", scrollbarWidth: "none" }}>
+        <Flex vertical gap={25} style={{ overflowY: "auto", height: "100vh", padding: "0 1rem", scrollbarWidth: "none" }}>
             <Row gutter={16} style={{ marginTop: 16 }}>
                 <Col span={8}>
                     <StyledCard icon={<TeamOutlined />} title="Total Active Members" bordered={false}>

@@ -1,12 +1,15 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect,useRef } from "react";
 import { Modal, Form, Input, InputNumber, Button, DatePicker, Select, Upload, message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { UploadOutlined } from "@ant-design/icons";
-import { updateProjectThunk } from "../../redux/project/projectSlice";
+import { updateProjectThunk, fetchProjectById } from "../../redux/project/projectSlice";
 import styled from "styled-components";
 import moment from 'moment-timezone';
 import { uploadFileMedia } from "../../redux/helper/helperSlice";
+import { useParams } from "react-router-dom";
+import dayjs from "dayjs";
+
 const StyledButton = styled(Button)`
     background-color:green;
     border-radius: 0.5rem;
@@ -27,133 +30,167 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
     const [initialLoading, setInitialLoading] = useState(true);
     const [uploadedImages, setUploadedImages] = useState([]);
     const [uploadedVideos, setUploadedVideos] = useState([]);
+    const { projectId } = useParams();
     const dispatch = useDispatch();
     const [attachments, setAttachments] = useState({ images: [], videos: [] });
     const [uploading, setUploading] = useState(false);
+    const isRemovingFile = useRef(false);
     useEffect(() => {
-        console.log("projectData", projectData);
-        initFormData();
-    }, [dispatch, projectData,form]);
+        setInitialLoading(true);
+        dispatch(fetchProjectById(projectId));
+    }, [dispatch, projectId]);
 
-    const initFormData = async () => {
-       console.log("projectData", projectData.project);
-        form.setFieldsValue({
-            projectName: projectData.project.projectName || "",
-            projectDescription: projectData.project.projectDescription || "",
-            plannedStartTime: projectData.project.plannedStartTime
-            ? moment.utc(projectData.project.plannedStartTime).local()
-            : null,
-          plannedEndTime: projectData.project.plannedEndTime
-            ? moment.utc(projectData.project.plannedEndTime).local()
-            : null,
-            categoryId: projectData.project.categoryId || null,
-            categoryName: projectData.project.categoryName || null,
-            tagIds: projectData.projectTags.map(t => t.tag.id) || [],
-            location: projectData.project.location || "",
-            images: attachments.images || [],
-            videos: attachments.videos || [],
-            projectStatus: projectData.project.projectStatus || "",
-            email: projectData.project.email || "",
-            phone: projectData.project.phoneNumber || "",
-        });
-        if(projectData.attachments){
-            const imageUrls = projectData.attachments?.filter((url) =>
-                url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
-            ) || [];
-            const videoUrls = projectData.attachments?.filter((url) =>
-                url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
-            ) || [];
-            setAttachments({
-                images: imageUrls,
-                videos: videoUrls
-            });
-            console.log("images", form.getFieldValue("images"));
-            setInitialLoading(false); // Kết thúc giai đoạn load dữ liệu ban đầu
+    useEffect(() => {
+        if (projectData?.project) {
+            initFormData();
         }
+    }, [projectData]);
+
+    const initFormData = () => {
+        const project = projectData.project;
+        const attachments = projectData.attachments || [];
+
+        // Lọc ra URL hình ảnh
+        const imageUrls = attachments
+            .filter(att => att.imageUrl?.match(/\.(jpeg|jpg|png|gif)$/i))
+            .map(att => att.imageUrl);
+
+        // Lọc ra URL video
+        const videoUrls = attachments
+            .filter(att => att.imageUrl?.match(/\.(mp4|webm|ogg)$/i))
+            .map(att => att.imageUrl);
+      
+        form.setFieldsValue({
+            projectName: project.projectName || "",
+            projectDescription: project.projectDescription || "",
+            plannedStartTime: dayjs(project.plannedStartTime),
+            plannedEndTime: dayjs(project.plannedEndTime),
+            categoryId: project.categoryId || null,
+            categoryName: project.categoryName || null,
+            tagIds: projectData.projectTags?.map(t => t.tag.id) || [],
+            location: project.location || "",
+            projectStatus: project.projectStatus || "",
+            email: project.email || "",
+            phone: project.phoneNumber || "",
+            images: imageUrls.map((image, index) => ({
+                uid: index.toString(),
+                name: `Image ${index + 1}`,
+                url: image,
+            }) || [])
+        });
+        setAttachments({
+            images: imageUrls,
+            videos: videoUrls,
+        });
+
+        setInitialLoading(false);
     };
 
-    const handleImageChange = async ({ fileList }) => {
-        if (fileList.length === 0) return; // Nếu danh sách trống, không làm gì
 
+    const handleImageChange = async ({ fileList }) => {
+        if (isRemovingFile.current) {
+            isRemovingFile.current = false;
+            return;
+        }
+        if (fileList.length === 0) return;
+    
         setUploading(true);
         const latestFile = fileList[fileList.length - 1];
-
+    
         try {
-            const response = await dispatch(uploadFileMedia({ file: latestFile.originFileObj, folderName: "images",resourceType:"image" })).unwrap();
-            console.log("response", response);
+            const response = await dispatch(
+                uploadFileMedia({
+                    file: latestFile.originFileObj,
+                    folderName: "images",
+                    resourceType: "image",
+                })
+            ).unwrap();
+    
             latestFile.url = response;
+    
             setUploadedImages((prevImages) => {
                 const uploadedImages = [...prevImages, response];
+            
                 setAttachments((prev) => ({
-                    ...prev,
-                    images: uploadedImages,
-                    videos: prev.videos || []
+                    images: [...prev.images, response], // ✅ chỉ thêm 1 ảnh mới
+                    videos: prev.videos || [],
                 }));
+            
                 form.setFieldsValue({ images: uploadedImages });
+            
                 return uploadedImages;
             });
-
-            console.log("attachments", attachments);
+            
+    
             message.success(`Uploaded ${latestFile.name}`);
         } catch (error) {
             console.error("Error uploading image:", error);
             message.error(`Upload failed for ${latestFile.name}`);
         }
-
-
-        console.log("attachment", attachments);
+    
         setUploading(false);
     };
-
+    
     const handleVideoChange = async ({ fileList }) => {
+        if (isRemovingFile.current) {
+            isRemovingFile.current = false;
+            return;
+        }
         if (fileList.length === 0) return;
-
+    
         setUploading(true);
         const latestFile = fileList[fileList.length - 1];
-
+    
         try {
-            const response = await dispatch(uploadFileMedia({ file: latestFile.originFileObj, folderName: "videos",resourceType:"video" })).unwrap();
-            console.log("response", response);
+            const response = await dispatch(uploadFileMedia({
+                file: latestFile.originFileObj,
+                folderName: "videos",
+                resourceType: "video"
+            })).unwrap();
+    
             latestFile.url = response;
+    
             setUploadedVideos((prevVideos) => {
                 const uploadedVideos = [...prevVideos, response];
-
-                // Cập nhật state attachments sau khi uploadedVideos cập nhật
+    
                 setAttachments((prev) => ({
-                    ...prev,
-                    videos: uploadedVideos,
+                    videos: [...prev.videos, response], // hoặc dùng Set() để tránh trùng
                     images: prev.images || []
                 }));
-                form.setFieldsValue({ images: uploadedVideos });
-                return uploadedVideos; // Trả về danh sách mới
+    
+                form.setFieldsValue({ videos: uploadedVideos });
+    
+                return uploadedVideos;
             });
-
+    
             message.success(`Uploaded ${latestFile.name}`);
         } catch (error) {
             console.error("Error uploading video:", error);
             message.error(`Upload failed for ${latestFile.name}`);
         }
-
+    
         setUploading(false);
     };
+    
     const handleRemoveFile = async ({ file, type }) => {
         try {
+            isRemovingFile.current = true;
             console.log("Deleting file:", file, type);
             if (type === "images") {
-                setUploadedImages((prevImages) => {
-                    const updatedImages = prevImages.filter((image) => image !== file.url);
+                setUploadedImages(() => {
+                    const updatedImages = attachments.images.filter((image) => image !== file.url);
                     console.log("updatedImages", updatedImages);
                     setAttachments((prev) => ({
-                        ...prev,
                         images: updatedImages,
+                        videos: prev.videos
                     }));
                     return updatedImages;
                 });
             } else {
-                setUploadedVideos((prevVideos) => {
-                    const updatedVideos = prevVideos.filter((video) => video !== file.url);
+                setUploadedVideos(() => {
+                    const updatedVideos =  attachments.videos.filter((video) => video !== file.url);
                     setAttachments((prev) => ({
-                        ...prev,
+                        images: prev.images,
                         videos: updatedVideos,
                     }));
                     return updatedVideos;
@@ -177,11 +214,12 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
             plannedEndTime: values.plannedEndTime.toISOString(),
             location: values.location,
             projectStatus: projectData.project.projectStatus,
-            imageUrls: attachments.images.map((image) => image.imageUrl),
+            imageUrls: attachments.images,
             videoUrls: attachments.videos,
             categoryId: projectData.project.categoryId,
             tagIds: values.tagIds
         };
+        console.log("updatedProject", updatedProject);
         dispatch(updateProjectThunk(updatedProject));
         setIsOpenModal(false);
     }
@@ -193,7 +231,6 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
             footer={null}
             onCancel={() => {
                 setIsOpenModal(false);
-                form.resetFields();
             }}
         >
             <Form
@@ -262,13 +299,12 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
                         accept="image/*"
                         onChange={handleImageChange} // Xử lý khi chọn file
                         onRemove={(file) => handleRemoveFile({ file, type: "images" })}
-
-                        defaultFileList={
+                        fileList={
                             Array.isArray(attachments.images)
                                 ? attachments.images.map((image, index) => ({
                                     uid: index.toString(),
                                     name: `Image ${index + 1}`,
-                                    url: image.imageUrl,
+                                    url: image,
                                 }))
                                 : []
                         }
@@ -285,12 +321,12 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
                         accept="video/*"
                         onChange={handleVideoChange} // Xử lý khi chọn file
                         onRemove={(file) => handleRemoveFile({ file, type: "videos" })}
-                        defaultFileList={
+                        fileList={
                             Array.isArray(attachments.videos)
                                 ? attachments.videos.map((image, index) => ({
                                     uid: index.toString(),
-                                    name: `Image ${index + 1}`,
-                                    url: image.imageUrl,
+                                    name: `Video ${index + 1}`,
+                                    url: image,
                                 }))
                                 : []
                         }
@@ -299,7 +335,7 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
                     </Upload>
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" htmlType="submit" block className="continue-button" disabled={!uploading && editable}>
+                    <Button type="primary" htmlType="submit" block className="continue-button" disabled={uploading}>
                         {uploading ? "Uploading..." : "Update Project"}
                     </Button>
                 </Form.Item>

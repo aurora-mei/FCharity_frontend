@@ -54,6 +54,7 @@ import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
 import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import AddProjectMemberScreen from "../screens/project/AddProjectMemberScreen.jsx";
 
 const queryClient = new QueryClient();
 
@@ -109,12 +110,10 @@ const AppRoutes = () => {
               element={<ProjectMoreDetailScreen />}
             />
           </Route>
-          <Route path="manage-project" element={<ProjectDashboard />} />
           <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
             <Route path="home" element={<ProjectHomeContainer />} />
             <Route path="members" element={<ProjectMemberContainer />} />
             <Route path="finance" element={<ProjectFinancePlanContainer />} />
-            <Route path="donations" element={<ProjectDonationContainer />} />
             <Route path="request/:id" element={<ProjectRequestContainer/>}/>
             {/* <Route path="*" element={<ProjectHomeContainer />} /> */}
           </Route>
@@ -127,6 +126,10 @@ const AppRoutes = () => {
             <Route
               path="projects/create/:requestId"
               element={<CreateProjectScreen />}
+            />
+              <Route
+              path="projects/create/:requestId/:projectId"
+              element={<AddProjectMemberScreen />}
             />
             <Route path="requests" element={<OrganizationRequest />} />
             <Route path="schedule" element={<OrganizationSchedule />} />

@@ -57,7 +57,7 @@ const SpendingItemModal = ({ project, form, isOpenModal, setIsOpenModal, spendin
             footer={null}
             onCancel={() => {
                 setIsOpenModal(false);
-                form.resetFields();
+                // form.resetFields();
             }}
         >
             <Form

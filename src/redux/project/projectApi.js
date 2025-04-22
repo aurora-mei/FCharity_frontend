@@ -383,6 +383,25 @@ export const approveSpendingPlan = async(planId)=>{
     }
 
 }
+export const rejectSpendingPlan = async({planId,reason})=>{
+    try{
+        const response = await APIPrivate.post(`projects/spending/plans/${planId}/reject`,null,
+            {
+                params:{
+                    reason:reason
+                }
+            }
+        );
+        console.log("Spending plan rejected:", response.data);
+        message.success("Spending plan rejected successfully");
+        return response.data;
+    }catch(err){
+        console.error("Error rejecting spending plan:", err);
+        message.error("Error rejecting spending plan");
+        throw err.response.data;
+    }
+
+}
 // ===== SPENDING ITEM =====
 export const createSpendingItem = async (dto) => {
     try {
@@ -516,7 +535,7 @@ const projectApi = { fetchProjects, createProject, fetchProjectById, fetchMyProj
     getUserNotInProject, addProjectMember,fetchAllProjectMembers, fetchActiveProjectMembers,moveOutProjectMember,removeProjectMember,inviteProjectMember,
     getAllProjectRequest, sendJoinRequest, cancelProjectRequest,approveJoinRequest,rejectJoinRequest,
     approveLeaveRequest,rejectLeaveRequest,
-    getSpendingTemplate,importSpendingPlan,approveSpendingPlan,
+    getSpendingTemplate,importSpendingPlan,approveSpendingPlan,rejectSpendingPlan,
     createSpendingDetail,getSpendingDetailsByProject,updateSpendingDetail,deleteSpendingDetail,
     getSpendingPlanOfProject, createSpendingPlan, getSpendingPlanById, updateSpendingPlan, deleteSpendingPlan,
     createSpendingItem,getSpendingItemById,updateSpendingItem,deleteSpendingItem,getItemsByPlan,

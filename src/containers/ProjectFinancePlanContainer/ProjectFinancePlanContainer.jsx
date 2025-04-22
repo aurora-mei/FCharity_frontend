@@ -1,48 +1,52 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Card, Button, Tag, Input, Typography, Flex, Form, Empty, Table } from 'antd';
-import { DownloadOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { Card, Button, Tag, Input, Typography, Flex, Form, Empty, Table, Upload, Tooltip, Modal, Progress } from 'antd';
+import { DeleteOutlined, DownloadOutlined, EditOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
+import moment from 'moment';
 import { useParams } from 'react-router-dom';
-import { deleteSpendingItemThunk, fetchProjectById } from '../../redux/project/projectSlice';
+import { deleteSpendingItemThunk, fetchProjectById, deleteSpendingPlanThunk } from '../../redux/project/projectSlice';
 import { useEffect } from 'react';
 import {
-    fetchSpendingTemplateThunk, importSpendingPlanThunk,fetchSpendingDetailsByProject ,
+    fetchSpendingTemplateThunk, importSpendingPlanThunk, fetchSpendingDetailsByProject, fetchDonationsOfProject,
     fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, createSpendingPlanThunk
     , createSpendingItemThunk, updateSpendingPlanThunk, updateSpendingItemThunk
 } from '../../redux/project/projectSlice';
 import SpendingPlanModal from '../../components/SpendingPlanModal/SpendingPlanModal';
 import SpendingItemModal from '../../components/SpendingItemModal/SpendingItemModal';
-const { Title } = Typography;
+import ProjectDonationContainer from '../ProjectDonationContainer/ProjectDonationContainer';
+import ProjectSpendingDetailContainer from '../ProjectSpendingDetailContainer/ProjectSpendingDetailContainer';
+import ProjectSpendingPlanContainer from '../ProjectSpendingPlanContainer/ProjectSpendingPlanContainer';
+const { Title, Text } = Typography;
 
-const SpendingPlanFlex = styled(Flex)`
+export const SpendingPlanFlex = styled(Flex)`
   width: 100%;
   flex-direction: column;
-  border-radius:1rem;
+  border-radius:0.5rem;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
   padding:2rem;
     background: #fff;
 `;
 
-const Header = styled.div`
+export const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+
 `;
 
-const TitleSection = styled.div`
+export const TitleSection = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
 `;
 
-const ButtonGroup = styled.div`
+export const ButtonGroup = styled.div`
   display: flex;
   gap: 8px;
 `;
 
-const SpendingItemRow = styled.div`
+export const SpendingItemRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -50,18 +54,39 @@ const SpendingItemRow = styled.div`
   padding: 8px;
   border-radius: 4px;
 `;
-const StyledButtonInvite = styled(Button)`
+export const StyledButtonInvite = styled(Button)`
     background-color: #fff !important;
-    border: 1px solid green !important;
+    // border: 1px solid green !important;
     padding: 1rem !important;
       transition: all 0.3s ease;
-   
+   color:black;
+    font-size: 0.7rem !important;
     &:hover{
         background-color: #fff !important;
         border: 1px solid green !important;
         padding: 1rem !important;
          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-       
+       color:black!important;
+        }
+}
+    .ant-btn{
+        span{
+            font-size: 0.7rem !important;
+            }
+        }    
+}`
+export const StyledButtonSubmit = styled(Button)`
+    background-color: green !important;
+    padding: 1rem !important;
+    border-radius: 0.5rem;
+      transition: all 0.3s ease;
+   color:white;
+    &:hover{
+        background-color: green !important;
+        border: 1px solid green !important;
+        padding: 1rem !important;
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+       color:white!important;
         }
 }
     .ant-btn{
@@ -69,10 +94,7 @@ const StyledButtonInvite = styled(Button)`
             font-size: 1rem !important;
             }
         }    
-  
-
 }`
-
 const ProjectFinancePlanContainer = () => {
     const dispatch = useDispatch();
     const { projectId } = useParams();
@@ -80,23 +102,17 @@ const ProjectFinancePlanContainer = () => {
     const spendingItems = useSelector((state) => state.project.spendingItems);
     const currentSpendingPlan = useSelector((state) => state.project.currentSpendingPlan);
     const currentSpendingItem = useSelector((state) => state.project.currentSpendingItem);
-    const [selectedSpendingItem, setSelectedSpendingItem] = useState(null);
-    const [selectedSpendingPlan, setSelectedSpendingPlan] = useState(null);
-    const [downloadTemplate, setDownloadTemplate] = useState(false);
-    const [isOpenCreatePlanModal, setIsOpenCreatePlanModal] = useState(false);
-    const [isOpenUpdatePlanModal, setIsOpenUpdatePlanModal] = useState(false);
-    const [isOpenCreateItemModal, setIsOpenCreateItemModal] = useState(false);
-    const [isOpenUpdateItemModal, setIsOpenUpdateItemModal] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
-    const [totalItems, setTotalItems] = useState(0);
+
     const currentUser = useSelector((state) => state.auth.currentUser);
     const [isLeader, setIsLeader] = useState(false);
     const spendingDetails = useSelector((state) => state.project.spendingDetails);
     const currentSpendingDetail = useSelector((state) => state.project.currentSpendingDetail);
-    const [form] = Form.useForm();
+    const donations = useSelector((state) => state.project.donations);
+
+
     useEffect(() => {
         dispatch(fetchProjectById(projectId));
+        dispatch(fetchDonationsOfProject(projectId));
         if (currentProject && currentProject.project) {
             console.log(currentProject.project.id);
             dispatch(fetchSpendingPlanOfProject(currentProject.project.id));
@@ -108,250 +124,83 @@ const ProjectFinancePlanContainer = () => {
             dispatch(fetchSpendingItemOfPlan(currentSpendingPlan.id));
         }
     }, [currentSpendingPlan, dispatch]);
+
     useEffect(() => {
-        console.log("curr", currentSpendingPlan)
-        if (currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id) {
-            console.log(currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id)
+        if (currentProject?.project?.leader?.id === currentUser?.id) {
             setIsLeader(true);
+        } else {
+            setIsLeader(false);
         }
-        setTotalItems(spendingItems.length);
-        console.log("isLeader", currentSpendingPlan.approvalStatus !== "PREPARING");
-    }, [currentSpendingPlan, spendingItems,currentProject.project]);
-
-    const handleAddSpendingPlan = (values) => {
-        console.log("values", values);
-        const newPlan = {
-            ...values,
-            projectId: currentProject.project.id,
-        };
-        dispatch(createSpendingPlanThunk(newPlan))
-    };
-    const handleAddSpendingItem = (values) => {
-        console.log("values", values);
-        const newItem = {
-            ...values,
-            spendingPlanId: currentSpendingPlan.id,
-        };
-        dispatch(createSpendingItemThunk(newItem))
-        setIsOpenCreateItemModal(false);
-    };
-    const handleUpdateSpendingPlan = (values) => {
-        console.log("values", values);
-        if (values) {
-            const updatedPlan = {
-                ...values,
-                projectId: currentProject.project.id,
-            };
-            dispatch(updateSpendingPlanThunk({ planId: updatedPlan.id, dto: updatedPlan }));
-        }
-        setIsOpenUpdatePlanModal(false);
-        // window.location.reload();
-    };
-    const handleUpdateSpendingItem = (values) => {
-        if (values) {
-            const updatedItem = {
-                ...values,
-                spendingPlanId: currentSpendingPlan.id,
-            };
-            console.log("updatedItem", updatedItem);
-            dispatch(updateSpendingItemThunk({ itemId: updatedItem.id, dto: updatedItem }));
-        }
-        form.resetFields();
-        setIsOpenUpdateItemModal(false);
-    };
-
-    const handleDeleteSpendingItem = (item) => {
-        if (item) {
-            const itemId = item.id;
-            dispatch(deleteSpendingItemThunk(itemId));
-        }
-    };
-    const [isSubmitted, setIsSubmitted] = useState(false);
+        console.log(isLeader)
+        console.log(isLeader && (currentSpendingPlan && currentSpendingPlan.approvalStatus === "PREPARING"))
+    }, [currentProject, currentUser]);
+    const currentDonationAmount = donations
+        .filter((d) => d.donationStatus === "COMPLETED")
+        .reduce((total, d) => total + d.amount, 0);
+    const totalEstimatedCost = Array.isArray(spendingItems)
+        ? spendingItems.reduce((total, item) => total + (Number(item.estimatedCost) || 0), 0)
+        : 0;
+    const donationPercentage = totalEstimatedCost > 0
+        ? Math.min(100, (currentDonationAmount / totalEstimatedCost) * 100) // Cap at 100% for standard view, or let it exceed if desired
+        : 0; // Avoid division by zero
+    const progressStatus = donationPercentage >= 100 ? 'success' : 'normal';
 
 
-    const handleSubmit = () => {
-        const updatedPlan = {
-            ...currentSpendingPlan,
-            approvalStatus: "SUBMITED",
-            estimatedTotalCost: spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0),
-            projectId: currentProject.project.id,
-        };
-        dispatch(updateSpendingPlanThunk({ planId: updatedPlan.id, dto: updatedPlan }));
-        setIsOpenUpdatePlanModal(false);
-        setIsSubmitted(true);
-        // window.location.reload();
-
-    };
-    const columns = [
-        {
-            title: "Item Name",
-            dataIndex: "itemName",
-            key: "itemName",
-        },
-        {
-            title: "Estimated Cost",
-            dataIndex: "estimatedCost",
-            key: "estimatedCost",
-        },
-        {
-            title: "Note",
-            dataIndex: "note",
-            key: "note",
-        },
-        isLeader && currentSpendingPlan.approvalStatus === "PREPARING" && {
-            title: "Actions",
-            key: "actions",
-            render: (_, record) => (
-                <>
-                    <Button
-                        size="small"
-                        style={{ marginRight: 8 }}
-                        onClick={() => {
-                            console.log("record", record);
-                            setSelectedSpendingItem(record);
-                            console.log("selectedSpendingItem", selectedSpendingItem);
-                            setIsOpenUpdateItemModal(true);
-                        }}
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        size="small"
-                        danger
-                        onClick={() => handleDeleteSpendingItem(record)}
-                    >
-                        Delete
-                    </Button>
-                    <SpendingItemModal
-                        form={form}
-                        project={currentProject}
-                        isOpenModal={isOpenUpdateItemModal}
-                        setIsOpenModal={setIsOpenUpdateItemModal}
-                        spendingItem={selectedSpendingItem}
-                        handleSubmit={handleUpdateSpendingItem}
-                        title="Update"
-                    />
-                </>
-            ),
-        },
-    ];
-
+    // --- Determine Expense Progress status ---
+    const currentExpenseAmount = spendingDetails.reduce((total, d) => total + d.amount, 0);
+    const expensePercentage = totalEstimatedCost > 0
+        ? Math.min(100, (currentExpenseAmount / totalEstimatedCost) * 100) // Cap at 100% for standard view, or let it exceed if desired
+        : 0; // Avoid division by zero
+    const expenseProgressStatus = expensePercentage >= 100 ? 'success' : 'normal';
     return (
-        <div style={{padding:'2rem'}}>
+        <Flex vertical gap="2rem" style={{ padding: "1rem" }}>
             {currentProject && currentProject.project && (
-                (!currentSpendingPlan.id) ? (
-                    <>
-                        <SpendingPlanFlex>
-                            {isLeader &&
-                                (
-                                    <>
-                                        <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreatePlanModal(true)} />
-                                        <Button title="Click here to download creating spending plan template" onClick={() => {
-                                            dispatch(fetchSpendingTemplateThunk(currentProject.project.id));
-                                            setDownloadTemplate(true);
-                                        }}>Download template</Button>
-                                        {downloadTemplate && (
-                                            <Form>
-                                                <Form.Item>
-                                                    <Input
-                                                        type="file"
-                                                        accept=".xlsx"
-                                                        onChange={(e) => {
-                                                            const file = e.target.files[0];
-                                                            dispatch(importSpendingPlanThunk({ file, projectId: currentProject.project.id }));
-                                                        }}
-                                                    />
-                                                </Form.Item>
-                                                <Form.Item>
-                                                    <Button type="primary" htmlType="submit">
-                                                        Upload
-                                                    </Button>
-                                                </Form.Item>
-                                            </Form>
-                                        )}
-                                    </>
-                                )}
-                        </SpendingPlanFlex>
-                        <SpendingPlanModal form={form} project={currentProject} isOpenModal={isOpenCreatePlanModal} setIsOpenModal={setIsOpenCreatePlanModal} handleSubmit={handleAddSpendingPlan} title="Create" />
-                    </>
-                ) : (
-                    <SpendingPlanFlex>
-                        <Header>
-                            <TitleSection>
-                                <Title level={4}>{(currentSpendingPlan && currentSpendingPlan.planName) ? `${currentSpendingPlan.planName}` : ""}</Title>
-                                {isLeader || currentSpendingPlan.approvalStatus === "PREPARING" &&
-                                    <StyledButtonInvite icon={<EditOutlined
-                                        onClick={() => setIsOpenUpdatePlanModal(true)}
-                                        style={{ cursor: 'pointer', fontSize: "1rem" }} />}></StyledButtonInvite>}
-                            </TitleSection>
-                            <SpendingPlanModal form={form} project={currentProject} isOpenModal={isOpenUpdatePlanModal} setIsOpenModal={setIsOpenUpdatePlanModal} spendingPlan={currentSpendingPlan} handleSubmit={handleUpdateSpendingPlan} title="Update" />
-
-                            {currentSpendingPlan.approvalStatus !== "PREPARING" ? (
-                                <Tag color="orange">{currentSpendingPlan.approvalStatus}</Tag>
-                            ) : isLeader ? (
-                                <div>
-                                    <ButtonGroup>
-                                        <b style={{ alignSelf: "center" }}>
-                                            Total: {spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0).toLocaleString()} VND
-                                        </b>
-                                        <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreateItemModal(true)} />
-                                        <StyledButtonInvite icon={<DownloadOutlined />} title="Click here to download current spending plan details" />
-                                    </ButtonGroup>
-
-                                    <SpendingItemModal
-                                        form={form}
-                                        project={currentProject}
-                                        isOpenModal={isOpenCreateItemModal}
-                                        setIsOpenModal={setIsOpenCreateItemModal}
-                                        handleSubmit={handleAddSpendingItem}
-                                        title="Create"
+                <>
+                    <ProjectSpendingPlanContainer isLeader={isLeader}
+                        currentProject={currentProject}
+                        />
+                    {donations && donations.length > 0 && (
+                        <>
+                            <div style={{ backgroundColor: "white", padding: "2rem", borderRadius: "0.5rem", boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 8px 0px" }}>
+                                <Text strong style={{ fontSize: "1.1rem" }}>Donation Progress</Text>
+                                <Tooltip title={`${donationPercentage.toFixed(1)}% Funded (${currentDonationAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}>
+                                    <Progress
+                                        percent={donationPercentage}
+                                        status={progressStatus}
+                                        strokeColor={donationPercentage >= 100 ? '#52c41a' : undefined} // Optional: explicit success color
+                                        // format={(percent) => `${percent?.toFixed(1)}%`} // Optional: format text inside bar
+                                        showInfo={true} // Show percentage text next to the bar
+                                        format={(percent) => `${percent?.toFixed(1)}% Funded (${currentDonationAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`} // Optional: format text inside bar
                                     />
-                                </div>
-                            ) : null}
-
-                        </Header>
-                        {spendingItems && spendingItems.length > 0 ? (
-                           <>
-                            <Table
-                                rowKey={(record) => record.id}
-                                columns={columns.filter(Boolean)}
-                                dataSource={spendingItems}
-                                s pagination={{
-                                    current: currentPage,
-                                    pageSize: pageSize,
-                                    total: totalItems,
-                                    showSizeChanger: true,
-                                    pageSizeOptions: ["5", "10", "20", "50"],
-                                    onChange: (page, size) => {
-                                        setCurrentPage(page);
-                                        setPageSize(size);
-                                    },
-                                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
-                                }}
-                            />
-                      {currentSpendingPlan.approvalStatus ==="PREPARING" &&   <StyledButtonInvite type="primary" onClick={handleSubmit} style={{alignSelf:"flex-end"}}>Submit</StyledButtonInvite>}
-                           </>
+                                </Tooltip>
+                            </div>
+                            <ProjectDonationContainer />
+                        </>
+                    )}
+                    {
+                        spendingDetails && spendingDetails.length > 0 && (
+                            <>  <div style={{ backgroundColor: "white", padding: "2rem", borderRadius: "0.5rem", boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 8px 0px" }}>
+                            <Text strong style={{ fontSize: "1.1rem" }}>Expense Progress</Text>
+                            <Tooltip title={`${expensePercentage.toFixed(1)}% Funded (${currentExpenseAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}>
+                                <Progress
+                                    percent={expensePercentage}
+                                    status={expenseProgressStatus}
+                                    strokeColor={expensePercentage >= 100 ? '#52c41a' : undefined} // Optional: explicit success color
+                                    // format={(percent) => `${percent?.toFixed(1)}%`} // Optional: format text inside bar
+                                    showInfo={true} // Show percentage text next to the bar
+                                    format={(percent) => `${percent?.toFixed(1)}% Expensed (${currentExpenseAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`} // Optional: format text inside bar
+                                />
+                            </Tooltip>
+                        </div>
+                        <ProjectSpendingDetailContainer spendingDetails={spendingDetails} />
+                            </>
                         )
-                            : (
-                                <Empty title="No spending items found" description="Please add a spending item." style={{ marginTop: '20px' }} />
-                            )}
-                            {spendingDetails && spendingDetails.length > 0 && (
-                                <SpendingPlanFlex>
-                                    <Title level={4}>Spending Plan Details</Title>
-                                    {spendingDetails.map((detail) => (
-                                        <SpendingItemRow key={detail.id}>
-                                            <span>{detail.itemName}</span>
-                                            <span>{detail.estimatedCost}</span>
-                                            <span>{detail.note}</span>
-                                        </SpendingItemRow>
-                                    ))}
-                                    </SpendingPlanFlex>
-                            )
-                        }
-                    </SpendingPlanFlex>
-                )
-            )}
-        </div>
+                    }
+                  
+                </>
+            )
+            }
+        </Flex >
     );
 };
 
