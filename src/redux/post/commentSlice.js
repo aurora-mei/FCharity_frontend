@@ -68,7 +68,6 @@ export const deleteComment = createAsyncThunk(
 );
 
 // Vote comment
-// Sửa action voteComment
 export const voteComment = createAsyncThunk(
     "comments/vote",
     async ({ commentId, userId, vote }, { rejectWithValue }) => {

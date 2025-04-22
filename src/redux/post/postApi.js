@@ -32,14 +32,16 @@ const updatePost = async (id, PostsData) => {
     }
 };
 
+// postApi.js
 const deletePost = async (id) => {
     try {
-        await APIPrivate.delete(`posts/${id}`);
+      await APIPrivate.delete(`posts/${id}`);
+      return id; // Trả về ID để Redux xử lý
     } catch (err) {
-        console.error("Error deleting Posts:", err);
-        throw err.response.data;
+      const errorData = err?.response?.data || { message: "Lỗi không xác định" };
+      throw new Error(errorData.message);
     }
-};
+  };
 const fetchPostById = async (id) => {
     try {
         const response = await APIPrivate.get(`posts/${id}`);
@@ -79,6 +81,26 @@ const fetchMyPosts = async (userId) => {
         throw err.response?.data;
     }
 };
+const reportPost = async (postId, data) => {
+    try {
+      const response = await APIPrivate.post(`posts/${postId}/report`, data);
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || { message: "Lỗi khi báo cáo bài viết" };
+    }
+  };
+  const handleReportSubmit = async () => {
+    try {
+      await postApi.reportPost(currentPost.post.id, {
+        reason: reportReason,
+        details: reportDetails
+      });
+      message.success("Đã gửi báo cáo thành công");
+      setReportVisible(false);
+    } catch (error) {
+      message.error("Gửi báo cáo thất bại: " + error.message);
+    }
+  };
 
 const postApi = { 
     fetchPosts, 

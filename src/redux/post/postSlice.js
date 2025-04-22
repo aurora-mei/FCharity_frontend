@@ -35,10 +35,18 @@
         return await postApi.updatePost(id, PostData);
     });
 
-    export const deletePosts = createAsyncThunk("posts/delete", async (id) => {
-        await postApi.deletePost(id);
-        return id;
-    });
+    export const deletePosts = createAsyncThunk(
+        'posts/deletePost',
+        async (postId, { rejectWithValue }) => {
+          try {
+            await api.delete(`/posts/${postId}`);
+            return postId; // Trả về ID của post đã xóa
+          } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Xóa bài viết thất bại" });
+          }
+        }
+      );
+  
     export const votePostThunk = createAsyncThunk(
         "posts/vote",
         async ({ postId, userId, vote }, { rejectWithValue }) => {
@@ -128,13 +136,13 @@
                     state.loading = true;
                 })
                 .addCase(deletePosts.fulfilled, (state, action) => {
+                    state.posts = state.posts.filter(post => post.post.id !== action.payload);
                     state.loading = false;
-                    state.posts = state.posts.filter(Post => Post.id !== action.payload);
-                })
-                .addCase(deletePosts.rejected, (state, action) => {
+                  })
+                  .addCase(deletePosts.rejected, (state, action) => {
+                    state.error = action.payload.message;
                     state.loading = false;
-                    state.error = action.error;
-                })
+                  })
                 .addCase(votePostThunk.fulfilled, (state, action) => {
                     console.log("vote res: ",action.payload)
                     const { postId, vote, totalVote } = action.payload;
@@ -162,8 +170,6 @@
                     state.loading = false;
                     state.error = action.error;
                 });
-                
-                
         },
     });
 

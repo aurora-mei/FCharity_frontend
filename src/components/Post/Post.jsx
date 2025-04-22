@@ -35,8 +35,10 @@ import {
   fetchAllCommentsByPostThunk
 } from "../../redux/post/commentSlice";
 import { votePostThunk } from "../../redux/post/postSlice";
-
+import { deletePosts } from '../../redux/post/postSlice'; // Điều chỉnh đường dẫn cho phù hợp
 const { Paragraph, Text } = Typography;
+
+
 
 const formatTimeAgo = (createdAt) => {
   const createdDate = new Date(createdAt);
@@ -197,9 +199,16 @@ const CommentItem = React.memo(({
 });
 
 const Post = ({ currentPost }) => {
+  if (!currentPost || !currentPost.post) {
+    return <Card variant="outlined">Đang tải bài viết...</Card>;
+  }
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [newComment, setNewComment] = useState("");
+  const [editVisible, setEditVisible] = useState(false);
+  const [editContent, setEditContent] = useState(
+    currentPost?.post?.content || ""
+  );  const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
+  const isOwner = currentUser?.id && currentPost?.post?.user?.id === currentUser.id;
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState("");
   const [postVote, setPostVote] = useState(0);
@@ -207,7 +216,8 @@ const Post = ({ currentPost }) => {
   const [reportVisible, setReportVisible] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
-  
+  const [newComment, setNewComment] = useState("");
+
   const comments = useSelector((state) => state.comment.comments) || [];
   const allComments = useSelector((state) => state.comment.allComments) || [];
   const carouselRef = useRef(null);
@@ -224,59 +234,85 @@ const Post = ({ currentPost }) => {
   useEffect(() => {
     commentEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [comments]);
+  // Post.jsx
+const handleDeletePost = async (e) => {
+  e?.stopPropagation();
+  try {
+    await dispatch(deletePosts(currentPost?.post?.id)).unwrap();
+    message.success("Xóa bài viết thành công");
+    // Chuyển hướng sau 1 giây để đảm bảo state cập nhật
+    setTimeout(() => navigate("/"), 1000);
+  } catch (error) {
+    message.error(error.message || "Xóa bài viết thất bại");
+  }
+};
 
-  // Dropdown Menu
+  const handleUpdatePost = async () => {
+    try {
+      await dispatch(updatePosts({
+        id: currentPost?.post?.id,
+        PostData: { content: editContent }
+      })).unwrap();
+      message.success("Cập nhật bài viết thành công");
+      setEditVisible(false);
+    } catch (error) {
+      message.error("Cập nhật thất bại: " + error.message);
+    }
+  };
+  const handleReportSubmit = async () => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      if (!currentUser?.id) return message.error("Vui lòng đăng nhập để báo cáo");
+
+      await postApi.reportPost(currentPost.post.id, {
+        reason: reportReason,
+        details: reportDetails,
+        reporterId: currentUser.id
+      });
+
+      message.success("Đã gửi báo cáo thành công");
+      setReportVisible(false);
+    } catch (error) {
+      message.error("Gửi báo cáo thất bại: " + error.message);
+    }
+  };
+  // SAU ĐÓ MỚI KHAI BÁO MENU
   const menu = (
     <Menu>
-      <Menu.Item 
-        key="delete" 
-        onClick={(e) => {
-          e.domEvent.stopPropagation();
-          handleDeletePost();
-        }}
-      >
-        Xóa bài viết
-      </Menu.Item>
-      <Menu.Item 
-        key="update" 
-        onClick={(e) => {
-          e.domEvent.stopPropagation();
-          handleUpdatePost();
-        }}
-      >
-        Chỉnh sửa bài viết
-      </Menu.Item>
-      <Menu.Item 
-        key="report"
-        onClick={(e) => {
-          e.domEvent.stopPropagation();
-          setReportVisible(true);
-        }}
-      >
-        Báo cáo bài viết
-      </Menu.Item>
+      {isOwner ? (
+        <>
+          <Menu.Item 
+            key="delete" 
+            onClick={(e) => {
+              e.domEvent.stopPropagation();
+              handleDeletePost(e.domEvent);
+            }}
+          >
+            Xóa
+          </Menu.Item>
+          <Menu.Item 
+            key="update" 
+            onClick={(e) => {
+              e.domEvent.stopPropagation();
+              setEditVisible(true);
+            }}
+          >
+            Chỉnh sửa
+          </Menu.Item>
+        </>
+      ) : (
+        <Menu.Item 
+          key="report"
+          onClick={(e) => {
+            e.domEvent.stopPropagation();
+            setReportVisible(true);
+          }}
+        >
+          Báo cáo
+        </Menu.Item>
+      )}
     </Menu>
   );
-
-  const handleDeletePost = () => {
-    // Implement delete logic
-    message.info("Chức năng xóa đang được phát triển");
-  };
-
-  const handleUpdatePost = () => {
-    // Implement update logic
-    message.info("Chức năng chỉnh sửa đang được phát triển");
-  };
-
-  const handleReportSubmit = () => {
-    console.log("Report submitted:", {
-      reason: reportReason,
-      details: reportDetails,
-      postId: currentPost.post.id
-    });
-    setReportVisible(false);
-    message.success("Đã gửi báo cáo thành công");
-  };
 
   const handlePostVote = async (isUpvote) => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
@@ -515,6 +551,20 @@ const Post = ({ currentPost }) => {
           />
         )}
       </Modal>
+      <Modal
+  title="Chỉnh sửa bài viết"
+  visible={editVisible}
+  onOk={handleUpdatePost}
+  onCancel={() => setEditVisible(false)}
+  okText="Lưu thay đổi"
+  cancelText="Hủy"
+>
+  <Input.TextArea
+    value={editContent}
+    onChange={(e) => setEditContent(e.target.value)}
+    rows={4}
+  />
+</Modal>
     </Card>
   );
 };

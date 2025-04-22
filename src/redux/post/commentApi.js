@@ -1,6 +1,6 @@
 import { APIPrivate } from '../../config/API/api';
 
-const fetchCommentsByPost = async (postId, page = 0, size = 100) => {
+const fetchCommentsByPost = async (postId, page = 0, size = 1000) => {
     try {
         const response = await APIPrivate.get(`comments/post/${postId}`, {
             params: { page, size }
