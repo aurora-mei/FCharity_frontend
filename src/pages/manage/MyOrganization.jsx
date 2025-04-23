@@ -709,7 +709,7 @@ const MyOrganization = () => {
           ))}
         <div className="p-8 pt-0 pb-20">
           <p className="text-xl text-gray-800">Response from admin</p>
-          <div>{ownedOrganization.reason || "No response"}</div>
+          <div>{ownedOrganization?.reason || "No response"}</div>
         </div>
         <div className="absolute bottom-3 right-8">
           <div
