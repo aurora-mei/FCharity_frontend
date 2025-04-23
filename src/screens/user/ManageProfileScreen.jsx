@@ -27,14 +27,19 @@ const ManageProfileScreen = () => {
       label: "My Profile",
     },
     {
-      key: "mywallet",
+      key: "mydonations",
       icon: <WalletOutlined />,
-      label: "My Wallet",
+      label: "My Donations",
     },
     {
       key: "myrequests",
       icon: <HistoryOutlined />,
       label: "My Requests",
+    },
+    {
+      key: "myposts",
+      icon: <HistoryOutlined />,
+      label: "My Posts",
     },
     {
       key: "invitations",

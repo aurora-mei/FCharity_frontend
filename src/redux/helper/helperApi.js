@@ -18,7 +18,7 @@ const uploadFile = async ({ file, folderName = "default-folder" }) => {
   formData.append("folder", folderName); // 🌟 Thêm folder tùy chỉnh
 
   const isVideo = file.type.startsWith("video/");
-  const uploadUrl = isVideo
+  let uploadUrl = isVideo
     ? `${CLOUDINARY_URL.replace("/image/", "/video/")}`
     : CLOUDINARY_URL;
   console.log("up url", uploadUrl);
@@ -34,7 +34,6 @@ const uploadFile = async ({ file, folderName = "default-folder" }) => {
     return null;
   }
 };
-
 const uploadFileMedia = async ({
   file,
   folderName = "default-folder",
@@ -47,13 +46,17 @@ const uploadFileMedia = async ({
   formData.append("upload_preset", PRESET_NAME);
   formData.append("folder", folderName); // 🌟 Thêm folder tùy chỉnh
   formData.append("resource_type", resourceType);
-  let uploadUrl = CLOUDINARY_URL;
+
   if (resourceType === "video") {
     uploadUrl = CLOUDINARY_URL.replace("/image/", "/video/");
   } else if (resourceType === "raw") {
-    uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw/");
+    uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw");
   }
 
+  const isVideo = file.type.startsWith("video/");
+  let uploadUrl = isVideo
+    ? `${CLOUDINARY_URL.replace("/image/", "/video/")}`
+    : CLOUDINARY_URL;
   console.log("up url", uploadUrl);
   try {
     const res = await axios.post(uploadUrl, formData, {
@@ -67,9 +70,7 @@ const uploadFileMedia = async ({
     return null;
   }
 };
-
 //GENERATE QR
-
 const getPaymentLink = async (data) => {
   try {
     const response = await APIPrivate.post("payment/create", data);
@@ -80,5 +81,16 @@ const getPaymentLink = async (data) => {
     throw error;
   }
 };
-const helperApi = { uploadFile, uploadFileMedia, getPaymentLink };
+
+//get list bank
+const getListBank = async () => {
+  try {
+    const response = await axios.get("https://api.vietqr.io/v2/banks");
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching list of banks:", error);
+    throw error;
+  }
+};
+const helperApi = { uploadFile, getPaymentLink, uploadFileMedia, getListBank };
 export default helperApi;

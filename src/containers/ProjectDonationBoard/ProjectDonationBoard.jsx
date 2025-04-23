@@ -187,7 +187,7 @@ const ProjectDonationBoard = ({ donations }) => {
             Total:{" "}
             <Text type="success">
               {donations
-                .filter((x) => x.donationStatus === "VERIFIED")
+                .filter((x) => x.donationStatus === "COMPLETED")
                 .reduce((total, d) => total + d.amount, 0)
                 .toLocaleString()}{" "}
               VND

@@ -2,10 +2,10 @@ import React, { useEffect } from "react";
 
 import { Navigate } from "react-router-dom";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomeScreen from "../screens/general/HomeScreen.jsx";
-import ForumPage from "../screens/forum/ForumPage.jsx";
-import CreatePostPage from "../screens/forum/CreatePostPage.jsx";
-import PostDetailPage from "../screens/forum/PostDetailPage.jsx";
+import HomeScreen from "../screens/General/HomeScreen.jsx";
+import ForumPage from "../screens/Forum/ForumPage.jsx";
+import CreatePostPage from "../screens/Forum/CreatePostPage.jsx";
+import PostDetailPage from "../screens/Forum/PostDetailPage.jsx";
 import LoginScreen from "../screens/auth/LoginScreen.jsx";
 import SignupScreen from "../screens/auth/SignupScreen.jsx";
 import OtpVerificationScreen from "../screens/auth/OtpVerificationScreen.jsx";
@@ -23,10 +23,10 @@ import MyRequestScreen from "../screens/request/MyRequestScreen.jsx";
 import ManageProfileScreen from "../screens/user/ManageProfileScreen.jsx";
 import ChangeProfileModal from "../components/ChangeProfileForm/ChangeProfileModal.jsx";
 import ChangePasswordModal from "../screens/user/ChangePasswordModal.jsx";
-import DepositScreen from "../screens/user/DepositScreen.jsx";
-import MyWalletScreen from "../screens/user/MyWalletScreen.jsx";
+import MyDonationScreen from "../screens/user/MyDonationScreen.jsx";
 import MyProfileScreen from "../screens/user/MyProfileScreen.jsx";
 import InviteRequestScreen from "../screens/user/InviteRequestScreen.jsx";
+import MyPostScreen from "../screens/user/MyPostScreen.jsx";
 
 //organization
 import MyOrganization from "../pages/manage/MyOrganization.jsx";
@@ -45,6 +45,7 @@ import ProjectHomeContainer from "../containers/ProjectHomeContainer/ProjectHome
 import ProjectMemberContainer from "../containers/ProjectMemberContainer/ProjectMemberContainer.jsx";
 import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer.jsx";
 import ProjectDonationContainer from "../containers/ProjectDonationContainer/ProjectDonationContainer.jsx";
+import ProjectRequestContainer from "../containers/ProjectRequestContainer/ProjectRequestContainer.jsx";
 
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
@@ -53,10 +54,14 @@ import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
 import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 import Organizations from "../pages/guest/Organizations.jsx";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 import OrganizationArticle from "../pages/manage/OrganizationArticle.jsx";
 
 const AppRoutes = () => {
   return (
+    <QueryClientProvider client={queryClient}>
     <Router>
       <Routes>
         <Route path="/auth">
@@ -76,9 +81,9 @@ const AppRoutes = () => {
               element={<ManageProfileScreen />}
             >
               <Route path="profile" element={<MyProfileScreen />} />
-              <Route path="mywallet" element={<MyWalletScreen />} />
+              <Route path="mydonations" element={<MyDonationScreen />} />
               <Route path="myrequests" element={<MyRequestScreen />} />
-              <Route path="deposit/:userId" element={<DepositScreen />} />
+              <Route path="myposts" element={<MyPostScreen />} />
               <Route path="invitations" element={<InviteRequestScreen />} />
             </Route>
             <Route path="requests">
@@ -99,8 +104,23 @@ const AppRoutes = () => {
               <Route path="change-password" element={<ChangePasswordModal />} />
             </Route>
           </Route>
-        </Route>
-        <Route path="/" element={<ManagerLayout />}>
+          <Route path="projects">
+            <Route path=":projectId" element={<ProjectDetailScreen />} />
+            <Route
+              path=":projectId/details"
+              element={<ProjectMoreDetailScreen />}
+            />
+          </Route>
+          <Route path="manage-project" element={<ProjectDashboard />} />
+          <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
+            <Route path="home" element={<ProjectHomeContainer />} />
+            <Route path="members" element={<ProjectMemberContainer />} />
+            <Route path="finance" element={<ProjectFinancePlanContainer />} />
+            <Route path="donations" element={<ProjectDonationContainer />} />
+            <Route path="request/:id" element={<ProjectRequestContainer/>}/>
+            {/* <Route path="*" element={<ProjectHomeContainer />} /> */}
+          </Route>
+          <Route path="/" element={<ManagerLayout />}>
           <Route path="my-organization">
             <Route index element={<MyOrganization />} />
             <Route path="dashboard" element={<OrganizationDashboard />} />
@@ -116,22 +136,7 @@ const AppRoutes = () => {
             <Route path="articles" element={<OrganizationArticle />} />
           </Route>
         </Route>
-        <Route path="manage-project" element={<ProjectDashboard />} />
-        <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
-          <Route path="home" element={<ProjectHomeContainer />} />
-          <Route path="members" element={<ProjectMemberContainer />} />
-          <Route path="finance" element={<ProjectFinancePlanContainer />} />
-          <Route path="donations" element={<ProjectDonationContainer />} />
 
-          <Route path="*" element={<ProjectHomeContainer />} />
-        </Route>
-        <Route path="projects">
-          <Route path=":projectId" element={<ProjectDetailScreen />} />
-          <Route
-            path=":projectId/details"
-            element={<ProjectMoreDetailScreen />}
-          />
-        </Route>
         <Route path="/" element={<GeneralLayout />}>
           <Route path="organizations">
             <Route index element={<Organizations />} />
@@ -140,8 +145,11 @@ const AppRoutes = () => {
             <Route path="rankings" element={<OrganizationRankings />} />
           </Route>
         </Route>
+        </Route>
+     
       </Routes>
     </Router>
+    </QueryClientProvider>
   );
 };
 

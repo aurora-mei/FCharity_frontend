@@ -42,14 +42,48 @@ const deletePost = async (id) => {
 };
 const fetchPostById = async (id) => {
     try {
-        
         const response = await APIPrivate.get(`posts/${id}`);
         return response.data;
     } catch (err) {
         console.error("Error fetching Posts by ID:", err);
-        throw err.response.data;
+        throw err.response?.data || { message: "Server không phản hồi hoặc lỗi không xác định" };
     }
-}
+};
 
-const postApi = { fetchPosts, createPost, updatePost, deletePost, fetchPostById };
+
+const votePost = async (postId, userId, vote) => {
+    try {
+        const response = await APIPrivate.post(`posts/${postId}/vote`, null, {
+            params: { userId, vote }
+        });
+        return response.data;
+    } catch (err) {
+        const errorData = err?.response?.data;
+        const rawMessage = errorData?.error || err.message || "Unknown error";
+        const errorMessage = typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage);
+        console.error("Vote post error:", errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+const fetchMyPosts = async () => {
+    try {
+        const response = await APIPrivate.get('posts/mine');
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching my posts:", err);
+        throw err.response?.data;
+    }
+};
+
+const postApi = { 
+    fetchPosts, 
+    createPost, 
+    updatePost, 
+    deletePost, 
+    fetchPostById,
+    votePost,
+    fetchMyPosts, // <== thêm mới
+};
+
+
 export default postApi;

@@ -14,7 +14,7 @@ import { fetchCategories } from "../../redux/category/categorySlice";
 import { getAllMembersInOrganization } from "../../redux/organization/organizationSlice";
 import { createProjectThunk } from "../../redux/project/projectSlice";
 import { fetchRequestById } from "../../redux/request/requestSlice";
-import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { uploadFileMedia } from "../../redux/helper/helperSlice";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -106,9 +106,10 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
 
     try {
       const response = await dispatch(
-        uploadFileHelper({
+        uploadFileMedia({
           file: latestFile.originFileObj,
           folderName: "images",
+          resourceType:"image"
         })
       ).unwrap();
       console.log("response", response);
@@ -141,9 +142,10 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
 
     try {
       const response = await dispatch(
-        uploadFileHelper({
+        uploadFileMedia({
           file: latestFile.originFileObj,
           folderName: "videos",
+          resourceType:"video"
         })
       ).unwrap();
       console.log("response", response);
@@ -214,27 +216,28 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
     setInitialLoading(false);
   };
   const onFinish = async (values) => {
-    // Tạo object gửi lên API
-    const projectData = {
-      ...values,
-      requestId: requestId,
-      organizationId: ownedOrganization.organizationId,
-      tagIds: values.tagIds,
-      imageUrls: attachments.images,
-      videoUrls: attachments.videos,
-    };
-
-    console.log("Final Project Data:", projectData);
-    try {
-      await dispatch(createProjectThunk(projectData)).unwrap();
-      setCreatedSuccess(true);
-      message.success("Create project successfully!");
-    } catch (error) {
-      console.error("Error creating Project:", error);
-      message.error("Failed to create project");
-    }
+       // Tạo object gửi lên API
+       const projectData = {
+         ...values,
+         requestId:requestId,
+         organizationId: myOrganization.organizationId,
+         tagIds: values.tagIds,
+         imageUrls: attachments.images,
+         videoUrls: attachments.videos,
+       };
+   
+       console.log("Final Project Data:", projectData);
+       try {
+         await dispatch(createProjectThunk(projectData)).unwrap();
+         setCreatedSuccess(true);
+         message.success("Create project successfully!");
+       } catch (error) {
+         console.error("Error creating Project:", error);
+         message.error("Failed to create project");
+       }
+    
   };
-  if (loadingUI || loading || initialLoading) {
+  if (loadingUI ) {
     return <LoadingModal />;
   }
   return (
@@ -325,7 +328,7 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
                 rules={[{ required: true, message: "Leader is required" }]}
               >
                 <Select placeholder="Select a leader" disabled={createdSuccess}>
-                  {currentOrganizationMembers.map((member) => (
+                  {currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER").map((member) => (
                     <Option key={member.id} value={member.user.id}>
                       {member.user.fullName}
                     </Option>

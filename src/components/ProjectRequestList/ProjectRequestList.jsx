@@ -17,9 +17,6 @@ const StyledSearch = styled.div`
     background-color: #f0f0f0 !important;
         border: 1px solid green !important;
         padding: 1rem !important;
-        .anticon svg{
-            color: green !important;
-            }
     }
  
     }
@@ -29,22 +26,15 @@ const StyledButtonInvite = styled(Button)`
     border: 1px solid green !important;
     padding: 1rem !important;
       transition: all 0.3s ease;
-    .anticon svg{
-        color: green !important;
-        }
     &:hover{
         background-color: #fff !important;
         border: 1px solid green !important;
         padding: 1rem !important;
          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        .anticon svg{
-            color: green !important;
-            }
         }
 }
     .ant-btn{
         span{
-            color: green !important;
             font-size: 1rem !important;
             }
         }    
@@ -267,8 +257,10 @@ const ProjectRequestList = ({ isLeader, projectId }) => {
         },
     ];
     return (
-        <>
-            <Flex vertical style={{ marginTop: 24 }}>
+        <div style={{ boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 8px 0px", borderRadius:"1rem",
+            padding:"2rem",
+              background: "#fff"}}>
+            <Flex vertical style={{ marginTop: 0 }}>
                 <Title level={5} styled={{ margin: "0 !important" }}>Requests List</Title>
                 <Space>
                     <StyledSearch><Search onSearch={onSearch} /></StyledSearch>
@@ -280,8 +272,14 @@ const ProjectRequestList = ({ isLeader, projectId }) => {
                     </StyledSelect>
                 </Space>
             </Flex>
-            <Table columns={columns.filter(Boolean)} dataSource={dataSource} pagination={false} />
-        </>
+            <Table columns={columns.filter(Boolean)} dataSource={dataSource} pagination={{
+                    pageSize: 5,
+                    showSizeChanger: true,
+                    pageSizeOptions: ['5', '10', '20', '50'],
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} requests`,
+                }} />
+        </div>
     );
 }
 export default ProjectRequestList;

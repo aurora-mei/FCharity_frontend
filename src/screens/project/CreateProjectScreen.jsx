@@ -9,9 +9,9 @@ import {
   Card,
   Table,
   Checkbox,
-  Avatar,
+  Avatar,Select ,
   Tag,
-  Typography,
+  Typography,Skeleton
 } from "antd";
 import ProjectForm from "../../components/ProjectForm/ProjectForm";
 import { useParams, useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addProjectMemberThunk,
-  moveOutProjectMemberThunk,
+  removeProjectMemberThunk,
   fetchAllProjectMembersThunk,
 } from "../../redux/project/projectSlice";
 import {
@@ -48,7 +48,6 @@ const StyledContainer = styled.div`
     border-radius: 8px;
     overflow: hidden;
     width: 100%;
-    max-width: 800px;
   }
 
   .name-container {
@@ -115,23 +114,20 @@ const CreateProjectScreen = () => {
       console.error("Error parsing currentUser:", error);
     }
   }
-  const handleAddMembers = () => {
+  const handleAddMembers =  () => {
     console.log("selectedOrgMembers", selectedOrgMembers);
     for (const userId of selectedOrgMembers) {
-      dispatch(
-        addProjectMemberThunk({ projectId: newProject.project.id, userId })
-      );
+         dispatch(addProjectMemberThunk({ projectId: newProject.project.id, userId,role: memberRole }));
     }
     setAvailableMembers((prev) =>
-      prev.filter((member) => !selectedOrgMembers.includes(member.user.id))
+        prev.filter((member) => !selectedOrgMembers.includes(member.user.id))
     );
-
     setSelectedOrgMembers([]);
-  };
+};
   const handleRemoveMembers = () => {
     console.log("selectedProjectMembers", selectedProjectMembers);
     selectedProjectMembers.forEach((memberId) => {
-      dispatch(moveOutProjectMemberThunk(memberId));
+      dispatch(removeProjectMemberThunk(memberId));
     });
     const removedMembers = myProjectMembers.filter((member) =>
       selectedProjectMembers.includes(member.id)
@@ -240,20 +236,22 @@ const CreateProjectScreen = () => {
 
   useEffect(() => {
     console.log("New Project:", newProject);
-
-    dispatch(getAllMembersInOrganization(ownedOrganization?.organizationId));
-
+    dispatch(getManagedOrganizationByCeo()); // tự động lấy id người dùng phía backend
     if (newProject && newProject.project)
       dispatch(fetchAllProjectMembersThunk(newProject.project.id));
 
     console.log("Project Members:", myProjectMembers);
-
+    console.log("Organization Members:", currentOrganizationMembers);
     if (isFirstMount && currentOrganizationMembers?.length > 0) {
-      setAvailableMembers(currentOrganizationMembers);
-      setIsFirstMount(false); // Sau lần đầu, không gán lại nữa
+      setAvailableMembers(currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER" && newProject.project.leader.id !== x.user.id));
+      setIsFirstMount(false); 
     }
-  }, [dispatch, newProject, ownedOrganization]);
-
+  }, [dispatch, newProject]);
+    useEffect(() => {
+      if (ownedOrganization) {
+        dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
+      }
+    }, [dispatch, ownedOrganization]);
   return (
     <ScreenStyled>
       <Row
@@ -262,14 +260,13 @@ const CreateProjectScreen = () => {
         gutter={[32, 16]}
         style={{ minHeight: "100vh" }}
       >
-        <Col span={12}>
-          <ProjectForm
-            requestId={requestId}
-            ownedOrganization={ownedOrganization}
-          />
-        </Col>
-        <Col span={12}>
-          {newProject.project ? (
+        <Col span={24}>
+         {
+          ownedOrganization && ownedOrganization.organizationId && !newProject.project  ? 
+          (<ProjectForm requestId={requestId} myOrganization={ownedOrganization} />)
+         :(
+          newProject.project && 
+            (
             <Flex vertical gap={20} justify="flex-start">
               <StyledCard title="Project Information">
                 <Flex>
@@ -345,18 +342,24 @@ const CreateProjectScreen = () => {
               </StyledContainer>
               <StyledContainer>
                 <div className="table-wrapper">
-                  {organizationMembers && organizationMembers.length > 0 && (
+                  {currentOrganizationMembers && currentOrganizationMembers.length > 0 && (
                     <>
                       <Flex
                         gap={10}
                         justify="space-between"
                         style={{ marginBottom: "0.5rem" }}
                       >
-                        <Title level={5}>Organization Members</Title>
+                        <Title level={5}>{ownedOrganization.organizationName.toUpperCase()} Members</Title>
                         {selectedOrgMembers.length > 0 && (
-                          <StyledButton onClick={handleAddMembers}>
-                            Add to project
-                          </StyledButton>
+                          <>
+                          <Select onChange={(value) => setMemberRole(value)} style={{ width: '20rem', marginRight: '1rem' }} placeholder="Select role">
+                              <Select.Option value="ACCOUNTANT">Accountant</Select.Option>
+                              <Select.Option value="MEMBER">Member</Select.Option>
+                              </Select>
+                              <StyledButton onClick={handleAddMembers}>
+                                  Add to project
+                              </StyledButton>
+                              </>
                         )}
                       </Flex>
                       {availableMembers && availableMembers.length > 0 ? (
@@ -382,13 +385,14 @@ const CreateProjectScreen = () => {
                   navigate("/my-organization/projects");
                 }}
               >
-                Save changes
+                Navigate to {ownedOrganization.organizationName.toUpperCase()} 
               </StyledButton>
             </Flex>
-          ) : (
-            <Empty>No project created.</Empty>
-          )}
+         
+         )
+         )} 
         </Col>
+      
       </Row>
     </ScreenStyled>
   );

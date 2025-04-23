@@ -6,7 +6,7 @@ import { getCurrentUser, updateProfile } from "../../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
 import ChangeProfileModal from "../../components/ChangeProfileForm/ChangeProfileModal";
 import ChangePasswordModal from "./ChangePasswordModal";
-import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { uploadFileMedia } from "../../redux/helper/helperSlice";
 
 const { Content, Header } = Layout;
 const { Title, Text } = Typography;
@@ -64,7 +64,7 @@ const MyProfileScreen = () => {
 
     try {
         // Gọi `uploadFileHelper` giống như `handleImageChange`
-        const response = await dispatch(uploadFileHelper({ file, folderName: "images" })).unwrap();
+        const response = await dispatch(uploadFileMedia({ file, folderName: "images",resourceType:"image" })).unwrap();
         const newAvatarUrl = response.url || response; // Kiểm tra nếu API trả về object có `url`
 
         console.log("Sending update profile request with:", { ...currentUser, avatar: newAvatarUrl });
