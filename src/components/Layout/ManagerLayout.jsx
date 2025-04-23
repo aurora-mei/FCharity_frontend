@@ -8,25 +8,24 @@ import { StompSessionProvider } from "react-stomp-hooks";
 const ManagerLayout = ({ children }) => {
   return (
     <StompSessionProvider url={"ws://localhost:8080/ws/websocket"}>
-    <div>
-      <div className="relative">
-        <ManagerSidebar />
-        <main className="flex-1 ml-64 pt-6">
-          
-          <Outlet />
-          <ToastContainer
-            position="bottom-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            closeOnClick
-            pauseOnHover
-            draggable
-            theme="red"
-            style={{ background: "white" }}
-          />
-        </main>
+      <div>
+        <div className="flex">
+          <ManagerSidebar />
+          <main className="grow-1">
+            <Outlet />
+            <ToastContainer
+              position="bottom-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              closeOnClick
+              pauseOnHover
+              draggable
+              theme="red"
+              style={{ background: "white" }}
+            />
+          </main>
+        </div>
       </div>
-    </div>
     </StompSessionProvider>
   );
 };

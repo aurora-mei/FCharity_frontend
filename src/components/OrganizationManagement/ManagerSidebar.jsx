@@ -18,8 +18,8 @@ const ManagerSidebar = () => {
   const [mode, setMode] = useState("joined"); // owned, managed, joined
 
   return (
-    <div className="w-64 h-full fixed flex bg-white shadow-md overflow-y-auto">
-      <div className="pt-4 px-1  flex flex-col gap-2 bg-gray-50">
+    <div className="w-[270px] items-stretch shrink-0 grow-0 min-h-[500px] flex bg-white shadow-md overflow-y-auto">
+      <div className="pt-4 px-1 flex flex-col gap-2 bg-gray-50">
         <div
           className="flex justify-center items-center p-2 hover:cursor-pointer hover:bg-gray-300"
           title="My owned organization"
