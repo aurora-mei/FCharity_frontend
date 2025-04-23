@@ -32,11 +32,8 @@ import {
 } from "@ant-design/icons";
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
 import { getOrganizationById } from "../../redux/organization/organizationSlice";
-import { getCurrentWalletThunk } from "../../redux/user/userSlice";
-import {
-  fetchProjectRequests,
-  fetchActiveProjectMembers,
-} from "../../redux/project/projectSlice";
+import { getPaymentLinkThunk } from "../../redux/helper/helperSlice";
+import { fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
 import {
@@ -55,6 +52,7 @@ import styled from "styled-components";
 import LoadingModal from "../../components/LoadingModal";
 
 import moment from "moment-timezone";
+import { fetchRequestById } from "../../redux/request/requestSlice";
 const { Title, Paragraph, Text } = Typography;
 
 const StyledScreen = styled.div`
@@ -82,7 +80,7 @@ const StyledScreen = styled.div`
   .media-slide video {
     border-radius: 0.8rem;
     width: 100%;
-    height: 22rem;
+    height: 27rem;
     object-fit: cover;
     object-position: center;
     display: flex;
@@ -379,20 +377,19 @@ const ProjectDetailScreen = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { projectId } = useParams();
-  const [form] = Form.useForm(); // Khởi tạo form instance
-
+  const [form] = Form.useForm();  // Khởi tạo form instance
+  const checkoutURL = useSelector((state) => state.helper.checkoutURL);
   const currentProject = useSelector((state) => state.project.currentProject);
   const donations = useSelector((state) => state.project.donations);
   const projectRequests = useSelector((state) => state.project.projectRequests);
   const projectMembers = useSelector((state) => state.project.projectMembers);
-
+  const currentRequest = useSelector((state) => state.request.currentRequest);
   const currentOrganization = useSelector(
     (state) => state.organization.currentOrganization
   );
   const loading = useSelector((state) => state.project.loading);
   const [expanded, setExpanded] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const balance = useSelector((state) => state.user.currentBalance);
 
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -405,16 +402,27 @@ const ProjectDetailScreen = () => {
   useEffect(() => {
     dispatch(fetchProjectById(projectId));
     dispatch(fetchDonationsOfProject(projectId));
-    dispatch(getCurrentWalletThunk());
+
   }, [dispatch, projectId, donations.length]);
+  const { project, projectTags } = currentProject;
+
   useEffect(() => {
+    if (checkoutURL) {
+      window.location.href = checkoutURL;
+    }
     if (currentProject.project) {
       dispatch(getOrganizationById(currentProject.project.organizationId));
       dispatch(fetchProjectRequests(project.id));
       dispatch(fetchActiveProjectMembers(project.id));
     }
-  }, [dispatch, currentProject.project, donations]);
-
+  }, [dispatch, currentProject.project, donations, checkoutURL, projectId]);
+  useEffect(() => {
+    if (project && project.requestId) {
+      dispatch(fetchRequestById(project.requestId));
+    }
+    
+  }, [dispatch, project]); // CHỈ khi project thay đổi mới gọi
+  console.log("curr req", currentRequest);
   // Lọc ảnh/video (nếu backend trả về attachments)
   const imageUrls =
     currentProject.attachments?.filter((url) =>
@@ -424,8 +432,6 @@ const ProjectDetailScreen = () => {
     currentProject.attachments?.filter((url) =>
       url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
     ) || [];
-  console.log("imageUrls", imageUrls);
-  console.log("videoUrls", videoUrls);
   const carouselSettings = {
     arrows: true,
     infinite: true,
@@ -433,43 +439,39 @@ const ProjectDetailScreen = () => {
     slidesToShow: 1,
     slidesToScroll: 1,
   };
-  if (loading || !currentProject.project) {
-    return <LoadingModal />;
+  if (!currentProject.project) {
+    return <LoadingModal />
   }
-  const { project, projectTags } = currentProject;
   const items = [
     {
-      href: "/",
-      // Increase icon size
+      href: '/',
       title: (
-        <HomeOutlined
-          style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }}
-        />
+        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem"}} /> // Increase icon size
       ),
     },
     {
-      // Increase text size
       title: (
-        <p style={{ fontSize: "1rem", color: "green" }}>
-          Project {project.projectName}
-        </p>
+        <p style={{ fontSize: "1rem"}}>Project {project.projectName}</p> // Increase text size
       ),
     },
   ];
   const handleDonate = async (values) => {
     console.log(values);
+    console.log("currentUser", currentUser.id);
     dispatch(
-      createDonationThunk({
-        projectId: project.id,
+      getPaymentLinkThunk({
+        itemContent: `${currentUser.email}'s deposit`,
         userId: currentUser.id,
+        objectId: project.id,
         amount: values.amount,
-        message: values.message,
+        paymentContent: values.message,
+        objectType: "PROJECT",
+        returnUrl: `projects/${project.id}`,
       })
     );
     setIsOpenModal(false);
     form.resetFields();
-    dispatch(getCurrentWalletThunk());
-  };
+  }
 
   return (
     // <div>   </div>
@@ -480,6 +482,9 @@ const ProjectDetailScreen = () => {
           {/* <LeftCircleOutlined  onClick={()=>navigate(-1)} style={{ fontWeight: "bold", fontSize: "1.5rem" }}/> */}
           <Flex gap={0} vertical className="request-detail-page">
             <Flex vertical gap={0} className="request-detail">
+            <Tag color="blue" style={{ fontSize: 12, width: "fit-content" }}>
+                  <b>{project.projectStatus}</b>
+                </Tag>
               <Title level={3} className="request-title">
                 {project.projectName}
               </Title>
@@ -504,27 +509,50 @@ const ProjectDetailScreen = () => {
                         <video src={url.imageUrl} controls />
                       </div>
                     ))}
+
                   </Carousel>
                 </div>
               )}
 
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <UserOutlined style={{ fontSize: 24 }} />
-                <div>
-                  <strong>{project.leader.fullName}</strong> lead this project{" "}
-                  <br />
-                  <Tag color="green" style={{ fontSize: 12 }}>
-                    {project.projectStatus}
-                  </Tag>
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <Flex gap={10}>
+                  <Avatar src={project.leader.avatar} style={{ fontSize: 24 }} />
+                  <Flex vertical gap={10}>
+                    <span> <strong>{project.leader.fullName}</strong> lead this project</span>
+                    <Flex vertical gap={5} >
+                    <span> <i>Planned start at: </i> { moment(project.plannedStartTime).format("DD/MM/YYYY hh:mm A")} </span>
+                    <span> <i>Planned end at: </i> {moment(project.plannedEndTime).format("DD/MM/YYYY hh:mm A")}</span>
+                    <span> <i>Location: </i> {project.location}</span>
+                    </Flex>
+                  </Flex>
+                </Flex>
+
               </div>
 
+          
               <Divider />
-              {/* <div style={{ fontSize: 10, marginTop: 5 }}>
-                                <strong>Phone:</strong> {project.phoneNumber} <br />
-                                <strong>Email:</strong> {project.email} <br />
-                                <strong>Location:</strong> {project.location}
-                            </div> */}
+              <Title level={5} style={{ marginBottom: "1rem" }}>
+                  For Request
+                </Title>
+              {currentRequest && currentRequest.helpRequest && (
+                <Card>
+                  <Flex gap={10}>
+                  <img src={  currentRequest?.attachments &&  currentRequest?.attachments.length > 0 ?
+                 currentRequest?.attachments?.filter((url) =>
+                    url.match(/\.(jpeg|jpg|png|gif)$/i)
+                  )[0] : ""} alt="request" style={{ width: "5rem", height: "5rem", borderRadius: 10 }} />
+                    <Flex vertical>
+                    <Text type="primary"><Link to={`/requests/${project.requestId}`}>{currentRequest.helpRequest.title}</Link></Text>
+                    <span><strong>Created at: </strong>{moment(currentRequest.helpRequest.creationDate).format("DD/MM/YYYY hh:mm A")}</span>
+                    <span><strong>By requester: </strong>{currentRequest.helpRequest.user.fullName}</span>
+                    </Flex>
+                  </Flex>
+                </Card>
+              )}
+
+              {/* <Button onClick={() => navigate(`/requests/${project.requestId}`)}>View help request</Button> */}
+              <Divider />
+           
               {projectTags?.length > 0 && (
                 <Paragraph className="request-tags">
                   {projectTags.map((taggable) => (
@@ -552,10 +580,8 @@ const ProjectDetailScreen = () => {
                   ))}
                 </Paragraph>
               )}
-
-              <Divider />
               {expanded ? (
-                <Paragraph>
+                <Paragraph style={{marginTop:"1rem"}}>
                   Help Maninder Kaur & Son Williamjeet Singh (6 years) after
                   Gurvinder’s Tragic Passing. Dear friends, family, and
                   kind-hearted supporters, With a shattered heart, I share the
@@ -583,7 +609,7 @@ const ProjectDetailScreen = () => {
                   {`${project.projectDescription} `}{" "}
                 </Paragraph>
               ) : (
-                <Paragraph>{`${project.projectDescription.substring(
+                <Paragraph style={{marginTop:"1rem"}}>{`${project.projectDescription.substring(
                   0,
                   800
                 )}...`}</Paragraph>
@@ -599,20 +625,24 @@ const ProjectDetailScreen = () => {
                 style={{ display: "flex", gap: 10, marginTop: 20 }}
                 className="bottom-actions"
               >
-                <Button
-                  type="default"
-                  block
-                  style={{ flex: 1 }}
-                  onClick={() => {
-                    if (!currentUser) {
-                      navigate("/auth/login");
-                      return;
-                    }
-                    setIsOpenModal(true);
-                  }}
-                >
-                  <b>Donate</b>
-                </Button>
+
+                {project.projectStatus === "DONATING" && (
+                  <Button
+                    type="default"
+                    block
+                    style={{ flex: 1 }}
+                    onClick={() => {
+                      if (!currentUser) {
+                        navigate("/auth/login");
+                        return;
+                      }
+                      setIsOpenModal(true);
+                    }}
+                  >
+                    <b>Donate</b>
+                  </Button>
+                )
+                }
                 <Button type="default" block style={{ flex: 1 }}>
                   <b>Share</b>
                 </Button>
@@ -657,17 +687,6 @@ const ProjectDetailScreen = () => {
                       />
                     ))}
                   </Avatar.Group>
-                  {/* <StyledOverlappingAvatars>
-                                        {projectMembers.map((member, index) => (
-                                            <img
-                                                key={member.id}
-                                                src={member.user.avatar || "https://via.placeholder.com/50"}
-                                                alt={`Avatar ${member.user.fullName}`}
-                                                title={`${member.user.fullName}`}
-                                                style={{ left: `${index * 24}px`, zIndex: projectMembers.length - index }}
-                                            />
-                                        ))}
-                                    </StyledOverlappingAvatars> */}
                 </Flex>
                 <Divider />
 
@@ -724,57 +743,41 @@ const ProjectDetailScreen = () => {
                   columns={columns}
                   size="small"
                   scroll={{ y: 300 }}
-                  dataSource={donations}
+                  dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
                   rowKey="id"
                   className="custom-table"
                 />
               ) : (
                 <div>No donations available</div>
               )}
+
             </Card>
           </StyledWrapper>
           <StyledWrapper>
             <Card className="donation-card">
-              <Flex
-                justify="space-between"
-                align="center"
-                style={{ marginBottom: 16 }}
-              >
-                <Title level={5} style={{ margin: 0 }}>
-                  Expense Records
-                </Title>
-                <Link
-                  to={`/projects/${projectId}/details`}
-                  style={{ marginLeft: 10 }}
-                >
-                  See all
-                </Link>
+              <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+                <Title level={5} style={{ margin: 0 }}>Expense Records</Title>
+                <Link to={`/projects/${projectId}/details`} style={{ marginLeft: 10 }}>See all</Link>
               </Flex>
               {donations.length > 0 ? (
                 <Table
                   columns={columns}
                   size="small"
                   scroll={{ y: 300 }}
-                  dataSource={donations}
+                  dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
                   rowKey="id"
                   className="custom-table"
                 />
               ) : (
                 <div>No donations available</div>
               )}
+
             </Card>
           </StyledWrapper>
         </Col>
       </Row>
-      <DonateProjectModal
-        form={form}
-        isOpenModal={isOpenModal}
-        setIsOpenModal={setIsOpenModal}
-        project={project}
-        handleDonate={handleDonate}
-        balance={balance}
-      />
+      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
     </StyledScreen>
   );
-};
+}
 export default ProjectDetailScreen;

@@ -27,8 +27,9 @@ import {
   getJoinedOrganizations, // lấy các tổ chức mà mình đã tham gia (member)
 } from "../../redux/organization/organizationSlice";
 import logo from "../../assets/apgsoohzrdamo4loggow.svg";
+import NotificationBell from "./NotificationBell";
 import "./Navbar.pcss";
-
+import { fetchMyProjectsThunk } from "../../redux/project/projectSlice"; // Import your thunk action
 const lngs = {
   en: { nativeName: "English" },
   ja: { nativeName: "Japan" },
@@ -146,7 +147,10 @@ const Navbar = () => {
   const token = useSelector((state) => state.auth.token);
   const storedUser = localStorage.getItem("currentUser");
   const dispatch = useDispatch();
-
+  const myProjects = useSelector((state) => state.project.myProjects);
+  const [ownedProject,setOwnedProject] = useState([]); // State to hold owned projects
+  const [joinedProject,setJoinedProject] = useState([]); // State to hold joined projects
+  const [projectId, setProjectId] = useState(null); // State to hold project ID
   let currentUser = {};
   try {
     currentUser = storedUser ? JSON.parse(storedUser) : {};
@@ -166,12 +170,37 @@ const Navbar = () => {
   );
 
   useEffect(() => {
+    if (currentUser && currentUser.id !== undefined) {
+      dispatch(fetchMyProjectsThunk(currentUser.id));
+    }
     dispatch(getManagedOrganizationByCeo());
     dispatch(getManagedOrganizationsByManager());
     dispatch(getJoinedOrganizations());
   }, []);
 
-  console.log("currentUser", currentUser);
+  useEffect(() => {
+    if (myProjects && myProjects.length > 0 && currentUser) {
+      const owned = myProjects.filter(
+        (data) => data.project.leader.id === currentUser.id
+      );
+      const joined = myProjects.filter(
+        (data) => data.project.leader.id !== currentUser.id
+      );
+  
+      setOwnedProject(owned);
+      setJoinedProject(joined);
+  
+      const defaultProjectId =
+        owned.length > 0
+          ? owned[0].project.id
+          : joined.length > 0
+          ? joined[0].project.id
+          : "";
+  
+      setProjectId(defaultProjectId);
+    }
+  }, [myProjects]);
+  
 
   // *** This is NO LONGER needed if using Popover ***
   // const fundraiseMenuItems = [ ... ];
@@ -213,11 +242,16 @@ const Navbar = () => {
     },
     {
       key: "4",
-      label: (
-        <Link rel="noopener noreferrer" to="/manage-project">
-          My Project
-        </Link>
-      ),
+      label:
+        myProjects && myProjects.length > 0 ? (
+         <Link rel="noopener noreferrer" to={`/manage-project/${projectId}/home`}>
+            My Project
+          </Link>
+        ) : (
+          <Link rel="noopener noreferrer" to="/manage-project">
+            Discover Project
+          </Link>
+        ),
     },
     {
       key: "5",
@@ -263,7 +297,7 @@ const Navbar = () => {
               trigger="click"
               placement="bottomLeft"
               overlayClassName="fundraise-popover-panel" // Class for styling the panel
-              // arrow={false} // Optionally hide the arrow pointer
+            // arrow={false} // Optionally hide the arrow pointer
             >
               <Button className="btn-custom" type="text">
                 <Space>
@@ -308,6 +342,8 @@ const Navbar = () => {
             {/* Added wrap */}
             {token ? (
               // Use the renamed user menu items
+              <Flex align="center" gap="16px">
+                <NotificationBell />
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                 {/* Added specific class for potential user button styling */}
                 <Button className="btn-custom btn-user" type="text">
@@ -320,6 +356,7 @@ const Navbar = () => {
                   <span className="user-name">{currentUser?.fullName}</span>
                 </Button>
               </Dropdown>
+              </Flex>
             ) : (
               <Button
                 className="btn-custom"
@@ -344,15 +381,14 @@ const Navbar = () => {
                 <button
                   key={lng}
                   // Add classes for styling from pcss
-                  className={`language-button ${
-                    i18n.resolvedLanguage === lng ? "active" : ""
-                  }`}
+                  className={`language-button ${i18n.resolvedLanguage === lng ? "active" : ""
+                    }`}
                   // *** Use type="button" for non-submitting buttons ***
                   type="button"
                   onClick={() => {
                     i18n.changeLanguage(lng);
                   }}
-                  // Remove inline style if handled by CSS/PCSS
+                // Remove inline style if handled by CSS/PCSS
                 >
                   {lngs[lng].nativeName}
                 </button>

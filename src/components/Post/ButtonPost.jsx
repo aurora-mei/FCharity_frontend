@@ -17,11 +17,6 @@ export default function CommentActions() {
         Reply
       </Button>
 
-      {/* Award Button */}
-      <Button type="text" icon={<GiftOutlined />} className="text-gray-400 hover:text-yellow-500">
-        Award
-      </Button>
-
       {/* Share Button */}
       <Button type="text" icon={<ShareAltOutlined />} className="text-gray-400 hover:text-gray-600">
         Share

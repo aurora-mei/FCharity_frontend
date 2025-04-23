@@ -565,14 +565,14 @@ const MyOrganization = () => {
                 </div>
               </div>
               <div className="absolute bottom-2 right-4">
-                <button
+                <div
                   onClick={() => {
                     setIsEditing(true);
                   }}
                   className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-blue-500 hover:bg-blue-600`}
                 >
                   Update
-                </button>
+                </div>
               </div>
             </div>
           ))}
@@ -705,22 +705,22 @@ const MyOrganization = () => {
                   </p>
                 )}
               </div>
+              <div className="p-8 pt-0 pb-20">
+                <p className="text-xl text-gray-800">Response from admin</p>
+                <div>{ownedOrganization?.reason || "No response"}</div>
+              </div>
+              <div className="absolute bottom-3 right-8">
+                <div
+                  onClick={() => {
+                    setIsEditing(true);
+                  }}
+                  className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-blue-500 hover:bg-blue-600`}
+                >
+                  Edit
+                </div>
+              </div>
             </div>
           ))}
-        <div className="p-8 pt-0 pb-20">
-          <p className="text-xl text-gray-800">Response from admin</p>
-          <div>{ownedOrganization?.reason || "No response"}</div>
-        </div>
-        <div className="absolute bottom-3 right-8">
-          <div
-            onClick={() => {
-              setIsEditing(true);
-            }}
-            className={`px-4 py-2 rounded-lg font-semibold text-white transform transition-all duration-300 hover:cursor-pointer hover:scale-105 bg-blue-500 hover:bg-blue-600`}
-          >
-            Edit
-          </div>
-        </div>
       </div>
     </div>
   );

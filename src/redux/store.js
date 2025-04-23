@@ -23,9 +23,7 @@ const reducer = combineReducers({
   comment: commentReducer,
   inviteRequestProject: inviteRequestProjectReducer,
 });
-
 export const store = configureStore({
   reducer: reducer,
 });
-
 export default store;

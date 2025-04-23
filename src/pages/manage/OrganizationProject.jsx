@@ -4,48 +4,34 @@ import apiService from "../../services/api";
 import {
   BarChart,
   Bar,
-  XAxis,
+  XAxis, 
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import {
-  fetchProjectsByOrgThunk,
-  fetchSpendingPlansOfProject,
-  fetchSpendingItemOfPlan,
-} from "../../redux/project/projectSlice";
+import { fetchProjectsByOrgThunk, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, approveSpendingPlanThunk } from "../../redux/project/projectSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { getManagedOrganizationsByManager } from "../../redux/organization/organizationSlice";
 import ManagerLayout from "../../components/Layout/ManagerLayout";
 import { FaLink } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { getManagedOrganizationByCeo } from "../../redux/organization/organizationSlice";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
-import {
-  Col,
-  Row,
-  Button,
-  Flex,
-  Modal,
-  Skeleton,
-  Empty,
-  Typography,
-} from "antd";
+import { Col, Row, Button, Flex, Modal, Skeleton, Empty, Typography,Tag } from "antd";
 const { Title } = Typography;
 import { Table } from "antd";
-import { getManagedOrganizationByCeo } from "../../redux/organization/organizationSlice";
 const OrganizationProject = () => {
-  // const myOrganization = useSelector((state) => state.organization.myOrganization);
-  const { ownedOrganization } = useSelector((state) => state.organization);
+  const myOrganization = useSelector((state) => state.organization.ownedOrganization);
 
-  const { organizationId } = useParams();
-
+  // const { organizationId } = useParams();
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("overview");
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const spendingPlans = useSelector((state) => state.project.spendingPlans);
+  const currentSpendingPlan = useSelector((state) => state.project.currentSpendingPlan);
   const spendingItems = useSelector((state) => state.project.spendingItems);
   const [loading, setLoading] = useState(false);
 
@@ -58,8 +44,14 @@ const OrganizationProject = () => {
   const projectByOrg = useSelector((state) => state.project.projects);
 
   useEffect(() => {
-    dispatch(fetchProjectsByOrgThunk(ownedOrganization?.organizationId));
-  }, [dispatch, ownedOrganization]);
+    dispatch(getManagedOrganizationByCeo());
+    dispatch(getManagedOrganizationsByManager());
+  }, [dispatch])
+  useEffect(() => {
+   if(myOrganization && myOrganization.organizationId){
+    dispatch(fetchProjectsByOrgThunk(myOrganization.organizationId));
+   }
+  }, [dispatch,myOrganization]);
 
   const projectStatusData = [
     {
@@ -108,109 +100,77 @@ const OrganizationProject = () => {
             <Row gutter={[16, 16]}>
               {projectByOrg &&
                 Array.isArray(projectByOrg) &&
-                projectByOrg.length > 1 &&
-                projectByOrg.map((project) => (
-                  <Col
-                    key={project.project.id}
-                    span="8"
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignContent: "center",
-                    }}
-                  >
-                    {project.project.projectStatus === "PLANNING" ? (
-                      <Flex
-                        vertical="true"
-                        gap="1rem"
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignContent: "center",
-                        }}
-                      >
-                        <ProjectCard
-                          key={project.project.id}
-                          projectData={project}
-                          only={false}
-                        />
-                        <Button
-                          onClickCapture={() => {
-                            setIsOpenModal(true);
-                            setSelectedProject(project);
-                            setLoading(true);
-                            console.log("Selected Project:", project);
-                            if (selectedProject && selectedProject.project) {
-                              console.log(selectedProject.project.id);
-                              dispatch(
-                                fetchSpendingPlansOfProject(
-                                  selectedProject.project.id
-                                )
-                              );
-                            }
-                            if (spendingPlans && spendingPlans.length > 0) {
-                              dispatch(
-                                fetchSpendingItemOfPlan(spendingPlans[0].id)
-                              );
-                            }
+                projectByOrg.length > 1 && projectByOrg.map(project => (
+                  <Col key={project.project.id} span='8' style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
+                    {project.project.projectStatus === "PLANNING"
+                      ?
+                      (
+                        <Flex vertical='true' gap='1rem' style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', position:"relative",width:"100%" }}>
+                          <ProjectCard key={project.project.id} projectData={project} only={false} />
+                          <Button
+                          style={{
+                            marginTop: '10px'
                           }}
-                          type="primary"
-                          style={{ marginTop: "10px" }}
-                          onClick={() => {}}
-                        >
-                          View Spending plan
-                        </Button>
-                      </Flex>
-                    ) : (
-                      <ProjectCard
-                        key={project.project.id}
-                        projectData={project}
-                        only={false}
-                      />
-                    )}
+                          onClickCapture={() => {
+                            setIsOpenModal(true)
+                            setLoading(true);
+                            setSelectedProject(project)
+                            console.log("Selected Project:", project);
+                            if(selectedProject && selectedProject.project && selectedProject.project.id){
+                              dispatch(fetchSpendingPlanOfProject(selectedProject.project.id));
+                            }
+                            if (currentSpendingPlan && currentSpendingPlan.id) {
+                              dispatch(fetchSpendingItemOfPlan(currentSpendingPlan.id));
+                            }
+                            if(spendingItems && spendingItems.length > 0){
+                              setLoading(false);
+                          }}
+                          } type="primary" onClick={() => { }}>View Spending plan</Button>
+                        </Flex>
+                      ) : <ProjectCard key={project.project.id} projectData={project} only={false} />}
                   </Col>
                 ))}
             </Row>
-            <Modal
-              open={isOpenModal}
-              onCancel={() => setIsOpenModal(false)}
-              footer={null}
-              width={1000}
-            >
-              {loading ? (
-                <>
-                  <Flex
-                    justify="space-between"
-                    align="center"
-                    style={{ padding: "20px" }}
-                  >
-                    <Title level={4}>
-                      {spendingPlans && spendingPlans.length
-                        ? spendingPlans[0].planName
-                        : ""}
-                    </Title>
-                    <Button>Approve</Button>
-                  </Flex>
+            <Modal open={isOpenModal} onCancel={() => setIsOpenModal(false)} footer={null} width={1000}>
+              {!loading ? (
+                currentSpendingPlan && currentSpendingPlan.id ? (
+                  <>
+                    <Flex justify="space-between" align="center" style={{ padding: '20px' }}>
+                      <Title level={4}>
+                        {currentSpendingPlan.planName}
+                      </Title>
+                      {
+                         currentSpendingPlan.approvalStatus ==="SUBMITED" ?(
+                          <Button onClick={() => {
+                            dispatch(approveSpendingPlanThunk(currentSpendingPlan.id));
+                          }}>Approve</Button>
+                         ):(
+                          <Tag >{currentSpendingPlan.approvalStatus}</Tag>
+                         )
+                      }
+                  
+                    </Flex>
 
-                  {spendingItems && spendingItems.length > 0 ? (
-                    <Table
-                      rowKey={(record, index) => index}
-                      columns={columns.filter(Boolean)}
-                      dataSource={spendingItems}
-                      pagination={false}
-                    />
-                  ) : (
-                    <Empty
-                      title="No spending items found"
-                      description="Please add a spending item."
-                      style={{ marginTop: "20px" }}
-                    />
-                  )}
-                </>
+                    {spendingItems && spendingItems.length > 0 ? (
+                      <Table
+                        rowKey={(record, index) => index}
+                        columns={columns.filter(Boolean)}
+                        dataSource={spendingItems}
+                        pagination={false}
+                      />
+                    ) : (
+                      <Empty description="No spending items found" />
+                    )}
+                  </>
+                ) : (
+                  <Empty description="No spending plan found" />
+                )
               ) : (
                 <Skeleton active paragraph={{ rows: 4 }} />
               )}
             </Modal>
+
+
           </>
         );
       case "members":

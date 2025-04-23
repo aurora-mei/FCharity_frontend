@@ -1,15 +1,18 @@
 import { ConsoleSqlOutlined } from "@ant-design/icons";
 import axios from "axios";
+import { API_URL } from "../../constants/env-config";
 
 export const API = axios.create({
-  baseURL: `http://localhost:8080/`,
+  // baseURL: `http://localhost:8080/`,
+  baseURL: `${API_URL}`,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-export const APIPrivate = axios.create({ 
-  baseURL: `http://localhost:8080/`,
+export const APIPrivate = axios.create({
+  // baseURL: `http://localhost:8080/`,
+  baseURL: `${API_URL}`,
   headers: {
     "Content-Type": "application/json",
   },

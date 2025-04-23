@@ -1,5 +1,8 @@
 import { message } from 'antd';
 import { APIPrivate } from '../../config/API/api';
+import { saveAs } from 'file-saver';
+
+
 
 const fetchProjects = async () => {
     try {
@@ -100,8 +103,22 @@ const moveOutProjectMember = async (memberId) => {
     try {
         const response = await APIPrivate.post(`projects/members/move-out/${memberId}`);
         console.log("Project members:", response.data);
+        message.success("Move out project member successful");
         return response.data;
     } catch (err) {
+        message.error("Error move out project member");
+        console.error("Error get project members:", err);
+        throw err.response.data;
+    }
+}
+const removeProjectMember = async (memberId) => {
+    try {
+        const response = await APIPrivate.post(`projects/members/remove/${memberId}`);
+        console.log("Project members:", response.data);
+        message.success("Remove project member successful");
+        return response.data;
+    } catch (err) {
+        message.error("Error remove project member");
         console.error("Error get project members:", err);
         throw err.response.data;
     }
@@ -218,6 +235,79 @@ const rejectLeaveRequest = async(requestId)=>{
     }
 }
 // ===== SPENDING PLAN =====
+export const getSpendingTemplate = async (projectId) => { // Rename for clarity
+    try {
+        const response = await APIPrivate.get( 
+            `projects/spending/${projectId}/download-template`,
+            {
+                responseType: 'blob', // *** CRITICAL: Tell Axios to expect binary data (Blob) ***
+            }
+        );
+        const blob = new Blob([response.data], {
+            type: response.headers['content-type'] || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // Get MIME type from header or default
+        });
+
+        // 2. Extract filename from Content-Disposition header (optional but recommended)
+        let filename = 'spending_template.xlsx'; // Default filename
+        const contentDisposition = response.headers['content-disposition'];
+        if (contentDisposition) {
+            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            const matches = filenameRegex.exec(contentDisposition);
+            if (matches != null && matches[1]) {
+                filename = matches[1].replace(/['"]/g, '');
+            }
+        }
+        console.log("filename",filename);
+        // 3. Use FileSaver.js (or manual method) to save the blob
+        saveAs(blob, filename);
+
+        // No need to return response.data here as it's handled by FileSaver
+        // message.success("Template downloaded successfully."); // Optional success message
+
+    } catch (err) {
+        message.error("Failed to download spending template");
+        console.error("Error downloading Spending Template:", err);
+        // Handle specific error responses if needed
+        // Consider checking err.response.status or err.response.data if backend sends error details as JSON even on failure
+        // If the response for an error is also a blob, you might need to read it differently
+        if (err.response && err.response.data instanceof Blob && err.response.data.type.toLowerCase().indexOf('json') !== -1) {
+             // Try reading the Blob as JSON text if it's an error response
+             try {
+                const errorJson = await err.response.data.text();
+                const errorData = JSON.parse(errorJson);
+                console.error("Error details:", errorData);
+                 message.error(errorData.message || "An error occurred during download."); // Show more specific error
+                 throw errorData;
+             } catch (parseError) {
+                console.error("Could not parse error blob:", parseError);
+                 throw new Error("An unknown error occurred during download.");
+             }
+        } else {
+            // Throw original error or a generic one
+             throw err.response?.data || new Error("An unknown error occurred during download.");
+        }
+    }
+};
+
+export const importSpendingPlan = async ({file, projectId }) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await APIPrivate.post(`projects/spending/${projectId}/save-items-from-template`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        message.success("Spending plan imported successfully");
+        console.log("Imported Spending Plan:", response.data);
+        return response.data;
+    } catch (err) {
+        message.error(`Failed to import spending plan: ${err.response?.data?.message || ""}`);
+        console.error("Error importing Spending Plan:", err);
+        throw err.response?.data;
+    }
+};
+
 export const createSpendingPlan = async (dto) => {
     try {
         const response = await APIPrivate.post(`projects/spending/plans`, dto);
@@ -231,11 +321,10 @@ export const createSpendingPlan = async (dto) => {
     }
 };
 
-export const getSpendingPlansOfProject = async (projectId) => {
+export const getSpendingPlanOfProject = async (projectId) => {
     try {
         const response = await APIPrivate.get(`projects/spending/${projectId}/plan`);
-        // message.success("Fetched project spending plan successfully");
-        console.log("Fetched Spending Plans:", response.data);
+        console.log("Fetched Spending Plan:", response.data);
         return response.data;
     } catch (err) {
         // message.error("Failed to fetch project spending plan");
@@ -281,7 +370,19 @@ export const deleteSpendingPlan = async (planId) => {
         throw err.response?.data;
     }
 };
+export const approveSpendingPlan = async(planId)=>{
+    try{
+        const response = await APIPrivate.post(`projects/spending/plans/${planId}/approve`);
+        console.log("Spending plan approved:", response.data);
+        message.success("Spending plan approved successfully");
+        return response.data;
+    }catch(err){
+        console.error("Error approving spending plan:", err);
+        message.error("Error approving spending plan");
+        throw err.response.data;
+    }
 
+}
 // ===== SPENDING ITEM =====
 export const createSpendingItem = async (dto) => {
     try {
@@ -346,7 +447,47 @@ export const getItemsByPlan = async (planId) => {
         throw err.response?.data;
     }
 };
-
+//spending details
+export const getSpendingDetailsByProject = async (projectId) => {
+    try {
+        const response = await APIPrivate.get(`projects/spending/${projectId}/details`);
+        console.log("Spending details:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching spending details:", err);
+        throw err.response.data;
+    }
+}
+export const createSpendingDetail = async (detailData) => {
+    try {
+        const response = await APIPrivate.post(`projects/spending/details/create`,detailData);
+        console.log("Spending detail create:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching spending details:", err);
+        throw err.response.data;
+    }
+}
+export const updateSpendingDetail = async ({id,detailData}) => {
+    try {
+        const response = await APIPrivate.put(`projects/spending/details/${id}`,detailData);
+        console.log("Spending detail create:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching spending details:", err);
+        throw err.response.data;
+    }
+}
+export const deleteSpendingDetail = async ({id}) => {
+    try {
+        const response = await APIPrivate.delete(`projects/spending/details/${id}`);
+        console.log("Spending detail create:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching spending details:", err);
+        throw err.response.data;
+    }
+}
 //donations
 const createDonation = async (donationData) => {
     try {
@@ -372,10 +513,12 @@ const getDonationsOfProject = async (projectId) => {
 }
 
 const projectApi = { fetchProjects, createProject, fetchProjectById, fetchMyProjects,updateProject,fetchProjectsByOrg,
-    getUserNotInProject, addProjectMember,fetchAllProjectMembers, fetchActiveProjectMembers,moveOutProjectMember,inviteProjectMember,
+    getUserNotInProject, addProjectMember,fetchAllProjectMembers, fetchActiveProjectMembers,moveOutProjectMember,removeProjectMember,inviteProjectMember,
     getAllProjectRequest, sendJoinRequest, cancelProjectRequest,approveJoinRequest,rejectJoinRequest,
     approveLeaveRequest,rejectLeaveRequest,
-    getSpendingPlansOfProject, createSpendingPlan, getSpendingPlanById, updateSpendingPlan, deleteSpendingPlan,
+    getSpendingTemplate,importSpendingPlan,approveSpendingPlan,
+    createSpendingDetail,getSpendingDetailsByProject,updateSpendingDetail,deleteSpendingDetail,
+    getSpendingPlanOfProject, createSpendingPlan, getSpendingPlanById, updateSpendingPlan, deleteSpendingPlan,
     createSpendingItem,getSpendingItemById,updateSpendingItem,deleteSpendingItem,getItemsByPlan,
      createDonation,getDonationsOfProject};
 export default projectApi;

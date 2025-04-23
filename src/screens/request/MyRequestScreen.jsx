@@ -1,20 +1,13 @@
 import React, { useEffect, useState } from "react";
-import {
-  Empty,
-  List,
-  Typography,
-  Form,
-  Input,
-  Select,
-  Tabs,
-  Badge,
-} from "antd";
+import { Empty, List, Typography,Card, Form, Divider, Input, Image, Select, Tabs, Badge, Button, Flex, Modal, Avatar } from "antd";
 import LoadingModal from "../../components/LoadingModal";
 import RequestCard from "../../components/RequestCard/RequestCard";
-import { fetchRequestsByUserIdThunk } from "../../redux/request/requestSlice";
+import { fetchRequestsByUserIdThunk, fetchTransferRequestByRequest, updateConfirmTransferThunk, updateErrorTransferThunk, setCurrentTransferRequest, updateBankInfoThunk } from "../../redux/request/requestSlice";
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
+import { getListBankThunk } from "../../redux/helper/helperSlice";
 import { Bar, Line } from "react-chartjs-2";
+import { useNavigate,Link } from "react-router-dom";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -26,7 +19,6 @@ import {
   Legend,
 } from "chart.js";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -45,16 +37,11 @@ ChartJS.register(
 
 // Hàm parse location
 function parseLocationString(locationString = "") {
-  const parts = locationString.split(",").map((p) => p.trim());
+  const parts = locationString.split(",").map(p => p.trim());
 
   // If there are less than 3 parts, return what we can.
   if (parts.length < 3) {
-    return {
-      detail: locationString,
-      communeName: "",
-      districtName: "",
-      provinceName: "",
-    };
+    return { detail: locationString, communeName: "", districtName: "", provinceName: "" };
   }
 
   const provincePart = parts[parts.length - 1];
@@ -72,9 +59,7 @@ function parseLocationString(locationString = "") {
     .replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "")
     .trim();
   // For commune, remove the commune keywords
-  const communeName = communePart
-    .replace(/^(xã|phường|thị trấn)\s*/i, "")
-    .trim();
+  const communeName = communePart.replace(/^(xã|phường|thị trấn)\s*/i, "").trim();
 
   return { detail, communeName, districtName, provinceName };
 }
@@ -127,19 +112,21 @@ const MyRequestScreen = () => {
     hidden: 0,
     registered: 0,
   });
-
   const [filters, setFilters] = useState({});
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState("all");
   const [provinces, setProvinces] = useState([]);
-
+  const [transferRequests, setTransferRequests] = useState(new Map());
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const loading = useSelector((state) => state.request.loading);
   const requestsByUserId =
     useSelector((state) => state.request.requestsByUserId) || [];
   const error = useSelector((state) => state.request.error);
-
+  const listBank = useSelector((state) => state.helper.listBank) || [];
+  const [transferRequestModalOpen, setTransferRequestModalOpen] = useState(false);
+  const currentTransferRequest = useSelector((state) => state.request.currentTransferRequest) || {};
   // Get user from localStorage
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -194,10 +181,30 @@ const MyRequestScreen = () => {
 
   // Fetch user's requests on mount
   useEffect(() => {
+    dispatch(getListBankThunk());
+
     if (currentUser.id) {
       dispatch(fetchRequestsByUserIdThunk(currentUser.id));
     }
   }, [dispatch, currentUser.id]);
+
+  useEffect(() => {
+    console.log("listBank", listBank);
+    const fetchAllTransferRequests = async () => {
+      const newMap = new Map();
+      for (const request of requestsByUserId) {
+        const response = await dispatch(fetchTransferRequestByRequest(request.helpRequest.id));
+        newMap.set(request.helpRequest.id, response.payload); // hoặc response.data tùy theo bạn dùng redux-thunk hay redux-toolkit
+      }
+      setTransferRequests(newMap);
+      console.log("TransferRequests", newMap);
+    };
+
+    if (requestsByUserId.length > 0) {
+      fetchAllTransferRequests();
+    }
+  }, [dispatch, requestsByUserId]);
+
 
   // Filter requests whenever requests, filters, activeTab, or provinces change
   useEffect(() => {
@@ -326,6 +333,34 @@ const MyRequestScreen = () => {
     yearOptions.push(y.toString());
   }
 
+  const handleSubmitBankInfo = (values) => {
+    console.log("Bank Info submitted:", values);
+    const id = values.transferRequestId;
+    const { bankBin, accountNumber, accountHolder } = values;
+    if (values) {
+      dispatch(updateBankInfoThunk({ id: id, bankInfo: { bankBin, accountNumber, accountHolder } }))
+        .then(() => {
+          setTransferRequestModalOpen(false);
+        })
+        .catch((error) => {
+          console.error("Failed to update bank info:", error);
+        });
+    }
+  };
+  const handleSubmitError = (values) => {
+    console.log("Error Info submitted:", currentTransferRequest.id);
+    const id = currentTransferRequest.id;
+    const { note } = values;
+    if (values) {
+      dispatch(updateErrorTransferThunk({ id: id, note: "Error report from user: " + note }))
+        .then(() => {
+          setTransferRequestModalOpen(false);
+        })
+        .catch((error) => {
+          console.error("Failed to update error info:", error);
+        });
+    }
+  };
   if (loading) return <LoadingModal />;
   if (error) {
     return (
@@ -337,19 +372,10 @@ const MyRequestScreen = () => {
 
   return (
     <div style={{ padding: "0 2rem" }}>
-      <Form
-        layout="inline"
-        form={form}
-        onValuesChange={onValuesChange}
-        style={{ marginBottom: "1rem" }}
-      >
+      <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
         <Form.Item name="year" label="Year">
-          <Select
-            placeholder="Select year"
-            allowClear
-            style={{ minWidth: 100 }}
-          >
-            {yearOptions.map((year) => (
+          <Select placeholder="Select year" allowClear style={{ minWidth: 100 }}>
+            {yearOptions.map(year => (
               <Option key={year} value={year}>
                 {year}
               </Option>
@@ -441,30 +467,12 @@ const MyRequestScreen = () => {
       </Form>
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
         <TabPane key="all" tab={<Badge count={requestCounts.all}>All</Badge>} />
-        <TabPane
-          key="pending"
-          tab={<Badge count={requestCounts.pending}>Pending</Badge>}
-        />
-        <TabPane
-          key="approved"
-          tab={<Badge count={requestCounts.approved}>Approved</Badge>}
-        />
-        <TabPane
-          key="rejected"
-          tab={<Badge count={requestCounts.rejected}>Rejected</Badge>}
-        />
-        <TabPane
-          key="completed"
-          tab={<Badge count={requestCounts.completed}>Completed</Badge>}
-        />
-        <TabPane
-          key="hidden"
-          tab={<Badge count={requestCounts.hidden}>Hidden</Badge>}
-        />
-        <TabPane
-          key="registered"
-          tab={<Badge count={requestCounts.registered}>Registered</Badge>}
-        />
+        <TabPane key="pending" tab={<Badge count={requestCounts.pending}>Pending</Badge>} />
+        <TabPane key="approved" tab={<Badge count={requestCounts.approved}>Approved</Badge>} />
+        <TabPane key="rejected" tab={<Badge count={requestCounts.rejected}>Rejected</Badge>} />
+        <TabPane key="completed" tab={<Badge count={requestCounts.completed}>Completed</Badge>} />
+        <TabPane key="hidden" tab={<Badge count={requestCounts.hidden}>Hidden</Badge>} />
+        <TabPane key="registered" tab={<Badge count={requestCounts.registered}>Registered</Badge>} />
       </Tabs>
 
       {/* List of Requests */}
@@ -474,7 +482,215 @@ const MyRequestScreen = () => {
           dataSource={filteredRequests}
           renderItem={(request) => (
             <List.Item key={request.helpRequest.id}>
-              <RequestCard requestData={request} />
+
+              {transferRequests && transferRequests.get(request.helpRequest.id) ? (
+                <Flex vertical gap={10}>
+                  <RequestCard requestData={request} />
+                  <Button onClick={() => {
+                    setTransferRequestModalOpen(true);
+                    console.log("TransferRequest", transferRequests.get(request.helpRequest.id));
+                    dispatch(setCurrentTransferRequest(transferRequests.get(request.helpRequest.id)));
+                    form.setFieldsValue({
+                      transferRequestId: transferRequests.get(request.helpRequest.id).id
+                    })
+                  }}>View transfer request</Button>
+                  <Modal
+                    title="Transfer Request Details"
+                    open={transferRequestModalOpen}
+                    onCancel={() => setTransferRequestModalOpen(false)}
+                    footer={null}
+                  >
+                    {(() => {
+                      const transferRequest = transferRequests.get(request.helpRequest.id);
+                      const status = transferRequest.status;
+
+                      const renderBankForm = () => (
+                        <Form
+                          form={form}
+                          layout="vertical"
+                          onFinish={handleSubmitBankInfo}
+                          initialValues={{
+                             transferRequestId: transferRequest.id ,
+                              bankBin: transferRequest.bankBin, 
+                              accountNumber: transferRequest.bankAccount, 
+                              accountHolder: transferRequest.bankOwner}}
+                        >
+                          <Form.Item name="transferRequestId" hidden>
+                            <Input />
+                          </Form.Item>
+
+                          <Form.Item
+                            label="Bank"
+                            name="bankBin"
+                            rules={[{ required: true, message: 'Please select your bank.' }]}
+                          >
+                            <Select placeholder="Select your bank">
+                              {Array.isArray(listBank) &&
+                                listBank.map((bank) => (
+                                  <Option key={bank.id} value={bank.bin}>
+                                    <Flex>
+                                      <img
+                                        src={bank.logo}
+                                        alt={bank.name}
+                                        style={{ width: 60, height: 30, marginRight: 8 }}
+                                      />
+                                      {`(${bank.bin}) ${bank.name}`}
+                                    </Flex>
+                                  </Option>
+                                ))}
+                            </Select>
+                          </Form.Item>
+
+                          <Form.Item
+                            label="Account Number"
+                            name="accountNumber"
+                            rules={[
+                              { required: true, message: 'Please enter your bank account number.' },
+                              { pattern: /^[0-9]{6,20}$/, message: 'The account number must be between 6 and 20 digits.' },
+                            ]}
+                          >
+                            <Input placeholder="Enter your bank account number" maxLength={20} />
+                          </Form.Item>
+
+                          <Form.Item
+                            label="Account Holder Name"
+                            name="accountHolder"
+                            rules={[{ required: true, message: 'Please enter the account holder name.' }]}
+                          >
+                            <Input placeholder="Enter the account holder name" />
+                          </Form.Item>
+
+                          <Form.Item>
+                            <Button type="primary" htmlType="submit">
+                              Submit Bank Information
+                            </Button>
+                          </Form.Item>
+                        </Form>
+                      );
+
+                      switch (status) {
+                        case "PENDING_USER_CONFIRM":
+                          return (
+                            <>
+                              <p>{transferRequest.reason}</p>
+                              {renderBankForm()}
+                            </>
+                          );
+                        case "PENDING_ADMIN_APPROVAL":
+                          return (
+                            <>
+                              <p>Your request has been sent to the administrator.</p>
+                              <p>Please wait for their approval.</p>
+                            </>
+                          );
+                        case "CONFIRM_SENT":
+                          return (
+                            <>
+                              <div>
+                                <Typography.Text strong>Account Information</Typography.Text>
+                                <Card>
+                                  <p><strong>Bank BIN:</strong> {transferRequest?.bankBin}</p>
+                                  <p><strong>Bank Account:</strong> {transferRequest?.bankAccount}</p>
+                                  <p><strong>Bank Owner:</strong> {transferRequest?.bankOwner}</p>
+                                </Card>
+                              </div>
+                              <div>
+                                <Typography.Text strong>Transaction Proof</Typography.Text>
+                                <Card>
+                                  <Image
+                                    preview={{
+                                      maskClassName: 'custom-image-mask',
+                                    }}
+                                    height="10rem"
+                                    src={transferRequest.transactionImage}
+                                    alt="Transaction image"
+                                    className="h-12 w-12 object-cover rounded"
+                                    style={{ cursor: 'pointer', alignSelf: "center" }}
+                                  />
+                                   <p><strong>Note:</strong> {transferRequest?.note}</p>
+                                   <p><strong>Project Donation History:</strong> <Link to={`/projects/${transferRequest.project.id}/details`}>{transferRequest?.project.projectName}</Link></p>
+                                  <p>A transfer has been made. Please check your account balance and confirm the transaction.</p>
+                                  <Button
+                                    type="primary"
+                                    onClick={() => {
+                                      dispatch(updateConfirmTransferThunk(transferRequest.id));
+                                      setTransferRequestModalOpen(false);
+                                    }}
+                                  >
+                                    Confirm Receipt
+                                  </Button>
+                                </Card>
+                              </div>
+                              <Divider style={{ borderTop: '1px solid rgba(0, 0, 0, 0.85)' }} />
+
+
+                              <Title level={5}>Report an Issue</Title>
+                              <p>If there’s any issue with this transaction, please leave a note below to report it.</p>
+                              <Form layout="vertical" style={{ marginTop: "1rem" }} onFinish={handleSubmitError}>
+                                <Form.Item label="Note" name="note">
+                                  <Input.TextArea placeholder="Describe the issue here..." />
+                                </Form.Item>
+                                <Form.Item>
+                                  <Button type="primary" htmlType="submit">
+                                    Report Error
+                                  </Button>
+                                </Form.Item>
+                              </Form>
+                            </>
+                          );
+
+                        case "COMPLETED":
+                          return (
+                            <>
+                             <Title level={5}>The transaction was completed!</Title>
+                             <div>
+                                <Typography.Text strong>Project Information</Typography.Text>
+                                <Card>
+                                  <p><strong>Project Donation History: </strong><Link to={`/projects/${transferRequest.project.id}/details`}>{transferRequest?.project.projectName}</Link></p>
+                                  <p><strong>Start date: </strong>{new Date(transferRequest.project.actualStartTime).toLocaleString()}</p>
+                                  <p><strong>End date: </strong>{new Date(transferRequest.project.actualEndTime).toLocaleString()}</p>
+                                </Card>
+                              </div>
+                             <div>
+                                <Typography.Text strong>Account Information</Typography.Text>
+                                <Card>
+                                  <p><strong>Bank BIN:</strong> {transferRequest?.bankBin}</p>
+                                  <p><strong>Bank Account:</strong> {transferRequest?.bankAccount}</p>
+                                  <p><strong>Bank Owner:</strong> {transferRequest?.bankOwner}</p>
+                                </Card>
+                              </div>
+                            </>
+                          
+                          )
+                        case "ERROR":
+                          return (
+                            <>
+                              {
+                                transferRequest.note.includes("Error report from user: ") ? (
+                                  <>
+                                    <p>Your error report: {transferRequest.note.replace("Error report from user: ", "")}</p>
+                                    <p>Please wait for response from admin.</p>
+                                  </>
+                                ) : (
+                                  <>
+                                    <p>{transferRequest.note}</p>
+                                    {renderBankForm()}
+                                  </>
+                                )
+                              }
+                            </>
+                          );
+                        default:
+                          return null;
+                      }
+                    })()}
+                  </Modal>
+
+
+                </Flex>
+              ) : (
+                <RequestCard requestData={request} />
+              )}
             </List.Item>
           )}
         />

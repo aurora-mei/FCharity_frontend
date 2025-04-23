@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createRequest } from '../../redux/request/requestSlice';
 import { fetchCategories } from '../../redux/category/categorySlice'; // Chỉ import action
 import { fetchTags } from '../../redux/tag/tagSlice';             // Chỉ import action
-import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { uploadFileMedia } from "../../redux/helper/helperSlice";
 import { useNavigate } from "react-router-dom";
 import LoadingModal from "../LoadingModal/index.jsx"; // Giả sử component này tồn tại
 
@@ -297,7 +297,7 @@ const CreateRequestForm = () => {
 
     try {
       const folderName = type === 'images' ? 'images' : 'videos';
-      const responseUrl = await dispatch(uploadFileHelper({ file: file.originFileObj, folderName })).unwrap();
+      const responseUrl = await dispatch(uploadFileMedia({ file: file.originFileObj, folderName,resourceType:type })).unwrap();
 
       // Cập nhật state attachments
       setAttachments(prev => ({

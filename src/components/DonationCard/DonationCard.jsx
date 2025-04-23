@@ -69,7 +69,7 @@ const DonationCard = ({ donation }) => {
             <div className="amount">+ {donation.amount.toLocaleString()} VND</div>
             </Col>
             <Col span={7}>
-            <div className="message">{donation.message || "No message"}fdgdgdfgsdgfsdgdggdgdgf</div>
+            <div className="message">{donation.message || "No message"}</div>
             </Col>
         </Row>
         </StyledCard>

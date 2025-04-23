@@ -5,7 +5,6 @@ import {
   FaHome,
   FaCalendar,
   FaIdCard,
-  FaWallet,
   FaUsers,
   FaProjectDiagram,
   FaDonate,

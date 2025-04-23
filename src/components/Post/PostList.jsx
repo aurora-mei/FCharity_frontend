@@ -8,7 +8,7 @@ const { Content } = Layout;
 const PostList = ({ posts, viewMode }) => {
     return (
         <Content style={{ flex: 1, display: "flex", justifyContent: "center", background: "#fff" }}>
-            <Flex vertical gap={10} style={{ flex: 1, maxWidth: "800px" }}>
+            <Flex vertical gap={10} style={{ flex: 1, Width: "85%" }}>
                 <List
                     dataSource={posts || []}
                     renderItem={(post) => (

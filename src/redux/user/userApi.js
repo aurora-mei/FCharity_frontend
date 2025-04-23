@@ -26,15 +26,6 @@ const getTransactionHistoryOfUser = async (userId) => {
     throw err;
   }
 }
-const getCurrentWallet = async () => {
-  try {
-    const response = await APIPrivate.get("users/current-wallet");
-    return response.data;
-  } catch (err) {
-    console.error("Error fetching transaction history:", err);
-    throw err;
-  }
-}
 
 const getAllUsers = () => api.get("/users");
 
@@ -54,5 +45,5 @@ const updateProfile = async (profileData) => {
   }
 };
 
-const userApi = { getCurrentUser, getAllUsers, getTransactionHistoryOfUser,getCurrentWallet, updateProfile };
+const userApi = { getCurrentUser, getAllUsers, getTransactionHistoryOfUser, updateProfile };
 export default userApi;

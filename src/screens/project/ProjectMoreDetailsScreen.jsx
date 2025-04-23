@@ -30,7 +30,7 @@ import {
   FlagOutlined,
 } from "@ant-design/icons";
 import { getOrganizationById } from "../../redux/organization/organizationSlice";
-import { getCurrentWalletThunk } from "../../redux/user/userSlice";
+import { getPaymentLinkThunk } from "../../redux/helper/helperSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
 import {
@@ -38,13 +38,9 @@ import {
   DollarOutlined,
   RiseOutlined,
   StarOutlined,
-  UnorderedListOutlined,
-} from "@ant-design/icons";
-import {
-  fetchProjectById,
-  createDonationThunk,
-  fetchDonationsOfProject,
-} from "../../redux/project/projectSlice";
+  UnorderedListOutlined
+} from '@ant-design/icons';
+import { fetchProjectById, fetchDonationsOfProject, fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
 import styled from "styled-components";
 import LoadingModal from "../../components/LoadingModal";
 import ProjectDonationBoard from "../../containers/ProjectDonationBoard/ProjectDonationBoard";
@@ -184,27 +180,27 @@ const StyledScreen = styled.div`
 
 const StyledSection = {
   Container: styled.div`
-    background-color: #fff;
-    color: #333;
-  `,
+      background-color: #fff;
+      color: #333;
+    `,
 
   ProfileSection: styled.div`
-    display: flex;
-    align-items: center;
-    margin-top: 1rem;
-    margin-bottom: 16px;
-  `,
+      display: flex;
+      align-items: center;
+      margin-top:1rem;
+      margin-bottom: 16px;
+    `,
   Avatar: styled.img`
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 16px;
-  `,
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 16px;
+    `,
   Info: styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    div {
+    display:flex;
+    flex-direction:column;
+       gap:1rem;
+     div{
       p {
         margin: 0;
         color: #666;
@@ -214,48 +210,46 @@ const StyledSection = {
           color: #000;
         }
       }
-    }
-  `,
+        }
+    `,
   ContactButton: styled(Button)`
-    border-radius: 0.5rem;
-    padding: 1rem 0.5rem !important;
-    font-size: 1rem !important;
-  `,
+      border-radius: 0.5rem;
+      padding:1rem 0.5rem !important;
+      font-size:1rem !important;
+    `,
   Meta: styled.p`
-    color: #666;
-    margin: 16px 0;
-
-    a {
-      color: #1677ff;
-    }
-  `,
+      color: #666;
+      margin: 16px 0;
+  
+      a {
+        color: #1677ff;
+      }
+    `,
   ReportLink: styled.a`
-    display: flex;
-    align-items: center;
-    color: #666;
-
-    &:hover {
-      color: #000;
-    }
-  `,
+      display: flex;
+      align-items: center;
+      color: #666;
+  
+      &:hover {
+        color: #000;
+      }
+    `
 };
 
 const ProjectMoreDetailScreen = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { projectId } = useParams();
-  const [form] = Form.useForm(); // Khởi tạo form instance
+  const [form] = Form.useForm();  // Khởi tạo form instance
 
   const currentProject = useSelector((state) => state.project.currentProject);
   const donations = useSelector((state) => state.project.donations);
-  const currentOrganization = useSelector(
-    (state) => state.organization.currentOrganization
-  );
+  const checkoutURL = useSelector((state) => state.helper.checkoutURL);
+  const projectRequests = useSelector((state) => state.project.projectRequests);
+  const projectMembers = useSelector((state) => state.project.projectMembers);
   const loading = useSelector((state) => state.project.loading);
 
-  const [expanded, setExpanded] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const balance = useSelector((state) => state.user.currentBalance);
 
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -268,25 +262,26 @@ const ProjectMoreDetailScreen = () => {
   useEffect(() => {
     dispatch(fetchProjectById(projectId));
     dispatch(fetchDonationsOfProject(projectId));
-    dispatch(getCurrentWalletThunk());
   }, [dispatch, projectId, donations.length]);
   useEffect(() => {
+    if (checkoutURL) {
+      window.location.href = checkoutURL;
+    }
     if (currentProject.project) {
       dispatch(getOrganizationById(currentProject.project.organizationId));
+      dispatch(fetchProjectRequests(project.id));
+      dispatch(fetchActiveProjectMembers(project.id));
     }
-  }, [dispatch, currentProject.project, donations]);
+    console.log("currentProject", currentProject);
+  }, [dispatch, currentProject.project, donations, checkoutURL]);
 
   // Lọc ảnh/video (nếu backend trả về attachments)
-  const imageUrls =
-    currentProject.attachments?.filter((url) =>
-      url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
-    ) || [];
-  const videoUrls =
-    currentProject.attachments?.filter((url) =>
-      url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
-    ) || [];
-  console.log("imageUrls", imageUrls);
-  console.log("videoUrls", videoUrls);
+  const imageUrls = currentProject.attachments?.filter((url) =>
+    url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
+  ) || [];
+  const videoUrls = currentProject.attachments?.filter((url) =>
+    url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
+  ) || [];
   const carouselSettings = {
     arrows: true,
     infinite: true,
@@ -294,77 +289,61 @@ const ProjectMoreDetailScreen = () => {
     slidesToShow: 1,
     slidesToScroll: 1,
   };
-  if (loading || !currentProject.project) {
+  if (!currentProject.project) {
     return <LoadingModal />;
   }
   const { project, projectTags } = currentProject;
 
   const items = [
     {
-      href: "/",
-      // Increase icon size
+      href: '/',
       title: (
-        <HomeOutlined
-          style={{ fontWeight: "bold", fontSize: "1.3rem", color: "green" }}
-        />
+        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem" }} /> // Increase icon size
       ),
     },
     {
-      // Increase text size
       title: (
-        <a
-          style={{ fontSize: "1rem", color: "green" }}
-          onClick={() => {
-            navigate(-1);
-          }}
-        >
-          Project {project.projectName}
-        </a>
+        <a style={{ fontSize: "1rem" }} onClick={() => { navigate(-1) }}>Project {project.projectName}</a> // Increase text size
       ),
     },
     {
-      // Increase text size
-      title: <p style={{ fontSize: "1rem", color: "green" }}>Details</p>,
+      title: (
+        <p style={{ fontSize: "1rem" }}>Details</p> // Increase text size
+      ),
     },
   ];
   const handleDonate = async (values) => {
     console.log(values);
+    console.log("currentUser", currentUser.id);
     dispatch(
-      createDonationThunk({
-        projectId: project.id,
+      getPaymentLinkThunk({
+        itemContent: `${currentUser.email}'s deposit`,
         userId: currentUser.id,
+        objectId: project.id,
         amount: values.amount,
-        message: values.message,
+        paymentContent: values.message,
+        objectType: "PROJECT",
+        returnUrl: `projects/${project.id}/details`,
       })
     );
     setIsOpenModal(false);
     form.resetFields();
-    dispatch(getCurrentWalletThunk());
-  };
+  }
 
   return (
     // <div>   </div>
     <StyledScreen>
       <Row gutter={8} justify="center" style={{ margin: "0 auto" }}>
-        <Col span={13}>
+        <Col span={13} >
           <Breadcrumb items={items} style={{ marginLeft: "1rem" }} />
           {/* <LeftCircleOutlined  onClick={()=>navigate(-1)} style={{ fontWeight: "bold", fontSize: "1.5rem" }}/> */}
-          <Flex gap={0} vertical className="request-detail-page">
+          <Flex gap={0} vertical className="request-detail-page" >
             <Flex vertical gap={0} className="request-detail">
-              <Title level={3} className="request-title">
-                {project.projectName}
-              </Title>
+              <Title level={3} className="request-title">{project.projectName}</Title>
 
               {(imageUrls.length > 0 || videoUrls.length > 0) && (
-                <div
-                  className="request-carousel"
-                  style={{ position: "relative" }}
-                >
-                  <Carousel
-                    arrows
-                    {...carouselSettings}
-                    style={{ position: "relative", borderRadius: 10 }}
-                  >
+                <div className="request-carousel" style={{ position: 'relative' }}>
+                  <Carousel arrows  {...carouselSettings} style={{ position: 'relative', borderRadius: 10 }}>
                     {imageUrls.map((url, index) => (
                       <div key={`img-${index}`} className="media-slide">
                         <img src={url.imageUrl} alt={`request-img-${index}`} />
@@ -379,43 +358,34 @@ const ProjectMoreDetailScreen = () => {
                 </div>
               )}
 
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <UserOutlined style={{ fontSize: 24 }} />
-                <div>
-                  <strong>{project.leader.fullName}</strong> lead this project{" "}
-                  <br />
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <Flex gap={10}>
+                  <Avatar src={project.leader.avatar} style={{ fontSize: 24 }} />
+                  <Flex vertical gap={10}>
+                    <span> <strong>{project.leader.fullName}</strong> lead this project</span>
+                    <Flex vertical gap={5} >
+                      <span> <i>Planned start at: </i> {moment(project.plannedStartTime).format("DD/MM/YYYY hh:mm A")} </span>
+                      <span> <i>Planned end at: </i> {moment(project.plannedEndTime).format("DD/MM/YYYY hh:mm A")}</span>
+                      <span> <i>Location: </i> {project.location}</span>
+                    </Flex>
+                  </Flex>
+                </Flex>
+
               </div>
             </Flex>
+
           </Flex>
         </Col>
         <Col span={8} style={{ marginTop: "2rem" }}>
-          <ProjectStatisticCard
-            project={project}
-            donations={donations}
-            isOpenModal={isOpenModal}
-            setIsOpenModal={setIsOpenModal}
-          />
+          <ProjectStatisticCard project={project} projectMembers={projectMembers} projectRequests={projectRequests} donations={donations} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
         </Col>
       </Row>
-      <Flex
-        vertical
-        gap={0}
-        className="details-containter"
-        style={{ margin: "0 auto", width: "100%" }}
-      >
-        <ProjectDonationBoard donations={donations} />
-        <ProjectDonationBoard donations={donations} />
+      <Flex vertical gap={0} className="details-containter" style={{ margin: "0 auto", width: "100%" }}>
+        <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
+        <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
       </Flex>
-      <DonateProjectModal
-        form={form}
-        isOpenModal={isOpenModal}
-        setIsOpenModal={setIsOpenModal}
-        project={project}
-        handleDonate={handleDonate}
-        balance={balance}
-      />
+      <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
     </StyledScreen>
   );
-};
+}
 export default ProjectMoreDetailScreen;

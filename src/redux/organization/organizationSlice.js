@@ -199,7 +199,9 @@ export const createOrganization = createAsyncThunk(
   "organizations/create",
   async (orgData, { rejectWithValue }) => {
     try {
+      console.log("createOrganization: 🕷️🕷️ ", orgData);
       const response = await organizationApi.createOrganization(orgData);
+      console.log("createOrganization: 🕷️🕷️🍎 ", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(

@@ -21,13 +21,41 @@ const ForumPage = () => {
     }, [dispatch]);
 
     return (
-        <Layout style={{ minHeight: "100vh", display: "flex", padding: "20px" }}>
-            <LeftSidebar />
-            <Content style={{ background: "#fff", flex: 1, margin: "0 20px" }}>
-                <ForumHeader sortBy={sortBy} setSortBy={setSortBy} viewMode={viewMode} setViewMode={setViewMode} />
+        <Layout style={{ 
+            minHeight: "100vh", 
+            display: "flex", 
+            flexDirection: "row", 
+            gap: "20px", 
+            padding: "20px" 
+        }}>
+            {/* Left Sidebar with fixed width */}
+            <LeftSidebar style={{ 
+                flex: "0 0 260px", 
+                height: "calc(100vh - 40px)" // Adjust for vertical padding
+            }} />
+            
+            {/* Main Content Area */}
+            <Content style={{ 
+                flex: 1, 
+                background: "#fff", 
+                padding: "20px",
+                borderRadius: "8px",
+                overflow: "auto" 
+            }}>
+                <ForumHeader 
+                    sortBy={sortBy} 
+                    setSortBy={setSortBy} 
+                    viewMode={viewMode} 
+                    setViewMode={setViewMode} 
+                />
                 <PostList posts={posts} viewMode={viewMode} />
             </Content>
-            <RightSidebar />
+            
+            {/* Right Sidebar with fixed width */}
+            <RightSidebar style={{ 
+                flex: "0 0 260px", 
+                height: "calc(100vh - 40px)" // Adjust for vertical padding
+            }} />
         </Layout>
     );
 };

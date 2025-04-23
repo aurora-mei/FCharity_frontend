@@ -6,7 +6,7 @@ import { UploadOutlined } from "@ant-design/icons";
 import { updateProjectThunk } from "../../redux/project/projectSlice";
 import styled from "styled-components";
 import moment from 'moment-timezone';
-import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { uploadFileMedia } from "../../redux/helper/helperSlice";
 const StyledButton = styled(Button)`
     background-color:green;
     border-radius: 0.5rem;
@@ -36,12 +36,16 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
     }, [dispatch, projectData,form]);
 
     const initFormData = async () => {
-       
+       console.log("projectData", projectData.project);
         form.setFieldsValue({
             projectName: projectData.project.projectName || "",
             projectDescription: projectData.project.projectDescription || "",
-            plannedStartTime: projectData.project.plannedStartTime ? moment(projectData.project.plannedStartTime) : null,
-            plannedEndTime: projectData.project.plannedEndTime ? moment(projectData.project.plannedEndTime) : null,
+            plannedStartTime: projectData.project.plannedStartTime
+            ? moment.utc(projectData.project.plannedStartTime).local()
+            : null,
+          plannedEndTime: projectData.project.plannedEndTime
+            ? moment.utc(projectData.project.plannedEndTime).local()
+            : null,
             categoryId: projectData.project.categoryId || null,
             categoryName: projectData.project.categoryName || null,
             tagIds: projectData.projectTags.map(t => t.tag.id) || [],
@@ -75,7 +79,7 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
         const latestFile = fileList[fileList.length - 1];
 
         try {
-            const response = await dispatch(uploadFileHelper({ file: latestFile.originFileObj, folderName: "images" })).unwrap();
+            const response = await dispatch(uploadFileMedia({ file: latestFile.originFileObj, folderName: "images",resourceType:"image" })).unwrap();
             console.log("response", response);
             latestFile.url = response;
             setUploadedImages((prevImages) => {
@@ -108,7 +112,7 @@ const ProjectUpdateModal = ({ projectData, form, isOpenModal, setIsOpenModal }) 
         const latestFile = fileList[fileList.length - 1];
 
         try {
-            const response = await dispatch(uploadFileHelper({ file: latestFile.originFileObj, folderName: "videos" })).unwrap();
+            const response = await dispatch(uploadFileMedia({ file: latestFile.originFileObj, folderName: "videos",resourceType:"video" })).unwrap();
             console.log("response", response);
             latestFile.url = response;
             setUploadedVideos((prevVideos) => {
