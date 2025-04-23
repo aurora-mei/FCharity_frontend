@@ -11,7 +11,7 @@ const UserLayout = () => {
       <Navbar />
       <div className="relative">
         <UserSidebar />
-        <main className="flex-1 ml-64 pt-6">
+        <main className="flex-1 ml-64">
           <Outlet />
           <AppFooter />
           <ToastContainer

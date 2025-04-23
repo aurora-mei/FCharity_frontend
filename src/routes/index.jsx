@@ -53,6 +53,7 @@ import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
 import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 import Organizations from "../pages/guest/Organizations.jsx";
+import OrganizationArticle from "../pages/manage/OrganizationArticle.jsx";
 
 const AppRoutes = () => {
   return (
@@ -112,6 +113,7 @@ const AppRoutes = () => {
 
             <Route path="requests" element={<OrganizationRequest />} />
             <Route path="schedule" element={<OrganizationSchedule />} />
+            <Route path="articles" element={<OrganizationArticle />} />
           </Route>
         </Route>
         <Route path="manage-project" element={<ProjectDashboard />} />
@@ -130,15 +132,12 @@ const AppRoutes = () => {
             element={<ProjectMoreDetailScreen />}
           />
         </Route>
-        <Route path="/" element={<UserLayout />}>
+        <Route path="/" element={<GeneralLayout />}>
           <Route path="organizations">
             <Route index element={<Organizations />} />
             <Route path=":organizationId" element={<OrganizationDetails />} />
             <Route path="create" element={<CreateOrganization />} />
-          </Route>
-          <Route path="rankings">
-            <Route path="organizations" element={<OrganizationRankings />} />
-            <Route path="users" element={<UserRankings />} />
+            <Route path="rankings" element={<OrganizationRankings />} />
           </Route>
         </Route>
       </Routes>

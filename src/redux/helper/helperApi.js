@@ -80,5 +80,5 @@ const getPaymentLink = async (data) => {
     throw error;
   }
 };
-const helperApi = { uploadFile, getPaymentLink };
+const helperApi = { uploadFile, uploadFileMedia, getPaymentLink };
 export default helperApi;

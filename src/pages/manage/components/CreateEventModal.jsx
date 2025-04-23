@@ -1,10 +1,74 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { IoClose } from "react-icons/io5";
 import { IoChevronDownOutline } from "react-icons/io5";
+
+import Checkbox from "@mui/material/Checkbox";
+import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getAllMembersInOrganization,
+  getAllUsersNotInOrganization,
+} from "../../../redux/organization/organizationSlice";
+
+const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
+const checkedIcon = <CheckBoxIcon fontSize="small" />;
+
+const top100Films = [
+  { title: "The Shawshank Redemption", year: 1994 },
+  { title: "The Godfather", year: 1972 },
+  { title: "The Godfather: Part II", year: 1974 },
+  { title: "The Dark Knight", year: 2008 },
+  { title: "12 Angry Men", year: 1957 },
+  { title: "Schindler's List", year: 1993 },
+  { title: "Pulp Fiction", year: 1994 },
+  {
+    title: "The Lord of the Rings: The Return of the King",
+    year: 2003,
+  },
+  { title: "The Good, the Bad and the Ugly", year: 1966 },
+  { title: "Fight Club", year: 1999 },
+  {
+    title: "The Lord of the Rings: The Fellowship of the Ring",
+    year: 2001,
+  },
+  {
+    title: "Star Wars: Episode V - The Empire Strikes Back",
+    year: 1980,
+  },
+  { title: "Forrest Gump", year: 1994 },
+  { title: "Inception", year: 2010 },
+  {
+    title: "The Lord of the Rings: The Two Towers",
+    year: 2002,
+  },
+  { title: "One Flew Over the Cuckoo's Nest", year: 1975 },
+  { title: "Goodfellas", year: 1990 },
+  { title: "The Matrix", year: 1999 },
+  { title: "Seven Samurai", year: 1954 },
+  {
+    title: "Star Wars: Episode IV - A New Hope",
+    year: 1977,
+  },
+  { title: "City of God", year: 2002 },
+  { title: "Se7en", year: 1995 },
+  { title: "The Silence of the Lambs", year: 1991 },
+  { title: "It's a Wonderful Life", year: 1946 },
+  { title: "Life Is Beautiful", year: 1997 },
+  { title: "The Usual Suspects", year: 1995 },
+  { title: "Léon: The Professional", year: 1994 },
+  { title: "Spirited Away", year: 2001 },
+  { title: "Saving Private Ryan", year: 1998 },
+  { title: "Once Upon a Time in the West", year: 1968 },
+  { title: "American History X", year: 1998 },
+  { title: "Interstellar", year: 2014 },
+];
 
 const CreateEventModal = ({
   isCreateModalOpen,
@@ -15,7 +79,35 @@ const CreateEventModal = ({
   handleInputChange,
   handleCreateEvent,
 }) => {
+  const dispatch = useDispatch();
+
+  const usersOutsideOrganization = useSelector(
+    (state) => state.organization.usersOutsideOrganization
+  );
+
+  const currentOrganizationMembers = useSelector(
+    (state) => state.organization.currentOrganizationMembers
+  );
+
+  const ownedOrganization = useSelector(
+    (state) => state.organization.ownedOrganization
+  );
+
+  useEffect(() => {
+    if (ownedOrganization?.organizationId) {
+      dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
+      dispatch(getAllUsersNotInOrganization(ownedOrganization.organizationId));
+    }
+  }, [dispatch, ownedOrganization]);
+
+  const usersList = [
+    ...usersOutsideOrganization,
+    ...currentOrganizationMembers.map((member) => member.user),
+  ];
+  const [selectedEmailsList, setSelectedEmailsList] = useState([]);
+
   const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
+
   const colorOptions = [
     { value: "#3788d8", label: "Blue", color: "#3788d8" },
     { value: "#28a745", label: "Green", color: "#28a745" },
@@ -24,16 +116,12 @@ const CreateEventModal = ({
     { value: "#6f42c1", label: "Purple", color: "#6f42c1" },
   ];
 
-  const mapEventTypeToDisplayName = (eventType) => {
-    const eventTypeMap = {
-      COMMUNITY_SUPPORT: "Community Support",
-      SEMINAR: "Seminar",
-      VOLUNTEER: "Volunteer",
-      FUNDRAISING: "Fundraising",
-      TRAINING: "Training",
-    };
-    return eventTypeMap[eventType] || eventType;
-  };
+  const filterEmails = () => {};
+
+  console.log("usersOutsideOrganization 🍎🍎", usersOutsideOrganization);
+  console.log("currentOrganizationMembers ⚓⚓", currentOrganizationMembers);
+  console.log("users: ", usersList);
+
   return (
     <Modal
       isOpen={isCreateModalOpen}
@@ -262,7 +350,7 @@ const CreateEventModal = ({
               </div>
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Target audience
               </label>
@@ -278,6 +366,152 @@ const CreateEventModal = ({
                   {errors.targetAudience}
                 </p>
               )}
+            </div> */}
+
+            <div>
+              <h3 className="mb-4 font-semibold text-gray-900">
+                Target audience{" "}
+                <span className="text-sm text-gray-500">
+                  (For sending invitation email)
+                </span>
+              </h3>
+              <div className="flex flex-col items-end">
+                <ul
+                  className="items-center w-[500px] text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex"
+                  style={{ marginBottom: "0" }}
+                >
+                  <li className="w-full border-b border-gray-200 sm:border-b-0 sm:border-r">
+                    <div className="flex items-center ps-3">
+                      <input
+                        id="vue-checkbox-list"
+                        type="checkbox"
+                        value=""
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500"
+                        style={{ color: "blue" }}
+                      />
+                      <label
+                        for="vue-checkbox-list"
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900"
+                      >
+                        All users
+                      </label>
+                    </div>
+                  </li>
+                  <li className="w-full border-b border-gray-200 sm:border-b-0 sm:border-r ">
+                    <div className="flex items-center ps-3">
+                      <input
+                        id="react-checkbox-list"
+                        type="checkbox"
+                        value=""
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
+                      />
+                      <label
+                        for="react-checkbox-list"
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900 "
+                      >
+                        Members
+                      </label>
+                    </div>
+                  </li>
+                  <li className="w-full border-b border-gray-200 sm:border-b-0 sm:border-r ">
+                    <div className="flex items-center ps-3">
+                      <input
+                        id="angular-checkbox-list"
+                        type="checkbox"
+                        value=""
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
+                      />
+                      <label
+                        for="angular-checkbox-list"
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900 "
+                      >
+                        Managers
+                      </label>
+                    </div>
+                  </li>
+                  <li className="w-full">
+                    <div className="flex items-center ps-3">
+                      <input
+                        id="laravel-checkbox-list"
+                        type="checkbox"
+                        value=""
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
+                      />
+                      <label
+                        for="laravel-checkbox-list"
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900"
+                      >
+                        CEOs
+                      </label>
+                    </div>
+                  </li>
+                </ul>
+
+                <div className="mt-4">
+                  <h4 className="text-gray-800 text-md">Include</h4>
+                  <Autocomplete
+                    multiple
+                    id="checkboxes-tags-demo"
+                    options={usersList}
+                    disableCloseOnSelect
+                    getOptionLabel={(option) => option.fullName}
+                    renderOption={(props, option, { selected }) => {
+                      const { key, ...optionProps } = props;
+                      return (
+                        <li key={key} {...optionProps}>
+                          <Checkbox
+                            icon={icon}
+                            checkedIcon={checkedIcon}
+                            style={{ marginRight: 8 }}
+                            checked={selected}
+                          />
+                          {option.fullName} {"  "} ({option.email})
+                        </li>
+                      );
+                    }}
+                    style={{ width: 500 }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Includes users"
+                        placeholder="Includes users"
+                      />
+                    )}
+                  />
+                </div>
+                <div className="mt-4">
+                  <h4 className="text-gray-800 text-md">Exclude</h4>
+                  <Autocomplete
+                    multiple
+                    id="checkboxes-tags-demo"
+                    options={usersList}
+                    disableCloseOnSelect
+                    getOptionLabel={(option) => option.fullName}
+                    renderOption={(props, option, { selected }) => {
+                      const { key, ...optionProps } = props;
+                      return (
+                        <li key={key} {...optionProps}>
+                          <Checkbox
+                            icon={icon}
+                            checkedIcon={checkedIcon}
+                            style={{ marginRight: 8 }}
+                            checked={selected}
+                          />
+                          {option.fullName} {"  "} ({option.email})
+                        </li>
+                      );
+                    }}
+                    style={{ width: 500 }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Excludes users"
+                        placeholder="Excludes users"
+                      />
+                    )}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -320,18 +554,18 @@ const CreateEventModal = ({
       </div>
 
       <div className="bg-gray-100 p-4 border-t border-gray-200 flex justify-end items-center gap-8">
-        <button
+        <div
           onClick={() => setIsCreateModalOpen(false)}
           className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors hover:cursor-pointer"
         >
           Cancel
-        </button>
-        <button
+        </div>
+        <div
           onClick={handleCreateEvent}
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors  hover:cursor-pointer"
         >
           Create
-        </button>
+        </div>
       </div>
     </Modal>
   );
