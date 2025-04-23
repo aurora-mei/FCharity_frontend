@@ -18,7 +18,7 @@ const uploadFile = async ({ file, folderName = "default-folder" }) => {
   formData.append("folder", folderName); // 🌟 Thêm folder tùy chỉnh
 
   const isVideo = file.type.startsWith("video/");
-  const uploadUrl = isVideo
+  let uploadUrl = isVideo
     ? `${CLOUDINARY_URL.replace("/image/", "/video/")}`
     : CLOUDINARY_URL;
   console.log("up url", uploadUrl);
@@ -34,7 +34,11 @@ const uploadFile = async ({ file, folderName = "default-folder" }) => {
     return null;
   }
 };
-const uploadFileMedia = async ({ file, folderName = "default-folder",resourceType }) => {
+const uploadFileMedia = async ({
+  file,
+  folderName = "default-folder",
+  resourceType,
+}) => {
   console.log("Uploading file:", file);
 
   const formData = new FormData();
@@ -50,7 +54,7 @@ const uploadFileMedia = async ({ file, folderName = "default-folder",resourceTyp
   }
 
   const isVideo = file.type.startsWith("video/");
-  const uploadUrl = isVideo
+  let uploadUrl = isVideo
     ? `${CLOUDINARY_URL.replace("/image/", "/video/")}`
     : CLOUDINARY_URL;
   console.log("up url", uploadUrl);
@@ -88,5 +92,5 @@ const getListBank = async () => {
     throw error;
   }
 };
-const helperApi = { uploadFile, getPaymentLink,uploadFileMedia,getListBank };
+const helperApi = { uploadFile, getPaymentLink, uploadFileMedia, getListBank };
 export default helperApi;

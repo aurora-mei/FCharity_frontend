@@ -28,7 +28,9 @@ const OrganizationCard = ({ org, handleJoinOrganization }) => {
                 style={{ padding: 0, margin: 0 }}
                 to={`/organizations/${org.organizationId}`}
               >
-                <span className="hover:underline">{org.organizationName}</span>
+                <span className="hover:underline text-gray-800">
+                  {org.organizationName}
+                </span>
               </Link>
               {org.organizationStatus !== "PENDING" && (
                 <span className="text-blue-500">

@@ -13,6 +13,7 @@ import { Flex } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation, Trans } from "react-i18next";
 import OrganizationSlider from "../../pages/manage/components/OrganizationSlider";
+import OrganizationRankingsOverview from "../../pages/manage/components/OrganizationRankingsOverview";
 
 const HomeContainer = () => {
   const projects = useSelector((state) => state.project.projects);
@@ -33,6 +34,7 @@ const HomeContainer = () => {
           <FundraiserBoard projects={projects} />
           <EventBoard />
           <OrganizationSlider />
+          <OrganizationRankingsOverview />
         </Flex>
         <NotingGreen
           message={

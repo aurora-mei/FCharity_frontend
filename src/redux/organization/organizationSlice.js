@@ -29,9 +29,20 @@ const initialState = {
   managedOrganizations: [], // for manager
   selectedOrganizationByManager: 0,
 
+  orgCeo: null,
   ownedOrganization: null, // for ceo only one organization
   organizationEvents: [],
   verificationDocuments: [],
+
+  articles: [],
+  articleLikes: [],
+  author: null,
+
+  currentArticle: null,
+  currentArticleLikes: [],
+  organizationArticles: [],
+
+  organizationsRanking: [],
 
   allJoinInvitationRequests: [],
   loading: false,
@@ -75,6 +86,34 @@ export const getRecommendedOrganizations = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await organizationApi.getRecommendedOrganizations();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error fetching organizations"
+      );
+    }
+  }
+);
+
+export const getOrganizationsRanking = createAsyncThunk(
+  "organizations/getRanking",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getOrganizationsRanking();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error fetching organizations"
+      );
+    }
+  }
+);
+
+export const getCeoOrganization = createAsyncThunk(
+  "organizations/getCeoOrganization",
+  async (organizationId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getCeoOrganization(organizationId);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -590,6 +629,38 @@ export const getOrganizationVerificationDocuments = createAsyncThunk(
   }
 );
 
+export const addOrganizationVerificationDocument = createAsyncThunk(
+  "organizations/addOrganizationVerificationDocument",
+  async (dataInfo, { rejectWithValue }) => {
+    try {
+      const response =
+        await organizationApi.addOrganizationVerificationDocument(dataInfo);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error addOrganizationVerificationDocument"
+      );
+    }
+  }
+);
+
+export const deleteOrganizationVerificationDocument = createAsyncThunk(
+  "organizations/deleteOrganizationVerificationDocument",
+  async (documentId, { rejectWithValue }) => {
+    try {
+      const response =
+        await organizationApi.deleteOrganizationVerificationDocument(
+          documentId
+        );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error deleteOrganizationVerificationDocument"
+      );
+    }
+  }
+);
+
 export const uploadFileLocal = createAsyncThunk(
   "organizations/uploadFileLocal",
   async (dataInfo, { rejectWithValue }) => {
@@ -631,6 +702,152 @@ export const getFileUrlLocal = createAsyncThunk(
 );
 
 // ----------------------- End Organization Events --------------
+
+// ----------------------- Start Organization Article --------------
+export const getAllArticles = createAsyncThunk(
+  "organizations/getAllArticles",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getAllArticles();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error getting articles");
+    }
+  }
+);
+
+export const getArticleById = createAsyncThunk(
+  "organizations/getArticleById",
+  async (articleId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getArticleById(articleId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error getting article");
+    }
+  }
+);
+
+export const getArticleByOrganizationId = createAsyncThunk(
+  "organizations/getArticleByOrganizationId",
+  async (organizationId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getArticleByOrganizationId(
+        organizationId
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error getting article by organization"
+      );
+    }
+  }
+);
+
+export const createArticle = createAsyncThunk(
+  "organizations/createArticle",
+  async (articleData, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.createArticle(articleData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error creating article");
+    }
+  }
+);
+
+export const updateArticle = createAsyncThunk(
+  "organizations/updateArticle",
+  async (articleData, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.updateArticle(articleData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error updating article");
+    }
+  }
+);
+
+export const deleteArticle = createAsyncThunk(
+  "organizations/deleteArticle",
+  async (articleId, { rejectWithValue }) => {
+    try {
+      await organizationApi.deleteArticle(articleId);
+      return articleId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error deleting article");
+    }
+  }
+);
+
+export const getAllArticleLikes = createAsyncThunk(
+  "organizations/getAllArticleLikes",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getAllArticleLikes();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error getting article likes"
+      );
+    }
+  }
+);
+
+export const getArticleLikesByArticleId = createAsyncThunk(
+  "organizations/getArticleLikesByArticleId",
+  async (articleId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getArticleLikesByArticleId(
+        articleId
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error getting article likes by article id"
+      );
+    }
+  }
+);
+
+export const likeArticle = createAsyncThunk(
+  "organizations/likeArticle",
+  async (infoData, { rejectWithValue }) => {
+    try {
+      await organizationApi.likeArticle(infoData.articleId, infoData.userId);
+      return infoData;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error liking article");
+    }
+  }
+);
+
+export const unlikeArticle = createAsyncThunk(
+  "organizations/unlikeArticle",
+  async (infoData, { rejectWithValue }) => {
+    try {
+      await organizationApi.unlikeArticle(infoData.articleId, infoData.userId);
+      return infoData;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error unliking article");
+    }
+  }
+);
+
+export const getAuthor = createAsyncThunk(
+  "organizations/getAuthor",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getAuthor();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Error getting author");
+    }
+  }
+);
+
+// ----------------------- End Organization Article --------------
+
 export const getAllUsersNotInOrganization = createAsyncThunk(
   "organizations/getAllUsersNotInOrganization",
   async (organizationId, { rejectWithValue }) => {
@@ -699,6 +916,32 @@ export const organizationSlice = createSlice({
         state.recommendedOrganizations = action.payload;
       })
       .addCase(getRecommendedOrganizations.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getOrganizationsRanking.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getOrganizationsRanking.fulfilled, (state, action) => {
+        state.loading = false;
+        state.organizationsRanking = action.payload;
+      })
+      .addCase(getOrganizationsRanking.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getCeoOrganization.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getCeoOrganization.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orgCeo = action.payload;
+      })
+      .addCase(getCeoOrganization.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -1243,6 +1486,156 @@ export const organizationSlice = createSlice({
         state.loading = false;
       })
       .addCase(uploadFileLocal.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // ---------------------------------------------------------------------------
+      .addCase(getAllArticles.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAllArticles.fulfilled, (state, action) => {
+        state.loading = false;
+        state.articles = action.payload;
+      })
+      .addCase(getAllArticles.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getArticleById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getArticleById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentArticle = action.payload;
+      })
+      .addCase(getArticleById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getArticleByOrganizationId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getArticleByOrganizationId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.organizationArticles = action.payload;
+      })
+      .addCase(getArticleByOrganizationId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(createArticle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createArticle.fulfilled, (state, action) => {
+        state.loading = false;
+        state.organizationArticles.push(action.payload);
+      })
+      .addCase(createArticle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(updateArticle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateArticle.fulfilled, (state, action) => {
+        state.loading = false;
+        state.organizationArticles = state.organizationArticles.map(
+          (article) => {
+            if (article.articleId === action.payload.articleId) {
+              return action.payload;
+            }
+            return article;
+          }
+        );
+      })
+      .addCase(updateArticle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(deleteArticle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteArticle.fulfilled, (state, action) => {
+        state.loading = false;
+        state.organizationArticles = state.organizationArticles.filter(
+          (article) => article.articleId !== action.payload
+        );
+      })
+      .addCase(deleteArticle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getAllArticleLikes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAllArticleLikes.fulfilled, (state, action) => {
+        state.loading = false;
+        state.articleLikes = action.payload;
+      })
+      .addCase(getAllArticleLikes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getArticleLikesByArticleId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getArticleLikesByArticleId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentArticleLikes = action.payload;
+      })
+      .addCase(getArticleLikesByArticleId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(likeArticle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(likeArticle.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(likeArticle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(unlikeArticle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(unlikeArticle.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(unlikeArticle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getAuthor.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAuthor.fulfilled, (state, action) => {
+        state.loading = false;
+        state.author = action.payload;
+      })
+      .addCase(getAuthor.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
