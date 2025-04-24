@@ -270,27 +270,7 @@ const ProjectDonationContainer = () => {
     }
   }, [dispatch, currentProject.project, donations]);
 
-  // Lọc ảnh/video (nếu backend trả về attachments)
-  const imageUrls =
-    currentProject.attachments?.filter((url) =>
-      url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
-    ) || [];
-  const videoUrls =
-    currentProject.attachments?.filter((url) =>
-      url.imageUrl.match(/\.(mp4|webm|ogg)$/i)
-    ) || [];
-  console.log("imageUrls", imageUrls);
-  console.log("videoUrls", videoUrls);
-  const carouselSettings = {
-    arrows: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-  };
-  if (loading || !currentProject.project) {
-    return <LoadingModal />;
-  }
+
   return (
     // <div>   </div>
     <>

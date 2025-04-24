@@ -32,6 +32,7 @@ import {
 import { getOrganizationById } from "../../redux/organization/organizationSlice";
 import { getPaymentLinkThunk } from "../../redux/helper/helperSlice";
 import { Link } from "react-router-dom";
+import ProjectSpendingDetailContainer from "../../containers/ProjectSpendingDetailContainer/ProjectSpendingDetailContainer";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
 import {
   ShareAltOutlined,
@@ -40,7 +41,7 @@ import {
   StarOutlined,
   UnorderedListOutlined
 } from '@ant-design/icons';
-import { fetchProjectById, fetchDonationsOfProject, fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
+import { fetchProjectById, fetchDonationsOfProject, fetchProjectRequests, fetchActiveProjectMembers,fetchSpendingDetailsByProject } from "../../redux/project/projectSlice";
 import styled from "styled-components";
 import LoadingModal from "../../components/LoadingModal";
 import ProjectDonationBoard from "../../containers/ProjectDonationBoard/ProjectDonationBoard";
@@ -248,8 +249,8 @@ const ProjectMoreDetailScreen = () => {
   const projectRequests = useSelector((state) => state.project.projectRequests);
   const projectMembers = useSelector((state) => state.project.projectMembers);
   const loading = useSelector((state) => state.project.loading);
-
-  const [isOpenModal, setIsOpenModal] = useState(false);
+   const spendingDetails = useSelector((state) => state.project.spendingDetails);
+     const [isOpenModal, setIsOpenModal] = useState(false);
 
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -262,6 +263,8 @@ const ProjectMoreDetailScreen = () => {
   useEffect(() => {
     dispatch(fetchProjectById(projectId));
     dispatch(fetchDonationsOfProject(projectId));
+    dispatch(fetchSpendingDetailsByProject(projectId))
+    
   }, [dispatch, projectId, donations.length]);
   useEffect(() => {
     if (checkoutURL) {
@@ -380,9 +383,12 @@ const ProjectMoreDetailScreen = () => {
           <ProjectStatisticCard project={project} projectMembers={projectMembers} projectRequests={projectRequests} donations={donations} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
         </Col>
       </Row>
-      <Flex vertical gap={0} className="details-containter" style={{ margin: "0 auto", width: "100%" }}>
+      <Flex vertical gap={40} className="details-containter" style={{ margin: "1rem auto", width: "100%" }}>
         <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
-        <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
+        <ProjectSpendingDetailContainer
+                                       isLeader={false}
+                                       spendingDetails={spendingDetails}
+                                   />
       </Flex>
       <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
     </StyledScreen>

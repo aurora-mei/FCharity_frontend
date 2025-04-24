@@ -17,7 +17,7 @@ const ProjectSpendingPlanContainer = ({currentProject, isLeader}) => {
     const spendingItems = useSelector((state) => state.project.spendingItems);
     const [selectedSpendingItem, setSelectedSpendingItem] = useState(null);
     const [selectedSpendingPlan, setSelectedSpendingPlan] = useState(null);
-    const [downloadTemplate, setDownloadTemplate] = useState(false);
+    const [downloadTemplate, setDownloadTemplate] = useState(true);
     const [isOpenCreatePlanModal, setIsOpenCreatePlanModal] = useState(false);
     const [isOpenUpdatePlanModal, setIsOpenUpdatePlanModal] = useState(false);
     const [isOpenCreateItemModal, setIsOpenCreateItemModal] = useState(false);
@@ -120,6 +120,7 @@ const ProjectSpendingPlanContainer = ({currentProject, isLeader}) => {
                 <>
                     <Button
                         size="small"
+                         shape="circle"
                         icon={<EditOutlined />}
                         style={{ marginRight: 8 }}
                         onClick={() => {
@@ -131,6 +132,7 @@ const ProjectSpendingPlanContainer = ({currentProject, isLeader}) => {
                     />
                     <Button
                         size="small"
+                         shape="circle"
                         danger
                         icon={<DeleteOutlined />}
                         onClick={() => handleDeleteSpendingItem(record)}
@@ -140,7 +142,7 @@ const ProjectSpendingPlanContainer = ({currentProject, isLeader}) => {
             ),
         },
     ];
-    
+    console.log(!currentSpendingPlan || (currentSpendingPlan.approvalStatus !== "SUBMITED" && currentSpendingPlan.approvalStatus !== "APPROVED"))
     return (
         <SpendingPlanFlex>
             {isLeader &&
@@ -158,7 +160,7 @@ const ProjectSpendingPlanContainer = ({currentProject, isLeader}) => {
                                 </Tooltip>)
                         }
 
-                        {!currentSpendingPlan || (currentSpendingPlan.approvalStatus !== "SUBMITED" || currentSpendingPlan.approvalStatus !== "APPROVED")
+                        {!currentSpendingPlan || (currentSpendingPlan.approvalStatus !== "SUBMITED" && currentSpendingPlan.approvalStatus !== "APPROVED")
                             && (
                                 <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                                     <Tooltip title="Click here to download creating spending plan template">

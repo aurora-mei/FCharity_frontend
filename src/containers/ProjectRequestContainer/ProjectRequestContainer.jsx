@@ -6,7 +6,7 @@ import LoadingModal from "../../components/LoadingModal";
 import {
   Carousel,
   Typography,
-  Alert,
+  Alert,Skeleton,
   Tag,
   Button,
   Breadcrumb,
@@ -78,8 +78,13 @@ const ProjectRequestContainer = () => {
     }
   }, [dispatch, ownedOrganization]); // Chỉ gọi khi organizationId có giá trị
 
-  if (loading) return <LoadingModal />;
-  if (loading) return <LoadingModal />;
+  if (loading) {
+    return (
+        <Flex justify="center" align="center" style={{ minHeight: '600px' }}>
+            <Skeleton active paragraph={{ rows: 10 }} title={{ width: '30%' }} />
+        </Flex>
+    );
+}
 
   if (error) {
     return (

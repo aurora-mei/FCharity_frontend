@@ -31,7 +31,7 @@ const SpendingPlanModal = ({
     useEffect(() => {
         // Only fetch if project ID exists
         if (project?.project?.id) {
-             console.log('Fetching request for project ID:', project.project.id);
+            //  console.log('Fetching request for project ID:', project.project.id);
             dispatch(fetchRequestById(project.project.requestId));
         }
     }, [dispatch, project]); // Depend on project object
@@ -40,7 +40,7 @@ const SpendingPlanModal = ({
     useEffect(() => {
         if (spendingPlan) {
             // --- UPDATE MODE ---
-            console.log("Populating form for UPDATE:", spendingPlan);
+            // console.log("Populating form for UPDATE:", spendingPlan);
             form.setFieldsValue({
                 id: spendingPlan.id,
                 planName: spendingPlan.planName,
@@ -52,7 +52,7 @@ const SpendingPlanModal = ({
             });
         } else if (currentRequest?.helpRequest) {
              // --- CREATE MODE (after currentRequest is loaded) ---
-             console.log("Setting defaults for CREATE based on currentRequest:", currentRequest);
+            //  console.log("Setting defaults for CREATE based on currentRequest:", currentRequest);
              // Reset fields first in case modal is reused
             form.resetFields();
             // Set default extra cost based on request type
@@ -62,7 +62,7 @@ const SpendingPlanModal = ({
             });
         } else {
             // --- CREATE MODE (before currentRequest is loaded) ---
-             console.log("Resetting form for CREATE (request not loaded yet)");
+            //  console.log("Resetting form for CREATE (request not loaded yet)");
             // Reset fields if opening for create and request isn't loaded yet
              form.resetFields();
              // Optionally set a temporary default for maxExtraCostPercentage here if needed

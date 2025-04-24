@@ -1,4 +1,4 @@
-import { Card, Col, Row, Typography, Flex, Space, Select, Tag, Table, Button, Input } from 'antd';
+import { Card, Col, Row, Typography, Flex, Space, Select, Tag,Skeleton, Table, Button, Input } from 'antd';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -124,12 +124,34 @@ const ProjectMemberContainer = () => {
     const allProjectMembers = useSelector((state) => state.project.allProjectMembers);
     const projectRequests = useSelector((state) => state.project.projectRequests);
     const currentUser = useSelector((state) => state.auth.currentUser);
+    const [isLoading, setIsLoading] = useState(true);
     const [isLeader, setIsLeader] = useState(false);
+    // --- Data Fetching Effect (Sửa đổi) ---
     useEffect(() => {
-        console.log(projectId)
-        dispatch(fetchProjectById(projectId));
-        dispatch(fetchAllProjectMembersThunk(projectId));
-        dispatch(fetchProjectRequests(projectId));
+        const fetchData = async () => {
+            setIsLoading(true); // *** Bắt đầu loading ***
+            if (projectId) {
+                try {
+                    // Sử dụng Promise.all để đợi tất cả các fetch hoàn thành
+                    await Promise.all([
+                        dispatch(fetchProjectById(projectId)),
+                        dispatch(fetchAllProjectMembersThunk(projectId)),
+                        dispatch(fetchProjectRequests(projectId))
+                    ]);
+                    // Nếu tất cả thành công, quá trình fetch cơ bản đã xong
+                    console.log("Finished fetching member data.");
+                } catch (error) {
+                    console.error("Error fetching project member data:", error);
+                    // Có thể xử lý lỗi ở đây, ví dụ hiển thị thông báo
+                } finally {
+                    // *** Kết thúc loading bất kể thành công hay lỗi ***
+                    setIsLoading(false);
+                }
+            } else {
+                setIsLoading(false); // Không có projectId, không loading
+            }
+        };
+        fetchData();
     }, [dispatch, projectId]);
 
     useEffect(() => {
@@ -138,7 +160,13 @@ const ProjectMemberContainer = () => {
             setIsLeader(true);
         }
     }, [currentProject, allProjectMembers.length, currentUser.id, projectRequests.length]);
-
+    if (isLoading) {
+        return (
+            <Flex justify="center" align="center" style={{ minHeight: '600px' }}>
+                <Skeleton active paragraph={{ rows: 10 }} title={{ width: '30%' }} />
+            </Flex>
+        );
+    }
     return (
         <Flex vertical gap={25} style={{ overflowY: "auto", height: "100vh", padding: "0 1rem", scrollbarWidth: "none" }}>
             <Row gutter={16} style={{ marginTop: 16 }}>

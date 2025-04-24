@@ -44,8 +44,9 @@ import ProjectDashboard from "../screens/project/ProjectDashboard.jsx";
 import ProjectHomeContainer from "../containers/ProjectHomeContainer/ProjectHomeContainer.jsx";
 import ProjectMemberContainer from "../containers/ProjectMemberContainer/ProjectMemberContainer.jsx";
 import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer.jsx";
-import ProjectDonationContainer from "../containers/ProjectDonationContainer/ProjectDonationContainer.jsx";
 import ProjectRequestContainer from "../containers/ProjectRequestContainer/ProjectRequestContainer.jsx";
+import ProjectTaskPlanContainer from "../containers/ProjectTaskPlanContainer/ProjectTaskPlanContainer.jsx";
+
 
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
@@ -115,7 +116,7 @@ const AppRoutes = () => {
             <Route path="members" element={<ProjectMemberContainer />} />
             <Route path="finance" element={<ProjectFinancePlanContainer />} />
             <Route path="request/:id" element={<ProjectRequestContainer/>}/>
-            {/* <Route path="*" element={<ProjectHomeContainer />} /> */}
+            <Route path="tasks" element={<ProjectTaskPlanContainer/>} />
           </Route>
           <Route path="/" element={<ManagerLayout />}>
           <Route path="my-organization">
