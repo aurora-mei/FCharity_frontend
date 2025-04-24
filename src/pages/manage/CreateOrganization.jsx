@@ -1,4 +1,3 @@
-import ManagerLayout from "../../components/Layout/ManagerLayout";
 import React, { useRef, useState } from "react";
 import { createOrganization } from "../../redux/organization/organizationSlice";
 import { useDispatch } from "react-redux";
@@ -139,7 +138,7 @@ const CreateOrganization = () => {
     rgb ? `rgb(${rgb[0]},${rgb[1]},${rgb[2]})` : "bg-gray-300";
 
   return (
-    <div>
+    <div className="m-auto max-w-[1300px]">
       <div className="pl-2">
         <div className="inline-flex gap-2 items-baseline">
           <FaLink />

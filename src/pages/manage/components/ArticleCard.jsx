@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 const ArticleCard = ({ article }) => {
-  console.log("article:⚓⚓ ", article);
   const navigate = useNavigate();
 
   const formatDate = (isoString) => {
@@ -35,7 +34,7 @@ const ArticleCard = ({ article }) => {
 
   return (
     <div
-      className="max-w-[350px] border border-gray-300 rounded-sm overflow-hidden hover:cursor-pointer hover:shadow-md hover:-translate-x-0.5 hover:-translate-y-0.5 transition duration-200"
+      className="w-[350px] shrink-0 border border-gray-300 rounded-sm overflow-hidden hover:cursor-pointer hover:shadow-md hover:-translate-x-0.5 hover:-translate-y-0.5 transition duration-200"
       onClick={() => {
         navigate(
           `/organizations/${article?.organization?.organizationId}/articles/${article?.articleId}`

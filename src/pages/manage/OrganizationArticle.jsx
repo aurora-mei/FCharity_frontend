@@ -8,18 +8,18 @@ import ArticleEditor from "./components/ArticleEditor";
 const OrganizationArticle = () => {
   const dispatch = useDispatch();
 
-  const ownedOrganization = useSelector(
-    (state) => state.organization.ownedOrganization
+  const currentOrganization = useSelector(
+    (state) => state.organization.currentOrganization
   );
   const organizationArticles = useSelector(
     (state) => state.organization.organizationArticles
   );
 
   useEffect(() => {
-    if (ownedOrganization?.organizationId) {
-      dispatch(getArticleByOrganizationId(ownedOrganization.organizationId));
+    if (currentOrganization?.organizationId) {
+      dispatch(getArticleByOrganizationId(currentOrganization.organizationId));
     }
-  }, [ownedOrganization]);
+  }, [currentOrganization]);
 
   const [isCreatingArticle, setIsCreatingArticle] = useState(false);
 

@@ -11,18 +11,27 @@ import { FaBuildingUser } from "react-icons/fa6";
 import { RiCalendarScheduleFill } from "react-icons/ri";
 import { PiArticleMediumFill } from "react-icons/pi";
 
-const ManagerSidebar = () => {
-  const [selectedTab, setSelectedTab] = useState("dashboard");
-  //dashboard | members | projects | requests | schedule | articles
-
+const CeoSidebar = () => {
+  const [selectedTab, setSelectedTab] = useState("my-organization");
+  // my-organization | dashboard | members | projects | requests | schedule | articles
   const navigate = useNavigate();
-
   useEffect(() => {
-    navigate(`/my-organization/dashboard`);
+    navigate(`/my-organization`);
   }, []);
 
   return (
     <div className="flex flex-col p-4 space-y-2">
+      <Link
+        to={`/my-organization`}
+        className={`flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200 ${
+          selectedTab === "my-organization" ? "bg-gray-100 text-gray-900" : ""
+        }`}
+        onClick={() => setSelectedTab("my-organization")}
+      >
+        <HomeFilled style={{ fontSize: "24px" }} />
+        <span className="text-base font-medium">My Organization</span>
+      </Link>
+
       <Link
         to={`/my-organization/dashboard`}
         className={`flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200 ${
@@ -88,4 +97,4 @@ const ManagerSidebar = () => {
   );
 };
 
-export default ManagerSidebar;
+export default CeoSidebar;

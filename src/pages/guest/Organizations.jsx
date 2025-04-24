@@ -3,8 +3,9 @@ import OrganizationRankings from "../manage/components/OrganizationRankings";
 
 const Organizations = () => {
   return (
-    <div>
-      <OrganizationRankings />
+    <div className="min-h-[500px]">
+      Organization view for all users
+      {/* <OrganizationRankings /> */}
     </div>
   );
 };

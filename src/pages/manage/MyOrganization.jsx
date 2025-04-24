@@ -28,14 +28,14 @@ const MyOrganization = () => {
   const dispatch = useDispatch();
 
   const orgCeo = useSelector((state) => state.organization.orgCeo);
-  const ownedOrganization = useSelector(
-    (state) => state.organization.ownedOrganization
+  const currentOrganization = useSelector(
+    (state) => state.organization.currentOrganization
   );
   const verificationDocuments = useSelector(
     (state) => state.organization.verificationDocuments
   );
 
-  console.log(" owned organization: ", ownedOrganization);
+  console.log(" owned organization: ", currentOrganization);
   console.log("verificationDocuments: ", verificationDocuments);
 
   const [orgInfo, setOrgInfo] = useState({
@@ -63,35 +63,35 @@ const MyOrganization = () => {
   }, []);
 
   useEffect(() => {
-    if (ownedOrganization) {
+    if (currentOrganization) {
       dispatch(
-        getOrganizationVerificationDocuments(ownedOrganization.organizationId)
+        getOrganizationVerificationDocuments(currentOrganization.organizationId)
       );
 
-      dispatch(getCeoOrganization(ownedOrganization.organizationId));
+      dispatch(getCeoOrganization(currentOrganization.organizationId));
 
       setOrgInfo({
-        organizationId: ownedOrganization?.organizationId,
-        organizationName: ownedOrganization?.organizationName,
-        email: ownedOrganization?.email,
-        phoneNumber: ownedOrganization?.phoneNumber,
-        address: ownedOrganization?.address,
-        walletAddress: ownedOrganization?.walletAddress,
-        ceo: ownedOrganization?.ceo,
-        organizationDescription: ownedOrganization?.organizationDescription,
-        organizationStatus: ownedOrganization?.organizationStatus,
-        backgroundUrl: ownedOrganization?.backgroundUrl,
-        reason: ownedOrganization?.reason,
-        advice: ownedOrganization?.advice,
+        organizationId: currentOrganization?.organizationId,
+        organizationName: currentOrganization?.organizationName,
+        email: currentOrganization?.email,
+        phoneNumber: currentOrganization?.phoneNumber,
+        address: currentOrganization?.address,
+        walletAddress: currentOrganization?.walletAddress,
+        ceo: currentOrganization?.ceo,
+        organizationDescription: currentOrganization?.organizationDescription,
+        organizationStatus: currentOrganization?.organizationStatus,
+        backgroundUrl: currentOrganization?.backgroundUrl,
+        reason: currentOrganization?.reason,
+        advice: currentOrganization?.advice,
       });
     }
-  }, [ownedOrganization, dispatch]);
+  }, [currentOrganization, dispatch]);
 
   useEffect(() => {
-    if (ownedOrganization?.backgroundUrl) {
+    if (currentOrganization?.backgroundUrl) {
       const img = new Image();
       img.crossOrigin = "Anonymous"; // Hỗ trợ CORS
-      img.src = ownedOrganization.backgroundUrl;
+      img.src = currentOrganization.backgroundUrl;
 
       img.onload = () => {
         try {
@@ -107,11 +107,11 @@ const MyOrganization = () => {
       img.onerror = () => {
         console.error(
           "Lỗi khi tải hình ảnh: ",
-          ownedOrganization.backgroundUrl
+          currentOrganization.backgroundUrl
         );
       };
     }
-  }, [ownedOrganization?.backgroundUrl]);
+  }, [currentOrganization?.backgroundUrl]);
 
   const [background, setBackground] = useState(null);
   const [backgroundColor, setBackgroundColor] = useState(null);
@@ -169,8 +169,8 @@ const MyOrganization = () => {
           filePath: fileUrl,
           fileType: docFile.type || docFile.name.split(".").pop(),
           uploadDate: new Date().toISOString(),
-          uploadedBy: ownedOrganization.ceo,
-          organization: ownedOrganization,
+          uploadedBy: currentOrganization.ceo,
+          organization: currentOrganization,
           fileSize: docFile.size,
         };
 
@@ -212,7 +212,7 @@ const MyOrganization = () => {
       }
 
       dispatch(
-        getOrganizationVerificationDocuments(ownedOrganization.organizationId)
+        getOrganizationVerificationDocuments(currentOrganization.organizationId)
       );
     } catch (err) {
       showError(err);
@@ -239,7 +239,8 @@ const MyOrganization = () => {
         .then(() => {
           console.log("Cập nhật tổ chức thành công!");
           setBackground(null);
-          backgroundInputRef.current.value = null;
+          if (backgroundInputRef.current)
+            backgroundInputRef.current.value = null;
           showSuccess("Cập nhật tổ chức thanh cong!");
           dispatch(getManagedOrganizationByCeo());
         })
@@ -305,9 +306,9 @@ const MyOrganization = () => {
             className="w-[90%] aspect-video overflow-hidden rounded-bl-md rounded-br-md relative bg-gray-300"
             style={{ maxWidth: "1250px", maxHeight: "260px" }}
           >
-            {(background || ownedOrganization?.backgroundUrl) && (
+            {(background || currentOrganization?.backgroundUrl) && (
               <img
-                src={background || ownedOrganization.backgroundUrl}
+                src={background || currentOrganization.backgroundUrl}
                 alt="Background image"
                 className="w-full h-full object-cover"
               />
@@ -707,7 +708,7 @@ const MyOrganization = () => {
               </div>
               <div className="p-8 pt-0 pb-20">
                 <p className="text-xl text-gray-800">Response from admin</p>
-                <div>{ownedOrganization?.reason || "No response"}</div>
+                <div>{currentOrganization?.reason || "No response"}</div>
               </div>
               <div className="absolute bottom-3 right-8">
                 <div

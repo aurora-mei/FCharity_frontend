@@ -10,7 +10,6 @@ import {
   Legend,
 } from "recharts";
 
-import ManagerLayout from "../../components/Layout/ManagerLayout";
 import { FaLink } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
