@@ -25,14 +25,18 @@ import { Link } from "react-router-dom";
 const OrganizationSchedule = () => {
   const dispatch = useDispatch();
 
-  const { ownedOrganization, organizationEvents } = useSelector(
-    (state) => state.organization
+  const currentOrganization = useSelector(
+    (state) => state.organization.currentOrganization
+  );
+
+  const organizationEvents = useSelector(
+    (state) => state.organization.organizationEvents
   );
 
   useEffect(() => {
-    if (ownedOrganization)
-      dispatch(getOrganizationEvents(ownedOrganization.organizationId));
-  }, [ownedOrganization, dispatch]);
+    if (currentOrganization)
+      dispatch(getOrganizationEvents(currentOrganization.organizationId));
+  }, [currentOrganization, dispatch]);
 
   useEffect(() => {
     if (organizationEvents && organizationEvents.length > 0) {
@@ -190,7 +194,7 @@ const OrganizationSchedule = () => {
     try {
       showInfo("Updating event...");
       const savedEvent = {
-        organizer: ownedOrganization,
+        organizer: currentOrganization,
         organizationEventId: updatedEvent.organizationEventId,
         title: updatedEvent.title,
         startTime: info.event.start,
@@ -245,7 +249,7 @@ const OrganizationSchedule = () => {
     if (!validateForm()) return;
 
     const newEventData = {
-      organizerId: ownedOrganization.organizationId,
+      organizerId: currentOrganization.organizationId,
       title: newEvent.title,
       startTime: newEvent.start,
       endTime: newEvent.end,
@@ -262,7 +266,7 @@ const OrganizationSchedule = () => {
     };
 
     console.log("New Event Data: 🧊🧊", newEventData);
-    console.log("Organizer: ", ownedOrganization);
+    console.log("Organizer: ", currentOrganization);
 
     dispatch(addOrganizationEvent(newEventData));
 

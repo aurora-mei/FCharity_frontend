@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, current } from "@reduxjs/toolkit";
 import organizationApi from "./organizationApi.js";
+import userApi from "../user/userApi.js";
 import { useSelector } from "react-redux";
 
 const initialState = {
@@ -155,6 +156,9 @@ export const getOrganizationById = createAsyncThunk(
   "organizations/getById",
   async (organizationId, { rejectWithValue }) => {
     try {
+      if (!organizationId) {
+        return null;
+      }
       const response = await organizationApi.getOrganizationById(
         organizationId
       );
@@ -263,6 +267,9 @@ export const getAllMembersInOrganization = createAsyncThunk(
   "organizations/getAllMembersInOrganization",
   async (organizationId, { rejectWithValue }) => {
     try {
+      if (!organizationId) {
+        return [];
+      }
       const response = await organizationApi.getAllMembersInOrganization(
         organizationId
       );
@@ -340,6 +347,9 @@ export const getAllJoinRequestsByOrganizationId = createAsyncThunk(
   "organizations/getAllJoinRequestsByOrganizationId",
   async (organizationId, { rejectWithValue }) => {
     try {
+      if (!organizationId) {
+        return null;
+      }
       const response = await organizationApi.getAllJoinRequestsByOrganizationId(
         organizationId
       );
@@ -852,11 +862,16 @@ export const getAllUsersNotInOrganization = createAsyncThunk(
   "organizations/getAllUsersNotInOrganization",
   async (organizationId, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.getAllUsersNotInOrganization(
-        organizationId
-      );
-      console.log("🍎🍎🍎 users not in org: ", response.data);
-      return response.data;
+      if (!organizationId) {
+        const response = await userApi.getAllUsers();
+        return response.data;
+      } else {
+        const response = await organizationApi.getAllUsersNotInOrganization(
+          organizationId
+        );
+        console.log("🍎🍎🍎 users not in org: ", response.data);
+        return response.data;
+      }
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Error fetching users not in organization"
@@ -869,6 +884,9 @@ export const organizationSlice = createSlice({
   name: "organization",
   initialState,
   reducers: {
+    setCurrentOrganization: (state, action) => {
+      state.currentOrganization = action.payload;
+    },
     setSelectedOrganization: (state, action) => {
       state.selectedOrganization = action.payload;
     },
@@ -992,6 +1010,7 @@ export const organizationSlice = createSlice({
       .addCase(getManagedOrganizationByCeo.fulfilled, (state, action) => {
         state.loading = false;
         state.ownedOrganization = action.payload;
+        state.currentOrganization = action.payload;
       })
       .addCase(getManagedOrganizationByCeo.rejected, (state, action) => {
         state.loading = false;
@@ -1642,5 +1661,6 @@ export const organizationSlice = createSlice({
   },
 });
 
-export const { setSelectedOrganization } = organizationSlice.actions;
+export const { setSelectedOrganization, setCurrentOrganization } =
+  organizationSlice.actions;
 export default organizationSlice.reducer;

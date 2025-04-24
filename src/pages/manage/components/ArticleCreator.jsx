@@ -85,6 +85,7 @@ const ArticleCreator = ({ setIsCreatingArticle }) => {
       alert("Bài viết được tạo!");
       setTitle("");
       setContent("");
+      setIsCreatingArticle(false);
     } catch (error) {
       console.error("Lỗi khi tạo bài viết:", error);
     }

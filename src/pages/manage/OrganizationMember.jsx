@@ -21,8 +21,8 @@ const OrganizationMember = () => {
   const currentOrganizationMembers = useSelector(
     (state) => state.organization.currentOrganizationMembers
   );
-  const ownedOrganization = useSelector(
-    (state) => state.organization.ownedOrganization
+  const currentOrganization = useSelector(
+    (state) => state.organization.currentOrganization
   );
 
   const joinRequests = useSelector((state) => state.organization.joinRequests);
@@ -39,13 +39,11 @@ const OrganizationMember = () => {
   console.log("current organizationMembers", currentOrganizationMembers);
 
   useEffect(() => {
-    if (ownedOrganization?.organizationId) {
-      dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
-      dispatch(
-        getAllJoinRequestsByOrganizationId(ownedOrganization.organizationId)
-      );
-    }
-  }, [dispatch, ownedOrganization]);
+    dispatch(getAllMembersInOrganization(currentOrganization?.organizationId));
+    dispatch(
+      getAllJoinRequestsByOrganizationId(currentOrganization?.organizationId)
+    );
+  }, [dispatch, currentOrganization]);
 
   const handleDeleteMember = async (member) => {
     console.log("member", member);
@@ -122,10 +120,10 @@ const OrganizationMember = () => {
               >
                 Join requests
               </button>
-              {joinRequests.length > 0 && (
+              {joinRequests?.length > 0 && (
                 <div className="absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
                   <span className="text-white text-md">
-                    {joinRequests.length}
+                    {joinRequests?.length}
                   </span>
                 </div>
               )}

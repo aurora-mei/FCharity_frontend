@@ -49,106 +49,115 @@ import ProjectRequestContainer from "../containers/ProjectRequestContainer/Proje
 
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
-import UserRankings from "../pages/manage/components/UserRankings.jsx";
-import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
-import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 import Organizations from "../pages/guest/Organizations.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
 import OrganizationArticle from "../pages/manage/OrganizationArticle.jsx";
+import OrganizationArticleView from "../pages/guest/OrganizationArticleView.jsx";
+import OrganizationLayout from "../components/Layout/OrganizationLayout.jsx";
 
 const AppRoutes = () => {
   return (
     <QueryClientProvider client={queryClient}>
-    <Router>
-      <Routes>
-        <Route path="/auth">
-          <Route path="login" element={<LoginScreen />} />
-          <Route path="signup" element={<SignupScreen />} />
-          <Route path="otp-verification" element={<OtpVerificationScreen />} />
-          <Route path="otp-reset-password" element={<ResetPwdScreen />} />
-        </Route>
-        <Route path="/" element={<GeneralLayout />}>
-          <Route index element={<HomeScreen />} />
-          <Route path="/forum" element={<ForumPage />} />
-          <Route path="/posts/:id" element={<PostDetailPage />} />
-          <Route path="/requests/:id" element={<RequestDetailScreen />} />
-          <Route element={<PrivateRoute />}>
+      <Router>
+        <Routes>
+          <Route path="/auth">
+            <Route path="login" element={<LoginScreen />} />
+            <Route path="signup" element={<SignupScreen />} />
             <Route
-              path="/user/manage-profile"
-              element={<ManageProfileScreen />}
-            >
-              <Route path="profile" element={<MyProfileScreen />} />
-              <Route path="mydonations" element={<MyDonationScreen />} />
-              <Route path="myrequests" element={<MyRequestScreen />} />
-              <Route path="myposts" element={<MyPostScreen />} />
-              <Route path="invitations" element={<InviteRequestScreen />} />
-            </Route>
-            <Route path="requests">
-              <Route index element={<RequestListScreen />} />
-              <Route path="create" element={<CreateRequestScreen />} />
-              <Route path="edit/:id" element={<EditRequestScreen />} />
-              <Route path="myrequests" element={<MyRequestScreen />} />
-            </Route>
-            <Route path="posts">
-              <Route path="create-post" element={<CreatePostPage />} />
-            </Route>
-            <Route path="user">
+              path="otp-verification"
+              element={<OtpVerificationScreen />}
+            />
+            <Route path="otp-reset-password" element={<ResetPwdScreen />} />
+          </Route>
+          <Route path="/" element={<GeneralLayout />}>
+            <Route index element={<HomeScreen />} />
+            <Route path="/forum" element={<ForumPage />} />
+            <Route path="/posts/:id" element={<PostDetailPage />} />
+            <Route path="/requests/:id" element={<RequestDetailScreen />} />
+            <Route element={<PrivateRoute />}>
               <Route
-                path="manage-profile/:keyTab"
+                path="/user/manage-profile"
                 element={<ManageProfileScreen />}
+              >
+                <Route path="profile" element={<MyProfileScreen />} />
+                <Route path="mydonations" element={<MyDonationScreen />} />
+                <Route path="myrequests" element={<MyRequestScreen />} />
+                <Route path="myposts" element={<MyPostScreen />} />
+                <Route path="invitations" element={<InviteRequestScreen />} />
+              </Route>
+              <Route path="requests">
+                <Route index element={<RequestListScreen />} />
+                <Route path="create" element={<CreateRequestScreen />} />
+                <Route path="edit/:id" element={<EditRequestScreen />} />
+                <Route path="myrequests" element={<MyRequestScreen />} />
+              </Route>
+              <Route path="posts">
+                <Route path="create-post" element={<CreatePostPage />} />
+              </Route>
+              <Route path="user">
+                <Route
+                  path="manage-profile/:keyTab"
+                  element={<ManageProfileScreen />}
+                />
+                <Route path="change-profile" element={<ChangeProfileModal />} />
+                <Route
+                  path="change-password"
+                  element={<ChangePasswordModal />}
+                />
+              </Route>
+            </Route>
+            <Route path="projects">
+              <Route path=":projectId" element={<ProjectDetailScreen />} />
+              <Route
+                path=":projectId/details"
+                element={<ProjectMoreDetailScreen />}
               />
-              <Route path="change-profile" element={<ChangeProfileModal />} />
-              <Route path="change-password" element={<ChangePasswordModal />} />
+            </Route>
+            <Route path="manage-project" element={<ProjectDashboard />} />
+            <Route
+              path="manage-project/:projectId"
+              element={<ProjectDashboard />}
+            >
+              <Route path="home" element={<ProjectHomeContainer />} />
+              <Route path="members" element={<ProjectMemberContainer />} />
+              <Route path="finance" element={<ProjectFinancePlanContainer />} />
+              <Route path="donations" element={<ProjectDonationContainer />} />
+              <Route path="request/:id" element={<ProjectRequestContainer />} />
+              {/* <Route path="*" element={<ProjectHomeContainer />} /> */}
+            </Route>
+            <Route path="/" element={<OrganizationLayout />}>
+              <Route path="my-organization">
+                <Route index element={<MyOrganization />} />
+                <Route path="dashboard" element={<OrganizationDashboard />} />
+                <Route path="members" element={<OrganizationMember />} />
+                <Route path="projects" element={<OrganizationProject />} />
+                <Route
+                  path="projects/create/:requestId"
+                  element={<CreateProjectScreen />}
+                />
+
+                <Route path="requests" element={<OrganizationRequest />} />
+                <Route path="schedule" element={<OrganizationSchedule />} />
+                <Route path="articles" element={<OrganizationArticle />} />
+              </Route>
+            </Route>
+
+            <Route path="organizations">
+              <Route index element={<Organizations />} />
+              <Route path=":organizationId" element={<OrganizationDetails />} />
+              <Route path="create" element={<CreateOrganization />} />
+              <Route path="rankings" element={<OrganizationRankings />} />
+              <Route
+                path=":organizationId/articles/:articleId"
+                element={<OrganizationArticleView />}
+              />
             </Route>
           </Route>
-          <Route path="projects">
-            <Route path=":projectId" element={<ProjectDetailScreen />} />
-            <Route
-              path=":projectId/details"
-              element={<ProjectMoreDetailScreen />}
-            />
-          </Route>
-          <Route path="manage-project" element={<ProjectDashboard />} />
-          <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
-            <Route path="home" element={<ProjectHomeContainer />} />
-            <Route path="members" element={<ProjectMemberContainer />} />
-            <Route path="finance" element={<ProjectFinancePlanContainer />} />
-            <Route path="donations" element={<ProjectDonationContainer />} />
-            <Route path="request/:id" element={<ProjectRequestContainer/>}/>
-            {/* <Route path="*" element={<ProjectHomeContainer />} /> */}
-          </Route>
-          <Route path="/" element={<ManagerLayout />}>
-          <Route path="my-organization">
-            <Route index element={<MyOrganization />} />
-            <Route path="dashboard" element={<OrganizationDashboard />} />
-            <Route path="members" element={<OrganizationMember />} />
-            <Route path="projects" element={<OrganizationProject />} />
-            <Route
-              path="projects/create/:requestId"
-              element={<CreateProjectScreen />}
-            />
-
-            <Route path="requests" element={<OrganizationRequest />} />
-            <Route path="schedule" element={<OrganizationSchedule />} />
-            <Route path="articles" element={<OrganizationArticle />} />
-          </Route>
-        </Route>
-
-        <Route path="/" element={<GeneralLayout />}>
-          <Route path="organizations">
-            <Route index element={<Organizations />} />
-            <Route path=":organizationId" element={<OrganizationDetails />} />
-            <Route path="create" element={<CreateOrganization />} />
-            <Route path="rankings" element={<OrganizationRankings />} />
-          </Route>
-        </Route>
-        </Route>
-     
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
     </QueryClientProvider>
   );
 };
