@@ -271,7 +271,6 @@ const Navbar = () => {
               className="btn-custom"
               type="text"
               icon={<SearchOutlined />}
-              onClick={() => navigate("/search")} // Example navigation
             >
               {t("search", "Search")}
             </Button>
