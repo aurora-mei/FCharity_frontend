@@ -1,25 +1,49 @@
-import { APIPrivate } from '../../config/API/api';
-
+import { API, APIPrivate } from "../../config/API/api";
+import api from "../../services/api";
 const getCurrentUser = async () => {
   try {
-    const response = await APIPrivate.get('users/my-profile');
-    return response.data;
+    console.log("Gửi request lấy current user...");
+    const response = await API.get(`users/my-profile`);
+    console.log("response get current user: ", response?.data);
+    return response?.data;
   } catch (err) {
     console.error("Error fetching current user:", err);
-    throw err.response.data;
+
+    // Kiểm tra err.response trước khi truy cập data
+    if (err.response) {
+      throw err.response.data;
+    } else {
+      throw new Error("Server không phản hồi hoặc bị lỗi.");
+    }
   }
 };
+const getTransactionHistoryOfUser = async (userId) => {
+  try {
+    const response = await APIPrivate.get(`users/${userId}/transaction-history`);
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching transaction history:", err);
+    throw err;
+  }
+}
+
+const getAllUsers = () => api.get("/users");
 
 const updateProfile = async (profileData) => {
   try {
-    const response = await APIPrivate.put('users/update-profile', profileData);
-    console.log("Profile updated:", response.data);
-    return response.data;
+    console.log("Gửi request cập nhật profile:", profileData);
+    const response = await APIPrivate.put("users/update-profile", profileData);
+    console.log("Response update profile:", response?.data);
+    return response?.data;
   } catch (err) {
     console.error("Error updating profile:", err);
-    throw err.response.data;
+    if (err.response) {
+      throw err.response.data;
+    } else {
+      throw new Error("Lỗi kết nối đến server.");
+    }
   }
 };
 
-const userApi = { getCurrentUser, updateProfile };
+const userApi = { getCurrentUser, getAllUsers, getTransactionHistoryOfUser, updateProfile };
 export default userApi;

@@ -4,20 +4,32 @@ import { UploadOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
-import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { uploadFileMedia } from "../../redux/helper/helperSlice";
 
 const { Option } = Select;
 
+// Hàm parse location
 function parseLocationString(locationString = "") {
   const parts = locationString.split(",").map(p => p.trim());
-  // Lấy ra từ phải sang trái
-  const provinceName = parts[parts.length - 1] || "";
-  const districtName = parts[parts.length - 2] || "";
-  const communeName  = parts[parts.length - 3] || "";
-  // Còn lại (các phần đầu) ghép lại thành detail
+  
+  // If there are less than 3 parts, return what we can.
+  if(parts.length < 3) {
+    return { detail: locationString, communeName: "", districtName: "", provinceName: "" };
+  }
+  
+  const provincePart = parts[parts.length - 1];
+  const districtPart = parts[parts.length - 2];
+  const communePart  = parts[parts.length - 3];
   const detailParts  = parts.slice(0, parts.length - 3);
-  const detail       = detailParts.join(", ");
-
+  
+  const detail = detailParts.join(", ");
+  // For province, remove common prefixes (tỉnh, thành phố, tp)
+  const provinceName = provincePart.replace(/^(tỉnh|thành phố|tp)\s*/i, "").trim();
+  // For district, even if it contains "thành phố" keyword, treat it as district
+  const districtName = districtPart.replace(/^(huyện|quận|thị xã|thành phố|tp)\s*/i, "").trim();
+  // For commune, remove the commune keywords
+  const communeName  = communePart.replace(/^(xã|phường|thị trấn)\s*/i, "").trim();
+  
   return { detail, communeName, districtName, provinceName };
 }
 
@@ -180,7 +192,9 @@ const UpdateRequestModal = ({
     let uploadedFiles = [];
     for (const file of fileList) {
       try {
-        const response = await dispatch(uploadFileHelper(file.originFileObj, "images")).unwrap();
+        const response = await dispatch(uploadFileMedia({file: latestFile.originFileObj,
+          folderName: "images",
+          resourceType:"image"})).unwrap();
         uploadedFiles.push(response);
         message.success(`Uploaded ${file.name}`);
       } catch (error) {
@@ -202,7 +216,10 @@ const UpdateRequestModal = ({
     let uploadedFiles = [];
     for (const file of fileList) {
       try {
-        const response = await dispatch(uploadFileHelper(file.originFileObj, "videos")).unwrap();
+        const response = await dispatch(uploadFileMedia( 
+          {file: latestFile.originFileObj,
+          folderName: "videos",
+          resourceType:"video"})).unwrap();
         uploadedFiles.push(response);
         message.success(`Uploaded ${file.name}`);
       } catch (error) {
@@ -267,7 +284,9 @@ const UpdateRequestModal = ({
         <Form.Item
           label="Address"
           name="location"
-          rules={[{ required: true, message: "Location is required" }]}
+          rules={[{ required: true, message: "Address is required" },
+          { pattern: /^[^,]*$/, message: "Address should not contain comma" }
+          ]}
         >
           <Input />
         </Form.Item>
