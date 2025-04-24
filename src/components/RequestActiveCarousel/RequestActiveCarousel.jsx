@@ -333,9 +333,9 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
                 scrollWheelZoom={true} // Cho phép zoom bằng cuộn chuột
                 maxBounds={[[8.1, 101.0], [23.5, 110.0]]} // Điều chỉnh giới hạn chặt hơn một chút
                 maxBoundsViscosity={1.0}
+                attributionControl={false}
             >
                 <TileLayer
-                    attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 {Object.keys(requestsByProvince).map((provKey) => {
