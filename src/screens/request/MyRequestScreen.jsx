@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Empty, List, Typography,Card, Form, Divider, Input, Image, Select, Tabs, Badge, Button, Flex, Modal, Avatar } from "antd";
+import { Empty, List, Typography, Card, Form, Divider, Descriptions, Space, Alert, Result, Input, Image, Select, Tabs, Badge, Button, Flex, Modal, Avatar } from "antd";
 import LoadingModal from "../../components/LoadingModal";
 import RequestCard from "../../components/RequestCard/RequestCard";
 import { fetchRequestsByUserIdThunk, fetchTransferRequestByRequest, updateConfirmTransferThunk, updateErrorTransferThunk, setCurrentTransferRequest, updateBankInfoThunk } from "../../redux/request/requestSlice";
@@ -7,7 +7,8 @@ import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import { getListBankThunk } from "../../redux/helper/helperSlice";
 import { Bar, Line } from "react-chartjs-2";
-import { useNavigate,Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,8 +20,7 @@ import {
   Legend,
 } from "chart.js";
 import { useDispatch, useSelector } from "react-redux";
-
-const { Title } = Typography;
+const { Text, Title, Paragraph } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
@@ -118,6 +118,7 @@ const MyRequestScreen = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [provinces, setProvinces] = useState([]);
   const [transferRequests, setTransferRequests] = useState(new Map());
+  const [navigateError, setNavigateError] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const loading = useSelector((state) => state.request.loading);
@@ -187,23 +188,20 @@ const MyRequestScreen = () => {
       dispatch(fetchRequestsByUserIdThunk(currentUser.id));
     }
   }, [dispatch, currentUser.id]);
-
+  const fetchAllTransferRequests = async () => {
+    const newMap = new Map();
+    for (const request of requestsByUserId) {
+      const response = await dispatch(fetchTransferRequestByRequest(request.helpRequest.id));
+      newMap.set(request.helpRequest.id, response.payload);
+    }
+    setTransferRequests(newMap);
+  };
   useEffect(() => {
-    console.log("listBank", listBank);
-    const fetchAllTransferRequests = async () => {
-      const newMap = new Map();
-      for (const request of requestsByUserId) {
-        const response = await dispatch(fetchTransferRequestByRequest(request.helpRequest.id));
-        newMap.set(request.helpRequest.id, response.payload); // hoặc response.data tùy theo bạn dùng redux-thunk hay redux-toolkit
-      }
-      setTransferRequests(newMap);
-      console.log("TransferRequests", newMap);
-    };
-
     if (requestsByUserId.length > 0) {
       fetchAllTransferRequests();
     }
-  }, [dispatch, requestsByUserId]);
+  }, [requestsByUserId]);
+
 
 
   // Filter requests whenever requests, filters, activeTab, or provinces change
@@ -341,6 +339,7 @@ const MyRequestScreen = () => {
       dispatch(updateBankInfoThunk({ id: id, bankInfo: { bankBin, accountNumber, accountHolder } }))
         .then(() => {
           setTransferRequestModalOpen(false);
+          fetchAllTransferRequests();
         })
         .catch((error) => {
           console.error("Failed to update bank info:", error);
@@ -361,7 +360,7 @@ const MyRequestScreen = () => {
         });
     }
   };
-  if (loading) return <LoadingModal />;
+  if (!requestsByUserId) return <LoadingModal />;
   if (error) {
     return (
       <p style={{ color: "red" }}>
@@ -369,7 +368,21 @@ const MyRequestScreen = () => {
       </p>
     );
   }
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      // Consider using moment or dayjs here for better formatting options if available in your project
+      return new Date(dateString).toLocaleString();
+    } catch (e) {
+      return 'Invalid Date';
+    }
+  };
 
+  // Helper for formatting currency
+  const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined) return 'N/A';
+    return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }); // Example using VND
+  }
   return (
     <div style={{ padding: "0 2rem" }}>
       <Form layout="inline" form={form} onValuesChange={onValuesChange} style={{ marginBottom: "1rem" }}>
@@ -495,13 +508,14 @@ const MyRequestScreen = () => {
                     })
                   }}>View transfer request</Button>
                   <Modal
+                    width={800}
                     title="Transfer Request Details"
                     open={transferRequestModalOpen}
                     onCancel={() => setTransferRequestModalOpen(false)}
                     footer={null}
                   >
                     {(() => {
-                      const transferRequest = transferRequests.get(request.helpRequest.id);
+                      const transferRequest = currentTransferRequest;
                       const status = transferRequest.status;
 
                       const renderBankForm = () => (
@@ -510,15 +524,15 @@ const MyRequestScreen = () => {
                           layout="vertical"
                           onFinish={handleSubmitBankInfo}
                           initialValues={{
-                             transferRequestId: transferRequest.id ,
-                              bankBin: transferRequest.bankBin, 
-                              accountNumber: transferRequest.bankAccount, 
-                              accountHolder: transferRequest.bankOwner}}
+                            transferRequestId: transferRequest.id,
+                            bankBin: transferRequest.bankBin,
+                            accountNumber: transferRequest.bankAccount,
+                            accountHolder: transferRequest.bankOwner,
+                          }}
                         >
                           <Form.Item name="transferRequestId" hidden>
                             <Input />
                           </Form.Item>
-
                           <Form.Item
                             label="Bank"
                             name="bankBin"
@@ -560,8 +574,8 @@ const MyRequestScreen = () => {
                             <Input placeholder="Enter the account holder name" />
                           </Form.Item>
 
-                          <Form.Item>
-                            <Button type="primary" htmlType="submit">
+                          <Form.Item style={{ textAlign: 'center' }}>
+                            <Button type="primary" htmlType="submit" >
                               Submit Bank Information
                             </Button>
                           </Form.Item>
@@ -572,8 +586,22 @@ const MyRequestScreen = () => {
                         case "PENDING_USER_CONFIRM":
                           return (
                             <>
-                              <p>{transferRequest.reason}</p>
-                              {renderBankForm()}
+                              <Flex vertical gap={5}>
+                                <p style={{ margin: 0 }}><b>From project: </b><Link to={`/projects/${transferRequest.project.id}/details`}>{transferRequest?.project.projectName}</Link></p>
+                                <p style={{ margin: 0 }}><b>Total amount: </b>{formatCurrency(transferRequest.amount)}</p>
+                              </Flex>
+                              <div> {/* Wrap form in a div */}
+                                {transferRequest?.reason && (
+                                  <Alert
+                                    description={transferRequest.reason}
+                                    type="info" // Or warning/error as appropriate
+                                    showIcon
+                                    style={{ margin: "16px 0"}} // Add margin below alert
+                                    icon={<ExclamationCircleOutlined />} // Keep specific icon if needed
+                                  />
+                                )}
+                                {renderBankForm()}
+                              </div>
                             </>
                           );
                         case "PENDING_ADMIN_APPROVAL":
@@ -585,82 +613,205 @@ const MyRequestScreen = () => {
                           );
                         case "CONFIRM_SENT":
                           return (
-                            <>
-                              <div>
-                                <Typography.Text strong>Account Information</Typography.Text>
-                                <Card>
-                                  <p><strong>Bank BIN:</strong> {transferRequest?.bankBin}</p>
-                                  <p><strong>Bank Account:</strong> {transferRequest?.bankAccount}</p>
-                                  <p><strong>Bank Owner:</strong> {transferRequest?.bankOwner}</p>
-                                </Card>
-                              </div>
-                              <div>
-                                <Typography.Text strong>Transaction Proof</Typography.Text>
-                                <Card>
+                            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+
+                              {/* Combined Transaction Details Section */}
+                              <Card
+                                title={<Title level={5} style={{ margin: 0 }}>Transaction Details</Title>}
+                                size="small"
+                                bordered={false} // Remove card border for cleaner modal look
+                              // Remove box shadow if modal provides enough separation, or add if needed:
+                              // style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px' }}
+                              >
+                                {/* Bank Information */}
+                                <Descriptions bordered size="small" column={1} style={{ marginBottom: '16px' }}>
+                                  <Descriptions.Item label="Bank BIN">
+                                    {transferRequest?.bankBin || 'N/A'}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Bank Account">
+                                    {transferRequest?.bankAccount || 'N/A'}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Bank Owner">
+                                    {transferRequest?.bankOwner || 'N/A'}
+                                  </Descriptions.Item>
+                                </Descriptions>
+
+                                {/* Transaction Proof Image */}
+                                {transferRequest?.transactionImage && (
                                   <Image
-                                    preview={{
+                                    width="100%"
+                                    style={{ maxHeight: '250px', objectFit: 'contain', marginBottom: '16px', borderRadius: '4px', display: 'block' }} // Center image block
+                                    src={transferRequest.transactionImage}
+                                    alt="Transaction proof"
+                                    preview={{ // Keep preview options if needed
                                       maskClassName: 'custom-image-mask',
                                     }}
-                                    height="10rem"
-                                    src={transferRequest.transactionImage}
-                                    alt="Transaction image"
-                                    className="h-12 w-12 object-cover rounded"
-                                    style={{ cursor: 'pointer', alignSelf: "center" }}
                                   />
-                                   <p><strong>Note:</strong> {transferRequest?.note}</p>
-                                   <p><strong>Project Donation History:</strong> <Link to={`/projects/${transferRequest.project.id}/details`}>{transferRequest?.project.projectName}</Link></p>
-                                  <p>A transfer has been made. Please check your account balance and confirm the transaction.</p>
-                                  <Button
-                                    type="primary"
-                                    onClick={() => {
-                                      dispatch(updateConfirmTransferThunk(transferRequest.id));
-                                      setTransferRequestModalOpen(false);
-                                    }}
-                                  >
-                                    Confirm Receipt
-                                  </Button>
+                                )}
+
+                                {/* Note and Project Link */}
+                                <Descriptions size="small" column={1}>
+                                  {/* Unbordered Descriptions for Note/Project */}
+                                  <Descriptions.Item label="Note">
+                                    {transferRequest?.note || <Text type="secondary" italic>N/A</Text>}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Project">
+                                    {transferRequest?.project?.id ? (
+                                      <Link to={`/projects/${transferRequest.project.id}/details`}>
+                                        {transferRequest?.project?.projectName || 'View Project'}
+                                      </Link>
+                                    ) : (
+                                      transferRequest?.project?.projectName || 'N/A'
+                                    )}
+                                  </Descriptions.Item>
+                                </Descriptions>
+                              </Card>
+
+                              {/* Confirmation / Error Reporting Section */}
+                              {!navigateError ? (
+                                // Confirmation View
+                                <Card
+                                  title={<Title level={5} style={{ margin: 0 }}>Action Required</Title>}
+                                  size="small"
+                                  bordered={false}
+                                // style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px' }}
+                                >
+                                  <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                                    <Alert
+                                      message="Confirm Transaction"
+                                      description="A transfer is reported as made. Please check your account balance and confirm receipt of the funds."
+                                      type="info"
+                                      showIcon
+                                    />
+                                    <Button
+                                      type="primary"
+                                      onClick={() => {
+                                        dispatch(updateConfirmTransferThunk(transferRequest.id));
+                                        setTransferRequestModalOpen(false);
+                                      }}
+                                      style={{ width: 'auto' }} // Button width fits content
+                                    >
+                                      Confirm Receipt
+                                    </Button>
+                                    <Text type="secondary" style={{ fontSize: '0.85em', marginTop: '8px' }}> {/* Add margin top */}
+                                      If there is an issue, click here to {' '}
+                                      <Button type="link" danger size="small" onClick={() => setNavigateError(true)} style={{ padding: 0, height: 'auto', lineHeight: 'inherit' }}>
+                                        Report Problem
+                                      </Button>
+                                      .
+                                    </Text>
+                                  </Space>
                                 </Card>
-                              </div>
-                              <Divider style={{ borderTop: '1px solid rgba(0, 0, 0, 0.85)' }} />
-
-
-                              <Title level={5}>Report an Issue</Title>
-                              <p>If there’s any issue with this transaction, please leave a note below to report it.</p>
-                              <Form layout="vertical" style={{ marginTop: "1rem" }} onFinish={handleSubmitError}>
-                                <Form.Item label="Note" name="note">
-                                  <Input.TextArea placeholder="Describe the issue here..." />
-                                </Form.Item>
-                                <Form.Item>
-                                  <Button type="primary" htmlType="submit">
-                                    Report Error
-                                  </Button>
-                                </Form.Item>
-                              </Form>
-                            </>
+                              ) : (
+                                // Error Reporting View
+                                <Card
+                                  title={<Title level={5} style={{ margin: 0 }}>Report an Issue</Title>}
+                                  size="small"
+                                  bordered={false}
+                                // style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px' }}
+                                >
+                                  <Paragraph>
+                                    If you encountered an issue with this transaction (e.g., amount incorrect, funds not received), please describe it below.
+                                  </Paragraph>
+                                  <Form layout="vertical" onFinish={handleSubmitError} requiredMark={false}>
+                                    <Form.Item
+                                      label="Issue Description"
+                                      name="note" // Matches previous code
+                                      rules={[{ required: true, message: 'Please describe the issue you encountered.' }]}
+                                    >
+                                      <Input.TextArea rows={3} placeholder="Example: Funds not received, amount doesn't match..." />
+                                    </Form.Item>
+                                    <Form.Item>
+                                      <Space>
+                                        <Button type="primary" danger htmlType="submit">
+                                          Submit Report
+                                        </Button>
+                                        <Button type="default" onClick={() => setNavigateError(false)}>
+                                          Cancel / Go Back
+                                        </Button>
+                                      </Space>
+                                    </Form.Item>
+                                  </Form>
+                                </Card>
+                              )}
+                            </Space>
                           );
 
                         case "COMPLETED":
                           return (
-                            <>
-                             <Title level={5}>The transaction was completed!</Title>
-                             <div>
-                                <Typography.Text strong>Project Information</Typography.Text>
-                                <Card>
-                                  <p><strong>Project Donation History: </strong><Link to={`/projects/${transferRequest.project.id}/details`}>{transferRequest?.project.projectName}</Link></p>
-                                  <p><strong>Start date: </strong>{new Date(transferRequest.project.actualStartTime).toLocaleString()}</p>
-                                  <p><strong>End date: </strong>{new Date(transferRequest.project.actualEndTime).toLocaleString()}</p>
-                                </Card>
-                              </div>
-                             <div>
-                                <Typography.Text strong>Account Information</Typography.Text>
-                                <Card>
-                                  <p><strong>Bank BIN:</strong> {transferRequest?.bankBin}</p>
-                                  <p><strong>Bank Account:</strong> {transferRequest?.bankAccount}</p>
-                                  <p><strong>Bank Owner:</strong> {transferRequest?.bankOwner}</p>
-                                </Card>
-                              </div>
-                            </>
-                          
+                            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                            {/* Transaction Result Card - Modified to include Image */}
+                            <Card
+                                title={<Title level={5} style={{ margin: 0 }}>Transaction Result</Title>}
+                                size="small"
+                                bordered={false}
+                                style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px' }}
+                            >
+                                {/* Success Message */}
+                                <Text type="success" style={{ display: 'block', marginBottom: '16px', fontSize: '1.1em', fontWeight: 500 }}>
+                                    The transaction was completed!
+                                </Text>
+                    
+                                {/* Transaction Proof Image (Conditional Rendering) */}
+                                {transferRequest?.transactionImage && (
+                                    <>
+                                        <Image
+                                            width="100%" // Make image responsive
+                                            style={{ maxHeight: '250px', objectFit: 'contain', marginBottom: '16px', borderRadius: '4px', display: 'block' }}
+                                            src={transferRequest.transactionImage}
+                                            alt="Transaction proof"
+                                            preview={{ // Enable Ant Design's preview
+                                                maskClassName: 'custom-image-mask', // Optional custom mask class
+                                            }}
+                                        />
+                                        <Divider style={{ marginTop: 0, marginBottom: 16 }} /> {/* Divider between image and details */}
+                                    </>
+                                )}
+                    
+                                {/* Bank Details */}
+                                <Descriptions bordered size="small" column={1}>
+                                    <Descriptions.Item label="Total amount">
+                                        {formatCurrency(transferRequest?.amount)}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="Bank BIN">
+                                        {transferRequest?.bankBin || 'N/A'}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="Bank Account">
+                                        {transferRequest?.bankAccount || 'N/A'}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="Bank Owner">
+                                        {transferRequest?.bankOwner || 'N/A'}
+                                    </Descriptions.Item>
+                                </Descriptions>
+                            </Card>
+                    
+                            {/* Project Information Card (Remains the same) */}
+                            <Card
+                                title={<Title level={5} style={{ margin: 0 }}>Project Information</Title>}
+                                size="small"
+                                bordered={false}
+                                style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px' }}
+                            >
+                                <Descriptions bordered size="small" column={1}>
+                                    <Descriptions.Item label="Project">
+                                        {transferRequest?.project?.id ? (
+                                            <Link to={`/projects/${transferRequest.project.id}/details`}>
+                                                {transferRequest?.project?.projectName || 'View Project'}
+                                            </Link>
+                                        ) : (
+                                            transferRequest?.project?.projectName || 'N/A'
+                                        )}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="Start date">
+                                        {formatDate(transferRequest?.project?.actualStartTime)}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="End date">
+                                        {formatDate(transferRequest?.project?.actualEndTime)}
+                                    </Descriptions.Item>
+                                </Descriptions>
+                            </Card>
+                        </Space>
+
                           )
                         case "ERROR":
                           return (

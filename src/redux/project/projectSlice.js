@@ -17,6 +17,8 @@ const initialState = {
     spendingItems: [],
     userNotInProject: [],
     projectRequests: [],
+    currentWithdrawRequest: {},
+    projectWallet:{},
     error: null,
 };
 export const fetchProjectsThunk = createAsyncThunk("project/fetch", async () => {
@@ -95,6 +97,9 @@ export const importSpendingPlanThunk = createAsyncThunk("project/import-spending
 export const approveSpendingPlanThunk = createAsyncThunk("project/approve-spending-plan", async (planId) => {
     return await projectApi.approveSpendingPlan(planId);
 });
+export const rejectSpendingPlanThunk = createAsyncThunk("project/reject-spending-plan", async ({planId,reason}) => {
+    return await projectApi.rejectSpendingPlan({planId,reason});
+});
 export const createSpendingPlanThunk = createAsyncThunk("project/create-spending-plan", async (spendingPlanData) => {
     return await projectApi.createSpendingPlan(spendingPlanData);
 });
@@ -136,11 +141,16 @@ export const createSpendingDetailThunk = createAsyncThunk("project/create-spendi
 export const updateSpendingDetailThunk = createAsyncThunk("project/update-spending-detail", async ({id,detailData}) => {
     return await projectApi.updateSpendingDetail({id,detailData});
 });
-export const deleteSpendingDetailThunk = createAsyncThunk("project/delete-spending-detail", async (spendingDetailId) => {
-    return await projectApi.deleteSpendingDetail(spendingDetailId);
+export const deleteSpendingDetailThunk = createAsyncThunk("project/delete-spending-detail", async (id) => {
+    return await projectApi.deleteSpendingDetail(id);
 }
 );
-
+export const fetchExpenseTemplateThunk = createAsyncThunk("project/get-expense-template", async (projectId) => {
+    return await projectApi.getExpenseTemplate(projectId);
+});
+export const importExpensesThunk = createAsyncThunk("project/import-expenses", async ({file,projectId}) => {
+    return await projectApi.importExpenses({file, projectId});
+});
 //donations
 export const createDonationThunk = createAsyncThunk("project/create-donation", async (donationData) => {
     return await projectApi.createDonation(donationData);
@@ -150,6 +160,26 @@ export const fetchDonationsOfProject = createAsyncThunk("project/get-donations",
 });
 export const fetchProjectByWallet = createAsyncThunk("project/get-by-wallet", async (walletId) => {
     return await projectApi.getProjectByWallet(walletId);
+});
+
+//withdraw request
+export const fetchWithdrawRequestByProject = createAsyncThunk("project/get-withdraw-request", async (projectId) => {
+    return await projectApi.getWithdrawRequestByProjectId(projectId);
+});
+export const createWithdrawRequest = createAsyncThunk("project/create-withdraw-request", async ({projectId,bankInfo}) => {
+    return await projectApi.sendWithdrawRequest({projectId,bankInfo});
+});
+export const updateBankInfoWithdrawRequest = createAsyncThunk("project/update-withdraw-request", async ({ reqId, bankInfo }) => {
+    return await projectApi.updateBankInfoWithdraw({ reqId, bankInfo });
+});
+export const updateConfirmWithdrawRequest = createAsyncThunk("project/update-confirm-withdraw-request", async (id) => {
+    return await projectApi.updateConfirmWithdraw(id);
+});
+export const updateErrorWithdrawRequest = createAsyncThunk("project/update-error-withdraw-request", async ({id,note}) => {
+    return await projectApi.updateErrorWithdraw({id,note});
+});
+export const fetchProjectWallet = createAsyncThunk("project/get-wallet", async (walletId) => {
+    return await projectApi.getProjectWallet(walletId);
 });
 const projectSlice = createSlice({
     name: 'Project',
@@ -291,8 +321,8 @@ const projectSlice = createSlice({
             })
             .addCase(removeProjectMemberThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.allProjectMembers = state.allProjectMembers.filter(item => item.id !== action.payload);
-                state.projectMembers = state.projectMembers.filter(item => item.id !== action.payload);
+                state.allProjectMembers = state.allProjectMembers.filter(item => item.id !== action.payload.id);
+                state.projectMembers = state.projectMembers.filter(item => item.id !== action.payload.id);
             })
             .addCase(removeProjectMemberThunk.rejected, (state, action) => {
                 state.loading = false;
@@ -456,6 +486,17 @@ const projectSlice = createSlice({
             .addCase(approveSpendingPlanThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
+            }) 
+            .addCase(rejectSpendingPlanThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(rejectSpendingPlanThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentSpendingPlan = action.payload;
+            })
+            .addCase(rejectSpendingPlanThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
             })
             .addCase(createSpendingPlanThunk.pending, (state) => {
                 state.loading = true;
@@ -602,6 +643,7 @@ const projectSlice = createSlice({
                 state.loading = false;
                 state.error = action.error;
             }) 
+            //spending details
             .addCase(fetchSpendingDetailsByProject.pending, (state) => {
                 state.loading = true;
             })
@@ -642,6 +684,94 @@ const projectSlice = createSlice({
                 state.loading = false;
             })
             .addCase(deleteSpendingDetailThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(fetchExpenseTemplateThunk.pending, (state) => {
+                state.loading = true;
+            } )
+            .addCase(fetchExpenseTemplateThunk.fulfilled, (state, action) => {
+                state.loading = false;
+            })
+            .addCase(fetchExpenseTemplateThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(importExpensesThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(importExpensesThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.spendingDetails = action.payload;
+            })
+            .addCase(importExpensesThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })   
+            //withdraw request
+            .addCase(fetchWithdrawRequestByProject.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchWithdrawRequestByProject.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentWithdrawRequest = action.payload;
+            })
+            .addCase(fetchWithdrawRequestByProject.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(createWithdrawRequest.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(createWithdrawRequest.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentWithdrawRequest = action.payload;
+            })
+            .addCase(createWithdrawRequest.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(updateBankInfoWithdrawRequest.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateBankInfoWithdrawRequest.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentWithdrawRequest = action.payload;
+            })
+            .addCase(updateBankInfoWithdrawRequest.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(updateConfirmWithdrawRequest.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateConfirmWithdrawRequest.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentWithdrawRequest = action.payload;
+            })
+            .addCase(updateConfirmWithdrawRequest.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(updateErrorWithdrawRequest.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateErrorWithdrawRequest.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentWithdrawRequest = action.payload;
+            })
+            .addCase(updateErrorWithdrawRequest.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(fetchProjectWallet.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchProjectWallet.fulfilled, (state, action) => {
+                state.loading = false;
+                state.projectWallet = action.payload;
+            })
+            .addCase(fetchProjectWallet.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             })

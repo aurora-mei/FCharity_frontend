@@ -44,14 +44,16 @@ import ProjectDashboard from "../screens/project/ProjectDashboard.jsx";
 import ProjectHomeContainer from "../containers/ProjectHomeContainer/ProjectHomeContainer.jsx";
 import ProjectMemberContainer from "../containers/ProjectMemberContainer/ProjectMemberContainer.jsx";
 import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContainer/ProjectFinancePlanContainer.jsx";
-import ProjectDonationContainer from "../containers/ProjectDonationContainer/ProjectDonationContainer.jsx";
 import ProjectRequestContainer from "../containers/ProjectRequestContainer/ProjectRequestContainer.jsx";
+import ProjectTaskPlanContainer from "../containers/ProjectTaskPlanContainer/ProjectTaskPlanContainer.jsx";
+
 
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 import Organizations from "../pages/guest/Organizations.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import AddProjectMemberScreen from "../screens/project/AddProjectMemberScreen.jsx";
 
 const queryClient = new QueryClient();
 import OrganizationArticle from "../pages/manage/OrganizationArticle.jsx";
@@ -116,17 +118,15 @@ const AppRoutes = () => {
                 element={<ProjectMoreDetailScreen />}
               />
             </Route>
-            <Route path="manage-project" element={<ProjectDashboard />} />
-            <Route
+              <Route
               path="manage-project/:projectId"
               element={<ProjectDashboard />}
             >
               <Route path="home" element={<ProjectHomeContainer />} />
               <Route path="members" element={<ProjectMemberContainer />} />
               <Route path="finance" element={<ProjectFinancePlanContainer />} />
-              <Route path="donations" element={<ProjectDonationContainer />} />
-              <Route path="request/:id" element={<ProjectRequestContainer />} />
-              {/* <Route path="*" element={<ProjectHomeContainer />} /> */}
+                <Route path="request/:id" element={<ProjectRequestContainer />} />
+              <Route path="tasks" element={<ProjectTaskPlanContainer/>} />
             </Route>
             <Route path="/" element={<OrganizationLayout />}>
               <Route path="my-organization">
@@ -139,7 +139,11 @@ const AppRoutes = () => {
                   element={<CreateProjectScreen />}
                 />
 
-                <Route path="requests" element={<OrganizationRequest />} />
+                  <Route
+              path="projects/create/:requestId/:projectId"
+              element={<AddProjectMemberScreen />}
+            />
+            <Route path="requests" element={<OrganizationRequest />} />
                 <Route path="schedule" element={<OrganizationSchedule />} />
                 <Route path="articles" element={<OrganizationArticle />} />
               </Route>

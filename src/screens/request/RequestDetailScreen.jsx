@@ -209,7 +209,7 @@ const RequestDetailScreen = () => {
           {/* Badge bảo vệ quyên góp */}
 
           {/* Nội dung gây quỹ */}
-          {/* <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "Read more" }}>{request.content}</Paragraph> */}
+          <Text type="primary"><strong>Support Type: </strong>{helpRequest.supportType}</Text>
           {expanded ? (
             <Paragraph>{`${helpRequest.content}`} </Paragraph>
           ) : (
