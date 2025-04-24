@@ -13,28 +13,31 @@ const SideBarMini = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const currentUser = useSelector((state) => state.auth.currentUser);
+    const [hasRedirected, setHasRedirected] = useState(false);
     useEffect(() => {
-        if(currentUser && currentUser.id !== undefined) {
+        if (currentUser && currentUser.id !== undefined) {
             dispatch(fetchMyProjectsThunk(currentUser.id));
         }
-    }, [dispatch,currentUser]);
+    }, [dispatch, currentUser]);
     useEffect(() => {
         console.log(myProjects);
-       if(Array.isArray(myProjects)  && myProjects.length > 0) {
+        if (Array.isArray(myProjects) && myProjects.length > 0) {
             setOwnerProject(myProjects.filter(projectData => projectData.project.leader.id === currentUser.id)[0]);
-            setJoinedProjects(myProjects.filter(projectData =>projectData.project.leader.id !== currentUser.id));
+            setJoinedProjects(myProjects.filter(projectData => projectData.project.leader.id !== currentUser.id));
         }
         console.log("ownerProjects", ownerProject);
         console.log("joinedProjects", joinedProjects);
-       
-    }, [dispatch,myProjects,currentUser]);
-    useEffect(()=>{
-        if(ownerProject && ownerProject.project && ownerProject.project.id) {
-            console.log("ownerProject", ownerProject);
+
+    }, [dispatch, myProjects, currentUser]);
+
+    useEffect(() => {
+        if (!hasRedirected && ownerProject && ownerProject.project && ownerProject.project.id) {
             setSelectedKey(ownerProject.project.id);
-            navigate(`/manage-project/${ownerProject.project.id}/home`)
-           }
-    },[ownerProject, joinedProjects]);
+            navigate(`/manage-project/${ownerProject.project.id}/home`);
+            setHasRedirected(true); // ✅ Ngăn không cho redirect lần nữa
+        }
+    }, [ownerProject, joinedProjects, hasRedirected]);
+
     const handleClick = (e) => {
         setSelectedKey(e.key);
         navigate(`/manage-project/${e.key}/home`)
@@ -43,7 +46,7 @@ const SideBarMini = () => {
     return (
         <Sider width={80} theme="light">
             <div style={{ padding: '1rem 0', textAlign: 'center', backgroundColor: '#f0f2f5', fontSize: '0.9rem' }}>
-                <b>Lead</b> 
+                <b>Lead</b>
             </div>
             <Menu
                 mode="inline"
@@ -51,9 +54,9 @@ const SideBarMini = () => {
                 onClick={handleClick}
             >
                 {ownerProject && ownerProject.project && (
-                        <Menu.Item key={ownerProject.project.id}
-                         title={ownerProject.project.projectName}><Title level={4} >{ownerProject.project.projectName.substring(0, 1).toUpperCase()}</Title></Menu.Item>
-                    )
+                    <Menu.Item key={ownerProject.project.id}
+                        title={ownerProject.project.projectName}><Title level={4} >{ownerProject.project.projectName.substring(0, 1).toUpperCase()}</Title></Menu.Item>
+                )
                 }
             </Menu>
             <Divider />
@@ -65,12 +68,12 @@ const SideBarMini = () => {
                 selectedKeys={[selectedKey]}
                 onClick={handleClick}
             >
-                 {joinedProjects && joinedProjects.length > 0 &&
+                {joinedProjects && joinedProjects.length > 0 &&
                     joinedProjects.map((projectData) => (
-                        <Menu.Item key={projectData.project.id} title={projectData.project.projectName}><Title level={4} >{projectData.project.projectName.substring(0,1).toUpperCase()}</Title></Menu.Item>
+                        <Menu.Item key={projectData.project.id} title={projectData.project.projectName}><Title level={4} >{projectData.project.projectName.substring(0, 1).toUpperCase()}</Title></Menu.Item>
                     ))
                 }
-           </Menu>
+            </Menu>
         </Sider>
     );
 };

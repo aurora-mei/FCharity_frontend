@@ -643,6 +643,7 @@ const CreateRequestForm = () => {
       content: values.content,
       phone: values.phone,
       email: values.email,
+      supportType : values.supportType,
       location: values.location,
       provinceCode: values.province,
       districtCode: values.district,
@@ -748,6 +749,12 @@ const CreateRequestForm = () => {
             <Form.Item label="Tags" name="tagIds" rules={[{ required: true, message: "Please select at least one relevant tag" }]}>
               <Select mode="multiple" placeholder="Select relevant tags" allowClear loading={tagsLoading} disabled={tagsLoading || !!tagsError}>
                 {tags.map(t => <Option key={t.id} value={t.id}>{t.tagName}</Option>)}
+              </Select>
+            </Form.Item>
+            <Form.Item label="Support Type" name="supportType" rules={[{ required: true, message: "Support Type is required" }]}>
+              <Select placeholder="Select the main support type" allowClear>
+              <Option key="1" value="MONEY">Money</Option>
+              <Option key="2" value="OTHER">Other</Option>
               </Select>
             </Form.Item>
             {/* --- Contact Information --- */}

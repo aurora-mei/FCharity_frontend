@@ -167,6 +167,15 @@ const ProjectMemberList = ({ isLeader, projectId }) => {
             render: (user) => <Text>{user.email}</Text>,
         },
         {
+            title: 'Role',
+            dataIndex: 'memberRole',
+            key: 'memberRole',
+            render: (memberRole) => {
+                let color = memberRole === "LEADER" ? "green" : memberRole === "MEMBER" ? "blue" : "orange";
+                return <Tag color={color}><b>{memberRole}</b></Tag>;
+            },
+        },
+        {
             title: 'Join Date',
             dataIndex: 'joinDate',
             key: 'joinDate',
@@ -179,15 +188,6 @@ const ProjectMemberList = ({ isLeader, projectId }) => {
             key: 'leaveDate',
             render: (leaveDate) => <Text>{leaveDate ? new Date(leaveDate).toLocaleDateString() : '-'}</Text>,
             sorter: (a, b) => new Date(a.leaveDate || 0) - new Date(b.leaveDate || 0),
-        },
-        {
-            title: 'Role',
-            dataIndex: 'memberRole',
-            key: 'memberRole',
-            render: (memberRole) => {
-                let color = memberRole === "LEADER" ? "green" : memberRole === "MEMBER" ? "blue" : "red";
-                return <Tag color={color}><b>{memberRole}</b></Tag>;
-            },
         },
     ];
 
@@ -218,10 +218,10 @@ const ProjectMemberList = ({ isLeader, projectId }) => {
     }
 
     return (
-        <div style={{ boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 8px 0px", borderRadius:"1rem",
+        <div style={{ boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 8px 0px", borderRadius:"0.5rem",
             padding:"2rem",
               background: "#fff"}}>
-            <Flex vertical >
+            <Flex vertical style={{marginBottom:"0.8rem"}}>
                 <Title level={5}>Members List</Title>
                 <Flex justify='space-between'>
                     <Space>
