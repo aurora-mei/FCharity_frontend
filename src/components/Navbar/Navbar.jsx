@@ -162,7 +162,7 @@ const Navbar = () => {
   // *** Updated logout function - prefer navigation over full page reload ***
   const logout = () => {
     dispatch(logOut());
-    navigate("/");
+    navigate("/auth/login");
   };
 
   const { ownedOrganization, managedOrganizations } = useSelector(
@@ -271,7 +271,6 @@ const Navbar = () => {
               className="btn-custom"
               type="text"
               icon={<SearchOutlined />}
-              onClick={() => navigate("/search")} // Example navigation
             >
               {t("search", "Search")}
             </Button>
