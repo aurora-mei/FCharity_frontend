@@ -48,9 +48,9 @@ const ProjectTaskPlanContainer = () => {
     const currentTask = useSelector((state) => state.timeline.currentTask);
     const tasks = useSelector((state) => state.timeline.tasks);
     const statuses = useSelector((state) => state.timeline.taskStatuses);
-
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedTaskId, setSelectedTaskId] = useState(null);
+
     const handleOpenTaskDetail = (taskId) => {
         console.log("Opening detail for task ID:", taskId);
         setSelectedTaskId(taskId);
@@ -67,7 +67,7 @@ const ProjectTaskPlanContainer = () => {
         // Gọi API hoặc dispatch action để lấy dữ liệu
         Promise.all([
             dispatch(getAllPhasesByProjectId(projectId)),
-            dispatch(getAllTaskStatuses(projectId)), 
+            dispatch(getAllTaskStatuses(currentPhase.id)), 
             dispatch(getTasksOfProject(projectId)), // Giả sử có action này
             // Giả lập fetch
             new Promise(resolve => setTimeout(resolve, 1000))
@@ -111,7 +111,7 @@ const ProjectTaskPlanContainer = () => {
             children: <TaskCalendarTab tasks={tasks} /* onViewTaskDetail={handleOpenTaskDetail} */ />,
         },
     ];
-    console.log("ProjectTaskPlanContainer - tasks:", tasks);
+    console.log("ProjectTaskPlanContainer - tasks:", statuses);
     return (
         <StyledContainer>
             {/* ... (Loading, Error handling) ... */}
@@ -121,9 +121,12 @@ const ProjectTaskPlanContainer = () => {
 
             {/* *** RENDER MODAL Ở ĐÂY *** */}
             <TaskDetailModal
-                taskId={selectedTaskId} // Truyền ID task đang chọn
-                isOpen={isDetailModalOpen} // Truyền trạng thái mở/đóng
-                onClose={handleCloseTaskDetail} // Truyền hàm xử lý đóng
+            statuses={statuses}
+            phaseId={currentPhase?.id} // Truyền phaseId nếu cần
+            taskId={selectedTaskId} // Truyền ID task đang chọn
+                isOpen={isDetailModalOpen} 
+                setIsOpen={setIsDetailModalOpen}
+                projectId={projectId} // Truyền projectId nếu cần
             />
         </StyledContainer>
     );

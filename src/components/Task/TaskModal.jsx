@@ -33,9 +33,6 @@ const TaskModal = ({
                     // Set status from initialData if editing, otherwise use initStatus
                     taskPlanStatusId: initialData.taskPlanStatusId?.toString() || initStatus?.id || null,
                     userId: initialData.userId?.toString() || null,
-                    // Removed phaseId and parentTaskId as they are not in the simplified form props
-                    // phaseId: initialData.phaseId?.toString() || null,
-                    // parentTaskId: initialData.parentTaskId?.toString() || null,
                 });
             } else {
                 form.resetFields();
@@ -166,7 +163,6 @@ console.log("status op", statusOptions);
                     <Form.Item
                         name="userId"
                         label="Assignee"
-                        rules={[{ required: true, message: 'Please select an assignee' }]}
                     >
                         <Select placeholder="Select user" allowClear showSearch filterOption={(input, option) =>
                             (option?.children ?? '').toLowerCase().includes(input.toLowerCase()) // Safer filtering

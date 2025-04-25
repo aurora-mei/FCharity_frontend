@@ -104,12 +104,13 @@ export const getSubtasksOfTask = async (taskId) => {
 
 export const addTaskToPhase = async (phaseId, taskData) => {
     try {
+      console.log("Creating subtask:", phaseId);
         const res = await APIPrivate.post(`/projects/timeline/${phaseId}/create`, taskData);
-        message.success("Created task successfully");
+        message.success("Task added successfully");
         return res.data;
     } catch (err) {
         console.error("Error add task:", err);
-        message.error("Failed to create task");
+        message.error("Failed to add task");
         throw err.response.data;
     }
 };
@@ -148,9 +149,9 @@ export const cancelTaskOfPhase = async (taskId) => {
     }
 };
 
-export const getAllTaskStatuses = async (projectId) => {
+export const getAllTaskStatuses = async (phaseId) => {
     try {
-        const res = await APIPrivate.get(`/projects/timeline/task-status/${projectId}`);
+        const res = await APIPrivate.get(`/projects/timeline/task-status/${phaseId}`);
         console.log("Task statuses:", res.data);
         return res.data;
     } catch (err) {
@@ -189,15 +190,15 @@ export const deleteTaskStatus = async (statusId) => {
         message.success("Deleted task status successfully");
         return res.data;
     } catch (err) {
-        console.error("Error delete task status:", err);
-        message.error("Failed to delete task status");
+        console.error("Error delete task status:", err.response.data.message);
+        message.error("Failed to delete task status: " + err.response.data.message);
         throw err.response.data;
     }
 };
 
 const timelineApi = {
     getAllPhasesByProjectId, getPhaseById,createPhase,updatePhase,endPhase,cancelPhase,getTasksOfProject,
-    getTasksOfPhase,getSubtasksOfTask,addTaskToPhase,updateTaskOfPhase,cancelTaskOfPhase,
+    getTasksOfPhase,getSubtasksOfTask,addTaskToPhase,updateTaskOfPhase,cancelTaskOfPhase,getTaskById,
     getAllTaskStatuses,addTaskStatus,updateTaskStatus,deleteTaskStatus
 };
 export default timelineApi;

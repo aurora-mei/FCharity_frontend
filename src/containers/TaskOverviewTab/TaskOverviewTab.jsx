@@ -12,7 +12,7 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
     }
     console.log("Tasks in TaskOverviewTab:", tasks);
     // Nhóm tasks theo phaseId để dễ dàng truy cập
-    const tasksByPhase = tasks.reduce((acc, task) => {
+    const tasksByPhase = tasks.filter(task => !task.parentTask).reduce((acc, task) => {
         const phaseId = task.phaseId; // Hoặc task.phase?.id tùy cấu trúc data
         if (!acc[phaseId]) {
             acc[phaseId] = [];

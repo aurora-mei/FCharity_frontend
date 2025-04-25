@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import timelineApi from '../project/timelineApi';  // Đảm bảo đúng đường dẫn của file API
-
+import dayjs from 'dayjs'; // Thư viện để xử lý ngày tháng
 // Initial state
 const initialState = {
   phases: [],
   currentPhase: {},
   tasks: [],
-  currentTask:{},
+  currentTask: {},
   subtasks: [],
   taskStatuses: [],
   loading: false,
@@ -168,9 +168,9 @@ export const cancelTaskOfPhase = createAsyncThunk(
 
 export const getAllTaskStatuses = createAsyncThunk(
   'timeline/getAllTaskStatuses',
-  async (projectId, { rejectWithValue }) => {
+  async (phaseId, { rejectWithValue }) => {
     try {
-      const response = await timelineApi.getAllTaskStatuses(projectId);
+      const response = await timelineApi.getAllTaskStatuses(phaseId);
       return response;
     } catch (error) {
       return rejectWithValue(error);
@@ -228,6 +228,27 @@ const timelineSlice = createSlice({
       .addCase(getAllPhasesByProjectId.fulfilled, (state, action) => {
         state.loading = false;
         state.phases = action.payload;
+        let activePhase = null;
+        const now = dayjs();
+
+        const ongoingOrFuturePhases = state.phases
+          .filter(p => !p.endTime || dayjs(p.endTime).isAfter(now))
+          .sort((a, b) => dayjs(a.startTime).valueOf() - dayjs(b.startTime).valueOf()); // Sort by start time
+
+        if (ongoingOrFuturePhases.length > 0) {
+          // Find the earliest one that has started or is the next upcoming one
+          activePhase = ongoingOrFuturePhases.find(p => dayjs(p.startTime).isBefore(now)) || ongoingOrFuturePhases[0];
+        }
+
+        // If no ongoing or future phases, find the most recently ended one
+        if (!activePhase && state.phases.length > 0) {
+          activePhase = [...state.phases].sort((a, b) => {
+            const endTimeA = a.endTime ? dayjs(a.endTime).valueOf() : -Infinity;
+            const endTimeB = b.endTime ? dayjs(b.endTime).valueOf() : -Infinity;
+            return endTimeB - endTimeA; // Sort descending by end time
+          })[0];
+        }
+        state.currentPhase = activePhase || null; // Set the active phase
       })
       .addCase(getAllPhasesByProjectId.rejected, (state, action) => {
         state.loading = false;
@@ -355,7 +376,7 @@ const timelineSlice = createSlice({
       .addCase(addTaskToPhase.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      }) 
+      })
       .addCase(updateTaskOfPhase.pending, (state) => {
         state.loading = true;
       })

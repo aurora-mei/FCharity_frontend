@@ -325,7 +325,7 @@ const ProjectFinancePlanContainer = () => {
                         </Col>
                     </Row>
                     {/* Withdrawal Button */}
-                    {isLeader && (
+                    {isLeader && currentProject.project.projectStatus === "ACTIVE" && (
                         <Button
                             type="primary"
                             icon={<BankOutlined />}

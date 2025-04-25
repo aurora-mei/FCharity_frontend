@@ -29,7 +29,6 @@ const TaskListItem = ({ task }) => {
                     Created: {dayjs(task.createdAt).format('DD/MM/YY hh:mm A')}
                 </Text>
                 )
-                
             ]}
         >
             <List.Item.Meta
