@@ -1,18 +1,18 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import organizationInviteApi from "./organizationInviteApi"; 
+import organizationInviteApi from "./inviteRequestOrganizationApi"; // Assuming Api file is named this way
 
 const initialState = {
-    myOrgInvitations: [], // State for organization invitations
+    myOrgInvitations: [],
     loading: false,
     success: null,
     error: null,
 };
 
-// Thunk để lấy danh sách lời mời tham gia tổ chức của user
 export const fetchMyOrgInvitationsThunk = createAsyncThunk(
-    "organizationInvite/fetchMyOrgInvitations",
+    "inviteRequestOrganization/fetchMyOrgInvitations", // Updated slice name prefix
     async (userId, { rejectWithValue }) => {
         try {
+            // Assuming API function is named fetchMyOrgInvitations
             return await organizationInviteApi.fetchMyOrgInvitations(userId);
         } catch (error) {
             return rejectWithValue(error);
@@ -20,11 +20,11 @@ export const fetchMyOrgInvitationsThunk = createAsyncThunk(
     }
 );
 
-// Thunk để user chấp nhận lời mời tham gia tổ chức
 export const acceptOrgInvitationThunk = createAsyncThunk(
-    "organizationInvite/accept",
+    "inviteRequestOrganization/accept", // Updated slice name prefix
     async (invitationId, { rejectWithValue }) => {
         try {
+            // Assuming API function is named acceptOrgInvitationRequest
             return await organizationInviteApi.acceptOrgInvitationRequest(invitationId);
         } catch (error) {
             return rejectWithValue(error);
@@ -32,11 +32,11 @@ export const acceptOrgInvitationThunk = createAsyncThunk(
     }
 );
 
-// Thunk để user từ chối lời mời tham gia tổ chức
 export const rejectOrgInvitationThunk = createAsyncThunk(
-    "organizationInvite/reject",
+    "inviteRequestOrganization/reject", // Updated slice name prefix
     async (invitationId, { rejectWithValue }) => {
         try {
+             // Assuming API function is named rejectOrgInvitationRequest
             return await organizationInviteApi.rejectOrgInvitationRequest(invitationId);
         } catch (error) {
             return rejectWithValue(error);
@@ -44,67 +44,66 @@ export const rejectOrgInvitationThunk = createAsyncThunk(
     }
 );
 
-const organizationInviteSlice = createSlice({
-    name: "organizationInvite",
+const inviteRequestOrganizationSlice = createSlice({
+    name: "inviteRequestOrganization", // Updated slice name
     initialState,
     reducers: {
         resetOrgInviteStatus: (state) => {
-            state.loading = false;
+            // Keep loading true if it was already true from fetch pending? Decide based on UX needed.
+            // state.loading = false; // Or maybe only reset on success/error?
             state.success = null;
             state.error = null;
         },
     },
     extraReducers: (builder) => {
         builder
-            // FETCH Organization Invitations
             .addCase(fetchMyOrgInvitationsThunk.pending, (state) => {
                 state.loading = true;
-                state.error = null; 
+                state.error = null;
             })
             .addCase(fetchMyOrgInvitationsThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                 state.myOrgInvitations = action.payload.filter(invite => invite.status === 'PENDING');
+                // Log the raw payload from API before filtering
+                console.log("Raw Org Invitations Payload:", action.payload);
+                // Filter for PENDING status - ensure 'PENDING' is the exact string used in your backend DTO/Entity
+                state.myOrgInvitations = action.payload.filter(invite => invite.status?.trim().toUpperCase() === 'PENDING');
+                console.log("Filtered Org Invitations (Pending only):", state.myOrgInvitations);
             })
             .addCase(fetchMyOrgInvitationsThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error;
-                state.myOrgInvitations = []; 
+                state.myOrgInvitations = [];
             })
 
-            // ACCEPT Organization Invitation
             .addCase(acceptOrgInvitationThunk.pending, (state) => {
-                state.loading = true;
+                // Keep state.loading true or manage action-specific loading
                 state.error = null;
                 state.success = null;
             })
             .addCase(acceptOrgInvitationThunk.fulfilled, (state, action) => {
-                state.loading = false;
-                state.success = action.payload; 
-
+                state.success = action.payload;
+                 // Decide if you want to set loading false here or wait for re-fetch
             })
             .addCase(acceptOrgInvitationThunk.rejected, (state, action) => {
-                state.loading = false;
                 state.error = action.payload || action.error;
+                 // Decide if you want to set loading false here
             })
 
-            // REJECT Organization Invitation
             .addCase(rejectOrgInvitationThunk.pending, (state) => {
-                state.loading = true;
+                 // Keep state.loading true or manage action-specific loading
                 state.error = null;
                 state.success = null;
             })
             .addCase(rejectOrgInvitationThunk.fulfilled, (state, action) => {
-                state.loading = false;
-                state.success = action.payload; 
-
+                state.success = action.payload;
+                 // Decide if you want to set loading false here or wait for re-fetch
             })
             .addCase(rejectOrgInvitationThunk.rejected, (state, action) => {
-                state.loading = false;
                 state.error = action.payload || action.error;
+                 // Decide if you want to set loading false here
             });
     },
 });
 
-// Export actions and reducer
-export const { resetOrgInviteStatus } = organizationInviteSlice.actions;
-export default organizationInviteSlice.reducer;
+export const { resetOrgInviteStatus } = inviteRequestOrganizationSlice.actions;
+export default inviteRequestOrganizationSlice.reducer; // Check export name matches import in store

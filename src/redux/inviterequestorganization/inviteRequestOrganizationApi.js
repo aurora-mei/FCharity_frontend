@@ -5,7 +5,7 @@ import { APIPrivate } from "../../config/API/api";
 export const fetchMyOrgInvitations = async (userId) => {
     try {
         // Corresponds to: GET /api/invitation-requests/users/{userId}
-        const res = await APIPrivate.get(`invitation-requests/users/${userId}`);
+        const res = await APIPrivate.get(`/api/invitation-requests/users/${userId}`);
         return res.data; // Assuming the backend returns the list directly
     } catch (err) {
         console.error("Error fetching my organization invitations:", err);
@@ -17,7 +17,7 @@ export const fetchMyOrgInvitations = async (userId) => {
 export const acceptOrgInvitationRequest = async (invitationId) => {
     try {
         // Corresponds to: PUT /api/invitation-requests/{invitationRequestId}/accept
-        const response = await APIPrivate.put(`invitation-requests/${invitationId}/accept`);
+        const response = await APIPrivate.put(`/api/invitation-requests/${invitationId}/accept`);
         return response.data;
     } catch (error) {
         console.error("Error accepting organization invitation request:", error);
@@ -29,7 +29,7 @@ export const acceptOrgInvitationRequest = async (invitationId) => {
 export const rejectOrgInvitationRequest = async (invitationId) => {
     try {
         // Corresponds to: PUT /api/invitation-requests/{invitationRequestId}/reject
-        const response = await APIPrivate.put(`invitation-requests/${invitationId}/reject`);
+        const response = await APIPrivate.put(`/api/invitation-requests/${invitationId}/reject`);
         return response.data;
     } catch (error) {
         console.error("Error rejecting organization invitation request:", error);
@@ -37,10 +37,10 @@ export const rejectOrgInvitationRequest = async (invitationId) => {
     }
 };
 
-const organizationInviteApi = {
+const inviteRequestOrganizationApi = {
     fetchMyOrgInvitations,
     acceptOrgInvitationRequest,
     rejectOrgInvitationRequest,
 };
 
-export default organizationInviteApi;
+export default inviteRequestOrganizationApi;
