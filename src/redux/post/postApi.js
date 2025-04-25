@@ -101,7 +101,17 @@ const reportPost = async (postId, data) => {
       message.error("Gửi báo cáo thất bại: " + error.message);
     }
   };
-
+  const fetchLatestPosts = async (limit = 3) => {
+    try {
+        const response = await APIPrivate.get('posts/latest', {
+            params: { limit }
+        });
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching latest posts:", err);
+        throw err.response?.data || { message: "Error fetching latest posts" };
+    }
+};
 const postApi = { 
     fetchPosts, 
     createPost, 
@@ -109,7 +119,8 @@ const postApi = {
     deletePost, 
     fetchPostById,
     votePost,
-    fetchMyPosts, // <== thêm mới
+    fetchMyPosts,
+    fetchLatestPosts,
 };
 
 

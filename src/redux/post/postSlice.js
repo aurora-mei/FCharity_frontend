@@ -61,7 +61,16 @@
     export const fetchMyPosts = createAsyncThunk("posts/fetchMyPosts", async (userId) => {
         return await postApi.fetchMyPosts(userId);
     });
-    
+    export const fetchLatestPosts = createAsyncThunk(
+        "posts/fetchLatest",
+        async (limit, { rejectWithValue }) => {
+            try {
+                return await postApi.fetchLatestPosts(limit);
+            } catch (error) {
+                return rejectWithValue(error.message);
+            }
+        }
+    );
     const postSlice = createSlice({
         name: 'Post',
         initialState,
@@ -169,6 +178,17 @@
                 .addCase(fetchMyPosts.rejected, (state, action) => {
                     state.loading = false;
                     state.error = action.error;
+                })
+                .addCase(fetchLatestPosts.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(fetchLatestPosts.fulfilled, (state, action) => {
+                    state.loading = false;
+                    state.recentPosts = action.payload; // Lưu vào recentPosts
+                })
+                .addCase(fetchLatestPosts.rejected, (state, action) => {
+                    state.loading = false;
+                    state.error = action.payload;
                 });
         },
     });
