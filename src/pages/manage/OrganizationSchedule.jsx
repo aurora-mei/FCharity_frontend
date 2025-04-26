@@ -194,6 +194,7 @@ const OrganizationSchedule = () => {
     try {
       showInfo("Updating event...");
       const savedEvent = {
+        // organizer: ownedOrganization,
         organizer: currentOrganization,
         organizationEventId: updatedEvent.organizationEventId,
         title: updatedEvent.title,

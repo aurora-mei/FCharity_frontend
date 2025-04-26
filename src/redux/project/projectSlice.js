@@ -19,6 +19,7 @@ const initialState = {
     projectRequests: [],
     currentWithdrawRequest: {},
     projectWallet:{},
+    currentConfirmRequest:{},
     error: null,
 };
 export const fetchProjectsThunk = createAsyncThunk("project/fetch", async () => {
@@ -181,10 +182,34 @@ export const updateErrorWithdrawRequest = createAsyncThunk("project/update-error
 export const fetchProjectWallet = createAsyncThunk("project/get-wallet", async (walletId) => {
     return await projectApi.getProjectWallet(walletId);
 });
+
+
+
+//confirm request
+export const sendConfirmReceiveRequestThunk = createAsyncThunk("project/send-confirm-receive", async (projectId) => {
+    return await projectApi.sendConfirmReceiveRequest(projectId);
+});
+export const confirmReceiveRequestThunk= createAsyncThunk("project/confirm-receive", async (id) => {
+    return await projectApi.confirmReceiveRequest(id);
+});
+export const getConfirmReceiveRequestByProjectThunk= createAsyncThunk("project/get-confirm-receive-by-project", async (projectId) => {
+    return await projectApi.getConfirmReceiveRequestByProject(projectId);
+});
+export const getConfirmReceiveRequestByRequestThunk= createAsyncThunk("project/get-confirm-receive-by-request", async (requestId) => {
+    return await projectApi.getConfirmReceiveRequestByRequest(requestId);
+});
+export const rejectReceiveRequestThunk= createAsyncThunk("project/reject-receive-by-project", async ({id,message}) => {
+    return await projectApi.rejectReceiveRequest({id,message});
+});
+
 const projectSlice = createSlice({
     name: 'Project',
     initialState,
-    reducers: {},
+    reducers:  {
+        setCurrentConfirmRequest(state, action) {
+          state.currentConfirmRequest = action.payload;
+        },
+      },
     extraReducers: (builder) => {
         builder
             .addCase(createProjectThunk.pending, (state) => {
@@ -774,10 +799,67 @@ const projectSlice = createSlice({
             .addCase(fetchProjectWallet.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
+            }) 
+            .addCase(sendConfirmReceiveRequestThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(sendConfirmReceiveRequestThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentConfirmRequest = action.payload;
+            })
+            .addCase(sendConfirmReceiveRequestThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(getConfirmReceiveRequestByRequestThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getConfirmReceiveRequestByRequestThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentConfirmRequest = action.payload;
+            })
+            .addCase(getConfirmReceiveRequestByRequestThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+
+            .addCase(getConfirmReceiveRequestByProjectThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getConfirmReceiveRequestByProjectThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentConfirmRequest = action.payload;
+            })
+            .addCase(getConfirmReceiveRequestByProjectThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(confirmReceiveRequestThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(confirmReceiveRequestThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentConfirmRequest = action.payload;
+            })
+            .addCase(confirmReceiveRequestThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+
+            .addCase(rejectReceiveRequestThunk.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(rejectReceiveRequestThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentConfirmRequest = action.payload;
+            })
+            .addCase(rejectReceiveRequestThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
             })
             ;
 
     },
 });
-
+export const { setCurrentConfirmRequest } = projectSlice.actions;
 export default projectSlice.reducer;

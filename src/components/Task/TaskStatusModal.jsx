@@ -44,7 +44,7 @@ const TaskStatusModal = ({
 
             const submissionData = {
                 statusName: values.statusName,
-                phaseId: isEditMode ? initialData.phaseId : phaseId, // Use initialData's phaseId if editing, otherwise use the prop
+                phaseId: phaseId, // Use initialData's phaseId if editing, otherwise use the prop
             };
 
             // If editing, include the original ID
@@ -78,12 +78,6 @@ const TaskStatusModal = ({
         >
             <Spin spinning={loading && !open}> {/* Optional: Show overlay spinner */}
                 <Form form={form} layout="vertical" name="taskStatusForm">
-                    {/*
-                      Hidden field for ID during edit? Not usually needed if ID is passed
-                      back correctly in onSubmit based on initialData.
-                      {isEditMode && initialData?.id && <Form.Item name="id" hidden><Input /></Form.Item>}
-                    */}
-
                     <Form.Item
                         name="statusName"
                         label="Status Name"
@@ -91,13 +85,6 @@ const TaskStatusModal = ({
                     >
                         <Input placeholder="E.g., To Do, In Progress, Done" />
                     </Form.Item>
-
-                    {/*
-                       phaseId is usually determined by the context where the modal is opened
-                       (e.g., clicking "Add Status" within a specific phase column in Kanban)
-                       and passed as a prop, rather than being a user-editable field here.
-                       If it needed to be selectable, you'd add a Select component here.
-                    */}
                 </Form>
             </Spin>
         </Modal>

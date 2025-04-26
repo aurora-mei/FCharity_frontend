@@ -70,9 +70,9 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
     dispatch(fetchRequestById(requestId));
     dispatch(fetchCategories());
     dispatch(fetchTags());
-    console.log("owned organization", ownedOrganization);
-    if (ownedOrganization?.organizationId) {
-      dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
+    console.log("myOrganization", myOrganization);
+    if (myOrganization.organizationId) {
+      dispatch(getAllMembersInOrganization(myOrganization.organizationId));
     }
   }, [dispatch, myOrganization.organizationId]);
 

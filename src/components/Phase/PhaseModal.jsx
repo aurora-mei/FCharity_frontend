@@ -192,10 +192,13 @@ const PhaseModal = ({
 
                 <Form.Item
                     name="content"
-                    label="Description / Content"
-                // Không bắt buộc
+                    label="Goals Summary / Notes"
+                    rules={[
+                        { required: true, message: 'Please provide a goals summary!' },
+                        { min: 10, message: 'Notes must be at least 10 characters.' }
+                    ]}
                 >
-                    <TextArea rows={4} placeholder="Enter a description for this phase (optional)" />
+                    <TextArea rows={4} placeholder="Describe the outcome, challenges met, achievements..." />
                 </Form.Item>
 
             </Form>

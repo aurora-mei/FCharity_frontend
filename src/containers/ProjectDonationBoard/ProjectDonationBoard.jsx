@@ -16,7 +16,7 @@ const StyledWrapper = styled.div`
     background: #fff !important;
     padding: 0; // Reset padding, handle inside
     border-radius: 1rem;
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
+    // box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
     transition: all 0.3s ease;
 
     .ant-card-body {

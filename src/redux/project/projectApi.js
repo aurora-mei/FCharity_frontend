@@ -499,7 +499,7 @@ export const updateSpendingDetail = async ({ id, detailData }) => {
 }
 export const deleteSpendingDetail = async (id) => {
     try {
-        console.log("idd",id);
+        console.log("idd", id);
         const response = await APIPrivate.delete(`projects/spending/details/${id}`);
         console.log("Spending detail create:", response.data);
         return response.data;
@@ -601,14 +601,14 @@ const updateConfirmWithdraw = async (id) => {
     }
 }
 
-const updateErrorWithdraw = async ({id,note}) => {
+const updateErrorWithdraw = async ({ id, note }) => {
     try {
-        const response = await APIPrivate.put(`withdraw-requests/${id}/update-error`,null,
-           {
-            params:{
-                note: note
+        const response = await APIPrivate.put(`withdraw-requests/${id}/update-error`, null,
+            {
+                params: {
+                    note: note
+                }
             }
-           }
         );
         message.success("Update error withdraw successfully");
         return response.data;
@@ -700,7 +700,70 @@ const getProjectWallet = async (walletId) => {
         throw err.response.data;
     }
 }
+//confirm request
+
+const sendConfirmReceiveRequest = async (projectId) => {
+
+    try {
+        const response = await APIPrivate.post(`projects/confirmation-requests/${projectId}`);
+        console.log("Confirm receive request:", response.data);
+        message.success("Confirm receive request sent successfully");
+        return response.data;
+    } catch (err) {
+        console.error("Error send confirm receive request:", err);
+        message.error("Error sending confirm receive request");
+        throw err.response.data;
+    }
+}
+const confirmReceiveRequest = async (id) => {
+
+    try {
+        const response = await APIPrivate.put(`projects/confirmation-requests/${id}/confirm`);
+        console.log("Confirm receive request:", response.data);
+        message.success("Confirm receive request successfully!");
+        return response.data;
+    } catch (err) {
+        console.error("Error confirm receive request:", err);
+        message.error("Error confirming receive request");
+        throw err.response.data;
+    }
+}
+const getConfirmReceiveRequestByProject = async (projectId) => {
+    try {
+        const response = await APIPrivate.get(`projects/confirmation-requests/project/${projectId}`);
+        console.log("Confirm receive request:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get confirm receive request:", err);
+        throw err.response.data;
+    }
+}
+const getConfirmReceiveRequestByRequest = async (requestId) => {
+    try {
+        const response = await APIPrivate.get(`projects/confirmation-requests/request/${requestId}`);
+        console.log("Confirm receive request:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get confirm receive request:", err);
+        throw err.response.data;
+    }
+}
+const rejectReceiveRequest = async ({ id, message }) => {
+    try {
+        const response = await APIPrivate.put(`projects/confirmation-requests/${id}/reject`, {
+            message: message
+        });
+        console.log("Confirm receive request:", response.data);
+        message.success("Confirm receive request rejected successfully! The project will be checked again before send you another confirm request!");
+        return response.data;
+    } catch (err) {
+        console.error("Error reject receive request:", err);
+        message.error("Error rejecting receive request");
+        throw err.response.data;
+    }
+}
 const projectApi = {
+    sendConfirmReceiveRequest, confirmReceiveRequest, getConfirmReceiveRequestByProject, getConfirmReceiveRequestByRequest,rejectReceiveRequest,
     fetchProjects, createProject, fetchProjectById, fetchMyProjects, updateProject, fetchProjectsByOrg,
     getUserNotInProject, addProjectMember, fetchAllProjectMembers, fetchActiveProjectMembers, moveOutProjectMember, removeProjectMember, inviteProjectMember,
     getAllProjectRequest, sendJoinRequest, cancelProjectRequest, approveJoinRequest, rejectJoinRequest,
@@ -711,6 +774,6 @@ const projectApi = {
     createSpendingItem, getSpendingItemById, updateSpendingItem, deleteSpendingItem, getItemsByPlan,
     createDonation, getDonationsOfProject,
     getExpenseTemplate, importExpenses,
-    getWithdrawRequestByProjectId, sendWithdrawRequest,updateBankInfoWithdraw,updateConfirmWithdraw,updateErrorWithdraw,getProjectWallet
+    getWithdrawRequestByProjectId, sendWithdrawRequest, updateBankInfoWithdraw, updateConfirmWithdraw, updateErrorWithdraw, getProjectWallet
 };
 export default projectApi;

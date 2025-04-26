@@ -12,29 +12,14 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import {
-  fetchProjectsByOrgThunk,
-  fetchSpendingPlanOfProject,
-  fetchSpendingItemOfPlan,
-  approveSpendingPlanThunk, rejectSpendingPlanThunk,
-} from "../../redux/project/projectSlice";
+import { fetchProjectsByOrgThunk, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, approveSpendingPlanThunk, rejectSpendingPlanThunk } from "../../redux/project/projectSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { getManagedOrganizationsByManager } from "../../redux/organization/organizationSlice";
 import { FaLink } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { getManagedOrganizationByCeo } from "../../redux/organization/organizationSlice";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
-import {
-  Col,
-  Row,
-  Button,
-  Flex,
-  Modal,
-  Skeleton,
-  Empty,
-  Typography,
-   Tag,
-} from "antd";
+import { Col, Row, Button, Flex, Modal, Skeleton, Empty, Typography, Tag } from "antd";
 const { Title, Text } = Typography;
 import { Table, Pagination, Form, Input } from "antd";
 const { TextArea } = Input;

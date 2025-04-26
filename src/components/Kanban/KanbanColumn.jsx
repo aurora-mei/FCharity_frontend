@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Typography, Button, Flex } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Typography, Button, Flex,Menu,Dropdown } from 'antd';
+import { EditOutlined, PlusOutlined,MoreOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import TaskCard from '../Task/TaskCard'; // Import TaskCard
 
 const { Title, Text } = Typography;
 
 const ColumnWrapper = styled.div`
-  background-color: #f4f5f7; /* Màu nền xám nhạt cho cột */
+  background-color: #F4F4F4; /* Màu nền xám nhạt cho cột */
   border-radius: 6px;
   padding: 0.8rem;
   width: 300px; /* Chiều rộng cố định cho cột */
@@ -34,16 +34,24 @@ const TaskListWrapper = styled.div`
    &::-webkit-scrollbar-thumb:hover { background: #999; }
 `;
 
-const KanbanColumn = ({ status, tasks = [], onAddTask, onTaskClick }) => {
+const KanbanColumn = ({ status, tasks = [],  onEditStatus,onDeleteStatus, onAddTask, onTaskClick }) => {
+    const menu = (
+        <Menu>
+            <Menu.Item key="1" onClick={onEditStatus}>Edit Status</Menu.Item>
+            <Menu.Divider />
+            <Menu.Item key="2" danger onClick={onDeleteStatus}>Delete Status</Menu.Item>
+        </Menu>
+    );
     return (
         <ColumnWrapper>
             {/* Header Cột */}
             <ColumnHeader justify="space-between" align="center">
                 <Title level={5} style={{ margin: 0, textTransform: 'uppercase', fontSize: '0.8rem', color: '#5e6c84' }}>
-                    {status.statusName} <Text type="secondary">({tasks.length})</Text>
+                    {status.statusName} <Text type="secondary">({tasks.length})</Text> {status.statusName === 'DONE' ? <Text type="success">✔</Text> : null}
                 </Title>
-                {/* Có thể thêm nút cấu hình cột ở đây */}
-                {/* <Button size="small" type="text" icon={<SettingOutlined />} /> */}
+                <Dropdown overlay={menu} trigger={['click']} onClick={(e) => e.stopPropagation()}>
+                    <Button type="text" size="small" icon={<MoreOutlined />} style={{ color: '#888' }} onClick={(e) => e.stopPropagation()} />
+                </Dropdown>
             </ColumnHeader>
 
             {/* Danh sách Task Cards */}
@@ -52,12 +60,12 @@ const KanbanColumn = ({ status, tasks = [], onAddTask, onTaskClick }) => {
                     <TaskCard
                         key={task.id}
                         task={task}
-                        onClick={onTaskClick} // Truyền hàm click xuống TaskCard
+                        onClick={()=>onTaskClick(task.id)} // Truyền hàm click xuống TaskCard
                      />
                 ))}
                 {/* Thêm placeholder nếu dùng DND */}
             </TaskListWrapper>
-
+           
             {/* Nút thêm Task */}
             <Button
                 icon={<PlusOutlined />}

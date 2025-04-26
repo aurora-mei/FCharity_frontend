@@ -41,12 +41,13 @@ import {
   StarOutlined,
   UnorderedListOutlined
 } from '@ant-design/icons';
-import { fetchProjectById, fetchDonationsOfProject, fetchProjectRequests, fetchActiveProjectMembers,fetchSpendingDetailsByProject } from "../../redux/project/projectSlice";
+import { fetchProjectById, fetchDonationsOfProject, fetchProjectRequests, fetchActiveProjectMembers, fetchSpendingDetailsByProject } from "../../redux/project/projectSlice";
 import styled from "styled-components";
 import LoadingModal from "../../components/LoadingModal";
 import ProjectDonationBoard from "../../containers/ProjectDonationBoard/ProjectDonationBoard";
 import moment from "moment-timezone";
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
+import TaskOverviewTab from "../../containers/TaskOverviewTab/TaskOverviewTab";
 const { Title, Paragraph, Text } = Typography;
 
 const StyledScreen = styled.div`
@@ -248,10 +249,11 @@ const ProjectMoreDetailScreen = () => {
   const checkoutURL = useSelector((state) => state.helper.checkoutURL);
   const projectRequests = useSelector((state) => state.project.projectRequests);
   const projectMembers = useSelector((state) => state.project.projectMembers);
-  const loading = useSelector((state) => state.project.loading);
-   const spendingDetails = useSelector((state) => state.project.spendingDetails);
-     const [isOpenModal, setIsOpenModal] = useState(false);
-
+  const spendingDetails = useSelector((state) => state.project.spendingDetails);
+  const phases = useSelector((state) => state.timeline.phases);
+  const tasks = useSelector((state) => state.timeline.tasks);
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
 
@@ -260,12 +262,34 @@ const ProjectMoreDetailScreen = () => {
   } catch (error) {
     console.error("Error parsing currentUser from localStorage:", error);
   }
+  // useEffect(() => {
+  //   dispatch(fetchProjectById(projectId));
+  //   dispatch(fetchDonationsOfProject(projectId));
+  //   dispatch(fetchSpendingDetailsByProject(projectId))
+
+  // }, [dispatch, projectId, donations.length]);
+
   useEffect(() => {
-    dispatch(fetchProjectById(projectId));
-    dispatch(fetchDonationsOfProject(projectId));
-    dispatch(fetchSpendingDetailsByProject(projectId))
-    
+    setLoading(true);
+    setError(null);
+    // Gọi API hoặc dispatch action để lấy dữ liệu
+    Promise.all([
+      dispatch(fetchProjectById(projectId)),
+      dispatch(fetchDonationsOfProject(projectId)),
+      dispatch(fetchSpendingDetailsByProject(projectId)),
+      dispatch(getAllPhasesByProjectId(projectId)),
+      dispatch(getTasksOfProject(projectId)), // Giả sử có action này
+      new Promise(resolve => setTimeout(resolve, 1000))
+    ]).then(() => {
+      // Xử lý thành công
+    }).catch(err => {
+      console.error("Error fetching project data:", err);
+      setError("Failed to load project data. Please try again.");
+    }).finally(() => {
+      setLoading(false);
+    });
   }, [dispatch, projectId, donations.length]);
+
   useEffect(() => {
     if (checkoutURL) {
       window.location.href = checkoutURL;
@@ -386,9 +410,10 @@ const ProjectMoreDetailScreen = () => {
       <Flex vertical gap={40} className="details-containter" style={{ margin: "1rem auto", width: "100%" }}>
         <ProjectDonationBoard donations={donations.filter((x) => x.donationStatus === "COMPLETED")} />
         <ProjectSpendingDetailContainer
-                                       isLeader={false}
-                                       spendingDetails={spendingDetails}
-                                   />
+          isLeader={false}
+          spendingDetails={spendingDetails}
+        />
+        <TaskOverviewTab />
       </Flex>
       <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
     </StyledScreen>
