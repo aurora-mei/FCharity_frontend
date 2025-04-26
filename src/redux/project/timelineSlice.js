@@ -16,201 +16,132 @@ const initialState = {
 // Thực hiện các tác vụ bất đồng bộ bằng createAsyncThunk
 export const getAllPhasesByProjectId = createAsyncThunk(
   'timeline/getAllPhasesByProjectId',
-  async (projectId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.getAllPhasesByProjectId(projectId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (projectId) => {
+    const response = await timelineApi.getAllPhasesByProjectId(projectId);
+    return response;
   }
 );
 
 export const getPhaseById = createAsyncThunk(
   'timeline/getPhaseById',
-  async (phaseId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.getPhaseById(phaseId);
+  async (phaseId) => {
+    const response = await timelineApi.getPhaseById(phaseId);
       return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
   }
 );
 
 export const createPhase = createAsyncThunk(
   'timeline/createPhase',
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.createPhase(data);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (data) => {
+    const response = await timelineApi.createPhase(data);
+    return response;
   }
 );
 
 export const updatePhase = createAsyncThunk(
   'timeline/updatePhase',
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.updatePhase(data);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (data) => {
+    const response = await timelineApi.updatePhase(data);
+    return response;
   }
 );
 
 export const endPhase = createAsyncThunk(
   'timeline/endPhase',
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.endPhase(data);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (data) => {
+    const response = await timelineApi.endPhase(data);
+    return response;
   }
 );
 
 export const cancelPhase = createAsyncThunk(
   'timeline/cancelPhase',
-  async (phaseId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.cancelPhase(phaseId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (phaseId) => {
+    const response = await timelineApi.cancelPhase(phaseId);
+    return response;
   }
 );
 export const getTasksOfProject = createAsyncThunk(
   'timeline/getTasksOfProject',
-  async (projectId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.getTasksOfProject(projectId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (projectId) => {
+    return await timelineApi.getTasksOfProject(projectId);
   }
 );
 export const getTasksOfPhase = createAsyncThunk(
   'timeline/getTasksOfPhase',
-  async (phaseId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.getTasksOfPhase(phaseId);
+  async (phaseId) => {
+    const response = await timelineApi.getTasksOfPhase(phaseId);
       return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
   }
 );
 
 export const getSubtasksOfTask = createAsyncThunk(
   'timeline/getSubtasksOfTask',
-  async (taskId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.getSubtasksOfTask(taskId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (taskId) => {
+    const response = await timelineApi.getSubtasksOfTask(taskId);
+    return response;
   }
 );
 
 export const addTaskToPhase = createAsyncThunk(
   'timeline/addTaskToPhase',
-  async ({ phaseId, taskData }, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.addTaskToPhase(phaseId, taskData);
+  async ({ phaseId, taskData }) => {
+    const response = await timelineApi.addTaskToPhase(phaseId, taskData);
       return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
   }
 );
 export const getTaskById = createAsyncThunk(
   'timeline/getTaskById',
-  async (taskId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.getTaskById(taskId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (taskId) => {
+    const response = await timelineApi.getTaskById(taskId);
+    return response;
   }
 );
 export const updateTaskOfPhase = createAsyncThunk(
   'timeline/updateTaskOfPhase',
-  async ({ taskId, taskData }, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.updateTaskOfPhase(taskId, taskData);
+  async ({ taskId, taskData }) => {
+    const response = await timelineApi.updateTaskOfPhase(taskId, taskData);
       return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
   }
 );
 
 export const cancelTaskOfPhase = createAsyncThunk(
   'timeline/cancelTaskOfPhase',
-  async (taskId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.cancelTaskOfPhase(taskId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (taskId) => {
+    const response = await timelineApi.cancelTaskOfPhase(taskId);
+    return response;
   }
 );
 
 export const getAllTaskStatuses = createAsyncThunk(
   'timeline/getAllTaskStatuses',
-  async (phaseId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.getAllTaskStatuses(phaseId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (phaseId) => {
+    const response = await timelineApi.getAllTaskStatuses(phaseId);
+    return response;
   }
 );
 
 export const addTaskStatus = createAsyncThunk(
   'timeline/addTaskStatus',
-  async (statusData, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.addTaskStatus(statusData);
+  async (statusData) => {
+    const response = await timelineApi.addTaskStatus(statusData);
       return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
   }
 );
 
 export const updateTaskStatus = createAsyncThunk(
   'timeline/updateTaskStatus',
-  async (statusData, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.updateTaskStatus(statusData);
+  async (statusData) => {
+    const response = await timelineApi.updateTaskStatus(statusData);
       return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
   }
 );
 
 export const deleteTaskStatus = createAsyncThunk(
   'timeline/deleteTaskStatus',
-  async (statusId, { rejectWithValue }) => {
-    try {
-      const response = await timelineApi.deleteTaskStatus(statusId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+  async (statusId) => {
+    const response = await timelineApi.deleteTaskStatus(statusId);
+    return response;
   }
 );
 
@@ -232,19 +163,19 @@ const timelineSlice = createSlice({
         const now = dayjs();
 
         const ongoingOrFuturePhases = state.phases
-          .filter(p => !p.endTime || dayjs(p.endTime).isAfter(now))
-          .sort((a, b) => dayjs(a.startTime).valueOf() - dayjs(b.startTime).valueOf()); // Sort by start time
+          .filter(p => !p.phase.endTime || dayjs(p.phase.endTime).isAfter(now))
+          .sort((a, b) => dayjs(a.phase.startTime).valueOf() - dayjs(b.phase.startTime).valueOf()); // Sort by start time
 
         if (ongoingOrFuturePhases.length > 0) {
           // Find the earliest one that has started or is the next upcoming one
-          activePhase = ongoingOrFuturePhases.find(p => dayjs(p.startTime).isBefore(now)) || ongoingOrFuturePhases[0];
+          activePhase = ongoingOrFuturePhases.find(p => dayjs(p.phase.startTime).isBefore(now)) || ongoingOrFuturePhases[0];
         }
 
         // If no ongoing or future phases, find the most recently ended one
         if (!activePhase && state.phases.length > 0) {
           activePhase = [...state.phases].sort((a, b) => {
-            const endTimeA = a.endTime ? dayjs(a.endTime).valueOf() : -Infinity;
-            const endTimeB = b.endTime ? dayjs(b.endTime).valueOf() : -Infinity;
+            const endTimeA = a.phase.endTime ? dayjs(a.phase.endTime).valueOf() : -Infinity;
+            const endTimeB = b.phase.endTime ? dayjs(b.phase.endTime).valueOf() : -Infinity;
             return endTimeB - endTimeA; // Sort descending by end time
           })[0];
         }
@@ -370,8 +301,11 @@ const timelineSlice = createSlice({
       })
       .addCase(addTaskToPhase.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks.push(action.payload);
-        state.currentTask = action.payload;
+        if(action.payload.parentTask){
+          state.subtasks.push(action.payload);
+        }else{
+          state.tasks.push(action.payload);
+        }
       })
       .addCase(addTaskToPhase.rejected, (state, action) => {
         state.loading = false;
@@ -382,13 +316,22 @@ const timelineSlice = createSlice({
       })
       .addCase(updateTaskOfPhase.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.tasks.findIndex(
-          (status) => status.id === action.payload.id
-        );
-        if (index !== -1) {
-          state.tasks[index] = action.payload;
+        if(action.payload.parentTask){
+          const index = state.subtasks.findIndex(
+            (status) => status.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.subtasks[index] = action.payload;
+          }
+        }else{
+          const index = state.tasks.findIndex(
+            (status) => status.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.tasks[index] = action.payload;
+          }
+          state.currentTask = action.payload;
         }
-        state.currentTask = action.payload;
       })
       .addCase(updateTaskOfPhase.rejected, (state, action) => {
         state.loading = false;

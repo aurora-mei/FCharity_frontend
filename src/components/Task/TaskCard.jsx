@@ -54,7 +54,12 @@ const TaskCard = ({ task, onClick }) => {
     <StyledTaskCard hoverable onClick={() => onClick(task.id)}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
         <Flex vertical gap={3}>
-          <Text className="task-card-header">{task.taskName || 'Untitled Task'}</Text>
+          <Text
+            className="task-card-header"
+            style={{ textDecoration: task.status?.statusName === "DONE" ? 'line-through' : 'none', color:task.status?.statusName === "DONE" ? 'gray' : 'black' }}
+          >
+            {task.taskName || 'Untitled Task'}
+          </Text>
           {task.updatedAt != undefined ? (
             <Text key="updated" type="secondary" style={{ fontSize: '0.8em' }}>
               Updated: {dayjs(task.updatedAt).format('DD/MM/YY')}
@@ -69,7 +74,7 @@ const TaskCard = ({ task, onClick }) => {
 
       {/* Footer: Task ID và Assignee */}
       <div className="task-card-footer">
-        <span>{task.taskIdentifier || task.id.substring(0, 6)}</span>
+        <span>{task.taskPlanDescription || task.id.substring(0, 6)}</span>
         <Tooltip title={task.user ? task.user.fullName : 'Unassigned'}>
           <Avatar
             size={24}

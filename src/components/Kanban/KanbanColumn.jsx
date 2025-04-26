@@ -8,7 +8,7 @@ import TaskCard from '../Task/TaskCard'; // Import TaskCard
 const { Title, Text } = Typography;
 
 const ColumnWrapper = styled.div`
-  background-color: #f4f5f7; /* Màu nền xám nhạt cho cột */
+  background-color: #F4F4F4; /* Màu nền xám nhạt cho cột */
   border-radius: 6px;
   padding: 0.8rem;
   width: 300px; /* Chiều rộng cố định cho cột */
@@ -47,7 +47,7 @@ const KanbanColumn = ({ status, tasks = [],  onEditStatus,onDeleteStatus, onAddT
             {/* Header Cột */}
             <ColumnHeader justify="space-between" align="center">
                 <Title level={5} style={{ margin: 0, textTransform: 'uppercase', fontSize: '0.8rem', color: '#5e6c84' }}>
-                    {status.statusName} <Text type="secondary">({tasks.length})</Text>
+                    {status.statusName} <Text type="secondary">({tasks.length})</Text> {status.statusName === 'DONE' ? <Text type="success">✔</Text> : null}
                 </Title>
                 <Dropdown overlay={menu} trigger={['click']} onClick={(e) => e.stopPropagation()}>
                     <Button type="text" size="small" icon={<MoreOutlined />} style={{ color: '#888' }} onClick={(e) => e.stopPropagation()} />
@@ -65,7 +65,7 @@ const KanbanColumn = ({ status, tasks = [],  onEditStatus,onDeleteStatus, onAddT
                 ))}
                 {/* Thêm placeholder nếu dùng DND */}
             </TaskListWrapper>
-
+           
             {/* Nút thêm Task */}
             <Button
                 icon={<PlusOutlined />}

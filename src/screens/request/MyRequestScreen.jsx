@@ -6,6 +6,7 @@ import { fetchRequestsByUserIdThunk, fetchTransferRequestByRequest, updateConfir
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import { getListBankThunk } from "../../redux/helper/helperSlice";
+import {confirmReceiveRequestThunk, setCurrentConfirmRequest} from "../../redux/project/projectSlice";
 import { Bar, Line } from "react-chartjs-2";
 import { useNavigate, Link } from "react-router-dom";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
@@ -20,6 +21,7 @@ import {
   Legend,
 } from "chart.js";
 import { useDispatch, useSelector } from "react-redux";
+import { getConfirmReceiveRequestByRequestThunk } from "../../redux/project/projectSlice";
 const { Text, Title, Paragraph } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -118,6 +120,7 @@ const MyRequestScreen = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [provinces, setProvinces] = useState([]);
   const [transferRequests, setTransferRequests] = useState(new Map());
+  const [confirmRequests, setConfirmRequests] = useState(new Map());
   const [navigateError, setNavigateError] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -127,7 +130,9 @@ const MyRequestScreen = () => {
   const error = useSelector((state) => state.request.error);
   const listBank = useSelector((state) => state.helper.listBank) || [];
   const [transferRequestModalOpen, setTransferRequestModalOpen] = useState(false);
+  const [confirmRequestModalOpen,setConfirmRequestModalOpen] = useState(false);
   const currentTransferRequest = useSelector((state) => state.request.currentTransferRequest) || {};
+  const currentConfirmRequest = useSelector((state)=>state.project.currentConfirmRequest)
   // Get user from localStorage
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -196,9 +201,18 @@ const MyRequestScreen = () => {
     }
     setTransferRequests(newMap);
   };
+  const fetchAllConfirmRequests = async () => {
+    const newMap = new Map();
+    for (const request of requestsByUserId) {
+      const response = dispatch(getConfirmReceiveRequestByRequestThunk(request.helpRequest.id));
+      newMap.set(request.helpRequest.id, response.payload);
+    }
+    setConfirmRequests(newMap);
+  };
   useEffect(() => {
     if (requestsByUserId.length > 0) {
       fetchAllTransferRequests();
+      fetchAllConfirmRequests();
     }
   }, [requestsByUserId]);
 
@@ -496,7 +510,7 @@ const MyRequestScreen = () => {
           renderItem={(request) => (
             <List.Item key={request.helpRequest.id}>
 
-              {transferRequests && transferRequests.get(request.helpRequest.id) ? (
+              {transferRequests && transferRequests.get(request.helpRequest.id) && (
                 <Flex vertical gap={10}>
                   <RequestCard requestData={request} />
                   <Button onClick={() => {
@@ -596,7 +610,7 @@ const MyRequestScreen = () => {
                                     description={transferRequest.reason}
                                     type="info" // Or warning/error as appropriate
                                     showIcon
-                                    style={{ margin: "16px 0"}} // Add margin below alert
+                                    style={{ margin: "16px 0" }} // Add margin below alert
                                     icon={<ExclamationCircleOutlined />} // Keep specific icon if needed
                                   />
                                 )}
@@ -740,77 +754,77 @@ const MyRequestScreen = () => {
                         case "COMPLETED":
                           return (
                             <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                            {/* Transaction Result Card - Modified to include Image */}
-                            <Card
+                              {/* Transaction Result Card - Modified to include Image */}
+                              <Card
                                 title={<Title level={5} style={{ margin: 0 }}>Transaction Result</Title>}
                                 size="small"
                                 bordered={false}
                                 style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px' }}
-                            >
+                              >
                                 {/* Success Message */}
                                 <Text type="success" style={{ display: 'block', marginBottom: '16px', fontSize: '1.1em', fontWeight: 500 }}>
-                                    The transaction was completed!
+                                  The transaction was completed!
                                 </Text>
-                    
+
                                 {/* Transaction Proof Image (Conditional Rendering) */}
                                 {transferRequest?.transactionImage && (
-                                    <>
-                                        <Image
-                                            width="100%" // Make image responsive
-                                            style={{ maxHeight: '250px', objectFit: 'contain', marginBottom: '16px', borderRadius: '4px', display: 'block' }}
-                                            src={transferRequest.transactionImage}
-                                            alt="Transaction proof"
-                                            preview={{ // Enable Ant Design's preview
-                                                maskClassName: 'custom-image-mask', // Optional custom mask class
-                                            }}
-                                        />
-                                        <Divider style={{ marginTop: 0, marginBottom: 16 }} /> {/* Divider between image and details */}
-                                    </>
+                                  <>
+                                    <Image
+                                      width="100%" // Make image responsive
+                                      style={{ maxHeight: '250px', objectFit: 'contain', marginBottom: '16px', borderRadius: '4px', display: 'block' }}
+                                      src={transferRequest.transactionImage}
+                                      alt="Transaction proof"
+                                      preview={{ // Enable Ant Design's preview
+                                        maskClassName: 'custom-image-mask', // Optional custom mask class
+                                      }}
+                                    />
+                                    <Divider style={{ marginTop: 0, marginBottom: 16 }} /> {/* Divider between image and details */}
+                                  </>
                                 )}
-                    
+
                                 {/* Bank Details */}
                                 <Descriptions bordered size="small" column={1}>
-                                    <Descriptions.Item label="Total amount">
-                                        {formatCurrency(transferRequest?.amount)}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Bank BIN">
-                                        {transferRequest?.bankBin || 'N/A'}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Bank Account">
-                                        {transferRequest?.bankAccount || 'N/A'}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Bank Owner">
-                                        {transferRequest?.bankOwner || 'N/A'}
-                                    </Descriptions.Item>
+                                  <Descriptions.Item label="Total amount">
+                                    {formatCurrency(transferRequest?.amount)}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Bank BIN">
+                                    {transferRequest?.bankBin || 'N/A'}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Bank Account">
+                                    {transferRequest?.bankAccount || 'N/A'}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Bank Owner">
+                                    {transferRequest?.bankOwner || 'N/A'}
+                                  </Descriptions.Item>
                                 </Descriptions>
-                            </Card>
-                    
-                            {/* Project Information Card (Remains the same) */}
-                            <Card
+                              </Card>
+
+                              {/* Project Information Card (Remains the same) */}
+                              <Card
                                 title={<Title level={5} style={{ margin: 0 }}>Project Information</Title>}
                                 size="small"
                                 bordered={false}
                                 style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px' }}
-                            >
+                              >
                                 <Descriptions bordered size="small" column={1}>
-                                    <Descriptions.Item label="Project">
-                                        {transferRequest?.project?.id ? (
-                                            <Link to={`/projects/${transferRequest.project.id}/details`}>
-                                                {transferRequest?.project?.projectName || 'View Project'}
-                                            </Link>
-                                        ) : (
-                                            transferRequest?.project?.projectName || 'N/A'
-                                        )}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Start date">
-                                        {formatDate(transferRequest?.project?.actualStartTime)}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="End date">
-                                        {formatDate(transferRequest?.project?.actualEndTime)}
-                                    </Descriptions.Item>
+                                  <Descriptions.Item label="Project">
+                                    {transferRequest?.project?.id ? (
+                                      <Link to={`/projects/${transferRequest.project.id}/details`}>
+                                        {transferRequest?.project?.projectName || 'View Project'}
+                                      </Link>
+                                    ) : (
+                                      transferRequest?.project?.projectName || 'N/A'
+                                    )}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Start date">
+                                    {formatDate(transferRequest?.project?.actualStartTime)}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="End date">
+                                    {formatDate(transferRequest?.project?.actualEndTime)}
+                                  </Descriptions.Item>
                                 </Descriptions>
-                            </Card>
-                        </Space>
+                              </Card>
+                            </Space>
 
                           )
                         case "ERROR":
@@ -839,9 +853,64 @@ const MyRequestScreen = () => {
 
 
                 </Flex>
-              ) : (
-                <RequestCard requestData={request} />
               )}
+              {confirmRequests && confirmRequests.get(request.helpRequest.id) && (
+                <Flex vertical gap={10}>
+                  <RequestCard requestData={request} />
+                  <Button onClick={() => {
+                    setConfirmRequestModalOpen(true);
+                    console.log("confirm req", confirmRequests.get(request.helpRequest.id));
+                    dispatch(setCurrentConfirmRequest(confirmRequests.get(request.helpRequest.id)));
+                    form.setFieldsValue({
+                      id: confirmRequests.get(request.helpRequest.id).id
+                    })
+                  }}>View confirm request</Button>
+                  <Modal
+                    width={800}
+                    title="Confirm Request Details"
+                    open={confirmRequestModalOpen}
+                    onCancel={() => setConfirmRequestModalOpen(false)}
+                    footer={null}
+                  >
+                    {(() => {
+                      const confirmRequest = currentConfirmRequest;
+                      const isConfirmed = confirmRequest.isConfirmed;
+                      const note = confirmRequest.note;
+                      if(!isConfirmed && note.includes("Please confirm receive")){
+                        return(
+                          <Flex verticall>
+                            <Text>{note}</Text>
+                            <Text>You can view project details in</Text>
+                            <Button onClick={()=>dispatch(confirmReceiveRequestThunk(confirmRequest.id))}>Confirm</Button>
+                            <Button onClick={
+                              ()=>{
+                                
+                              }
+                            }>Reject</Button>
+                          </Flex>
+                        )
+                      }else if(isConfirmed){
+                        return(
+                          <Flex verticall>
+                            <Text type="success">Request has been confirmed!</Text>
+                            <Text>You can view project details in</Text>
+                          </Flex>
+                        )
+                      }else if(!isConfirmed && note.includes("Please confirm receive")){
+                        return(
+                          <Flex verticall>
+                            <Text type="success">Your response has been sent to project. Please wait to project check again and send you a final confirm</Text>
+                            <Text>You can view project details in</Text>
+                          </Flex>
+                        )
+                      }
+                  
+                  
+                    })()}
+                  </Modal>
+                </Flex>
+              )}
+              <RequestCard requestData={request} />
             </List.Item>
           )}
         />

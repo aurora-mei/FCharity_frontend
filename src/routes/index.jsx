@@ -56,6 +56,7 @@ import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AddProjectMemberScreen from "../screens/project/AddProjectMemberScreen.jsx";
+import ProjectMyTaskContainer from "../containers/ProjectMyTaskContainer/ProjectMyTaskContainer.jsx";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,7 @@ const AppRoutes = () => {
             <Route path="finance" element={<ProjectFinancePlanContainer />} />
             <Route path="request/:id" element={<ProjectRequestContainer/>}/>
             <Route path="tasks" element={<ProjectTaskPlanContainer/>} />
+            <Route path="mytasks" element={<ProjectMyTaskContainer/>} />
           </Route>
           <Route path="/" element={<ManagerLayout />}>
           <Route path="my-organization">

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
 import {
     Layout, Row, Col, Typography, Button, Input, Table, Avatar, Tag, DatePicker,
     Select, Tooltip, message, Tabs, Form, Empty, Descriptions, Flex, Breadcrumb,
-    Progress, Space, Divider
+    Progress, Space, Divider,Modal
 } from 'antd';
 import {
     PlusOutlined, PaperClipOutlined, LinkOutlined, SubnodeOutlined,
@@ -10,7 +10,7 @@ import {
     DeleteOutlined
 } from '@ant-design/icons';
 import moment from 'moment'; // Or import dayjs if using Antd v5+ with dayjs
-import {cancelTaskOfPhase} from '../../redux/project/timelineSlice';
+import { cancelTaskOfPhase } from '../../redux/project/timelineSlice';
 import dayjs from 'dayjs';
 import { useDispatch, useSelector } from 'react-redux';
 const { Header, Content, Sider } = Layout;
@@ -18,6 +18,7 @@ const { Title, Text, Paragraph, Link } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
+const { confirm } = Modal;
 
 const getInitials = (name = '') => {
     return name.split(' ')
@@ -27,6 +28,7 @@ const getInitials = (name = '') => {
         .toUpperCase() || <UserOutlined />;
 };
 
+
 const TaskDetailView = ({
     taskId,
     mainTask,
@@ -35,17 +37,30 @@ const TaskDetailView = ({
     statusOptions = [],  // Array of statuses for Status dropdown [{ id: 'uuid', statusName: '...' }]
     parentTaskName = '', // Optional: Name of the parent task if mainTask itself is a subtask
     loading = false,
-    onClose,           // Function to close this view/modal
+    onCancelTask,           // Function to close this view/modal
     onCreateSubtask,   // Function(subtaskData) called when creating a new subtask
     onUpdateTaskField, // Function(taskId, field, value) called to update any field (main or subtask)
     onNavigateToTask,
 }) => {
+    const inputRef = useRef(null);
+
     const [newSubtaskName, setNewSubtaskName] = useState('');
     const [isCreatingSubtask, setIsCreatingSubtask] = useState(false); // Loading state for subtask creation
-    const dispatch = useDispatch();
     if (!mainTask) {
         return <Empty description="Task data not available." />;
     }
+    const showConfirm = (taskId) => {
+        confirm({
+          title: "Are you sure you want to remove this task?",
+          content: "This action cannot be undone.",
+          okText: "Yes, remove it",
+          okType: "danger",
+          cancelText: "Cancel",
+          onOk() {
+            onCancelTask(taskId);
+          },
+        });
+      };
     const handleCreateSubtask = async () => {
         if (!newSubtaskName.trim()) {
             message.error("Please enter a subtask name.");
@@ -90,8 +105,8 @@ const TaskDetailView = ({
             console.warn("Navigation handler or parentTask.id not provided");
         }
     };
- 
-    const isTaskLevel3 =mainTask?.parentTask &&  mainTask?.parentTask?.id !== undefined && mainTask?.parentTask?.parentTask && mainTask?.parentTask?.parentTask.id !== null;
+
+    const isTaskLevel3 = mainTask?.parentTask && mainTask?.parentTask?.id !== undefined && mainTask?.parentTask?.parentTask && mainTask?.parentTask?.parentTask.id !== null;
     const subtaskColumns = [
         { // Optional: Key - if you have a way to generate/show it
             title: 'Key',
@@ -104,7 +119,7 @@ const TaskDetailView = ({
             title: 'Type',
             key: 'type',
             width: 50,
-            render: (text, record) => (
+            render: (_, record) => (
                 <Button
                     type="link"
                     onClick={() => handleSubtaskClick(record.id)}
@@ -119,6 +134,13 @@ const TaskDetailView = ({
             title: 'Summary',
             dataIndex: 'taskName',
             key: 'summary',
+            render: (text, record) => (
+                <Text type="primary"
+                    editable={{
+                        onChange: (value) => onUpdateTaskField?.(record.id, 'taskName', value, record?.user?.id || null)
+                    }}
+                >{text}</Text>
+            )
         },
         {
             title: 'Assignee',
@@ -182,19 +204,20 @@ const TaskDetailView = ({
     // --- Calculate Subtask Progress (Example) ---
     const completedSubtasks = subtasks.filter(st => st.status?.statusName?.toLowerCase() === 'done').length;
     const progressPercent = subtasks.length > 0 ? Math.round((completedSubtasks / subtasks.length) * 100) : 0;
-    console.log("subtasks", subtasks);
     return (
         <Layout style={{ background: '#fff', height: 'fit-content', overflow: 'hidden' }}>
 
             <Layout>
                 <Content style={{ padding: '24px', overflowY: 'auto', background: '#fff' }}>
-                    <Title level={3} style={{ marginTop: 0}} 
-                    editable={{ onChange: (value) => onUpdateTaskField?.(mainTask.id, 'taskName', value, mainTask?.user?.id || null) }}>
+                    <Title level={3}
+                        style={{ marginTop: 0, textDecoration: mainTask.status?.statusName === "DONE" ? 'line-through' : 'none', color: mainTask.status?.statusName === "DONE" ? 'gray' : 'black' }}
+                        editable={{ onChange: (value) => onUpdateTaskField?.(mainTask.id, 'taskName', value, mainTask?.user?.id || null) }}>
                         {mainTask.taskName}</Title>
                     <Space gap={10} style={{ marginBottom: 24 }}>
-                    <Button icon={<DeleteOutlined/>} onClick={() => dispatch(cancelTaskOfPhase(mainTask.id))}>Remove task</Button>
-                    {!isTaskLevel3 && ( <Button icon={<SubnodeOutlined />} onClick={() => document.getElementById('new-subtask-input')?.focus()}>Add subtask</Button>
-)}
+                        <Button icon={<DeleteOutlined />} onClick={() => showConfirm(mainTask.id)}>Remove task</Button>
+                        {!isTaskLevel3 && (
+                            <Button onClick={() => inputRef.current?.focus()}>Add subtask</Button>
+                        )}
                     </Space>
 
                     <Descriptions title="Description" column={1} style={{ marginBottom: 24 }}>
@@ -205,53 +228,53 @@ const TaskDetailView = ({
                         </Descriptions.Item>
                     </Descriptions>
 
-                 { !isTaskLevel3 &&(
-                    <div style={{ marginBottom: 24 }}>
-                        <Flex justify="space-between" align="center" style={{ marginBottom: 8 }}>
-                            <Title level={5} style={{ margin: 0 }}>Child work items</Title>
-                            <Space>
-                                <Button type="text" icon={<PlusOutlined />} onClick={() => document.getElementById('new-subtask-input')?.focus()} />
-                            </Space>
-                        </Flex>
-                        {subtasks.length > 0 && (
-                            <Progress percent={progressPercent} size="small" style={{ marginBottom: 16 }} />
-                        )}
-                        <Table
-                            dataSource={Array.isArray(subtasks) // 1. Check if subtasks IS an array
-                                ? [...subtasks].sort((a, b) => dayjs(a.createdAt).diff(dayjs(b.createdAt))) // 3. Sort the COPY (descending order - latest first)
-                                : []} // Sort by task name
-                            columns={subtaskColumns}
-                            rowKey="id"
-                            pagination={false}
-                            size="small"
-                            scroll={{ y: 200 }}
-                            showHeader={subtasks.length > 0} // Only show header if there are tasks
-                        />
-                        <Input.Group compact style={{ marginTop: 8, display: 'flex' }}>
-                            <Flex gap={10} align='center' style={{ padding: '4px 11px', border: '1px solid #d9d9d9', borderRight: 0, background: '#fafafa' }}>
-                                <SubnodeOutlined /> Subtask
+                    {!isTaskLevel3 && (
+                        <div style={{ marginBottom: 24 }}>
+                            <Flex justify="space-between" align="center" style={{ marginBottom: 8 }}>
+                                <Title level={5} style={{ margin: 0 }}>Child work items</Title>
+                                <Space>
+                                    <Button onClick={() => inputRef.current?.focus()}>Add subtask</Button>
+                                </Space>
                             </Flex>
-                            <Input
-                                id="new-subtask-input"
-                                style={{ flexGrow: 1 }}
-                                placeholder="What needs to be done?"
-                                value={newSubtaskName}
-                                onChange={(e) => setNewSubtaskName(e.target.value)}
-                                onPressEnter={handleCreateSubtask}
+                            {subtasks.length > 0 && (
+                                <Progress percent={progressPercent} size="small" style={{ marginBottom: 16 }} />
+                            )}
+                            <Table
+                                dataSource={Array.isArray(subtasks) // 1. Check if subtasks IS an array
+                                    ? [...subtasks].sort((a, b) => dayjs(a.createdAt).diff(dayjs(b.createdAt))) // 3. Sort the COPY (descending order - latest first)
+                                    : []} // Sort by task name
+                                columns={subtaskColumns}
+                                rowKey="id"
+                                pagination={false}
+                                size="small"
+                                scroll={{ y: 200 }}
+                                showHeader={subtasks.length > 0} // Only show header if there are tasks
                             />
-                            <Button
-                                type="primary"
-                                onClick={handleCreateSubtask}
-                                loading={isCreatingSubtask}
-                                style={{ marginLeft: 8, height: "auto", borderRadius: "0.3rem" }} // Add some space
-                            >
-                                Create
-                            </Button>
-                            <Button onClick={() => setNewSubtaskName('')} style={{ marginLeft: 8, height: "auto", borderRadius: "0.3rem" }}>Cancel</Button>
-                        </Input.Group>
-                    </div>
+                            <Input.Group compact style={{ marginTop: 8, display: 'flex' }}>
+                                <Flex gap={10} align='center' style={{ padding: '4px 11px', border: '1px solid #d9d9d9', borderRight: 0, background: '#fafafa' }}>
+                                    <SubnodeOutlined /> Subtask
+                                </Flex>
+                                <Input
+                                     ref={inputRef}
+                                    style={{ flexGrow: 1 }}
+                                    placeholder="What needs to be done?"
+                                    value={newSubtaskName}
+                                    onChange={(e) => setNewSubtaskName(e.target.value)}
+                                    onPressEnter={handleCreateSubtask}
+                                />
+                                <Button
+                                    type="primary"
+                                    onClick={handleCreateSubtask}
+                                    loading={isCreatingSubtask}
+                                    style={{ marginLeft: 8, height: "auto", borderRadius: "0.3rem" }} // Add some space
+                                >
+                                    Create
+                                </Button>
+                                <Button onClick={() => setNewSubtaskName('')} style={{ marginLeft: 8, height: "auto", borderRadius: "0.3rem" }}>Cancel</Button>
+                            </Input.Group>
+                        </div>
 
-                  )}
+                    )}
                 </Content>
 
                 <Sider width={320} theme="light" style={{ padding: '24px 16px', borderLeft: '1px solid #dfe1e6', overflowY: 'auto' }}>
@@ -302,7 +325,7 @@ const TaskDetailView = ({
                         <Descriptions.Item label="Status">
                             <Select
                                 value={mainTask.status?.id} // Directly bind to status id
-                                onChange={(value) => onUpdateTaskField?.(mainTask.id, 'taskPlanStatusId',value, mainTask?.user?.id || null)}
+                                onChange={(value) => onUpdateTaskField?.(mainTask.id, 'taskPlanStatusId', value, mainTask?.user?.id || null)}
                                 style={{ width: '100%' }}
                                 bordered={false}
                                 disabled={loading} // Disable while loading
@@ -317,52 +340,63 @@ const TaskDetailView = ({
                             </Select>
                         </Descriptions.Item>
 
-                        <Descriptions.Item label="Start date">
+                        <Descriptions.Item label="Start time">
                             <DatePicker
                                 value={mainTask.startTime ? dayjs(mainTask.startTime) : null}
                                 onChange={(date, dateString) => handleDateChange('startTime', date, dateString)}
                                 format="YYYY-MM-DD HH:mm:ss" // Adjust the format to include time
                                 showTime // This will show the time picker
                                 style={{ width: '100%' }}
+                                bordered={false}
                             />
                         </Descriptions.Item>
 
-                        <Descriptions.Item label="Due date">
+                        <Descriptions.Item label="Due time">
                             <DatePicker
                                 value={mainTask.endTime ? dayjs(mainTask.endTime) : null}
                                 onChange={(date, dateString) => handleDateChange('endTime', date, dateString)}
-                                format="YYYY-MM-DD HH:mm:ss" // How the date is displayed
+                                format="YYYY-MM-DD HH:mm:ss"
                                 style={{ width: '100%' }}
                                 bordered={false}
                                 showTime
                                 placeholder="Select due date"
-                                allowClear // Allow clearing the date
-                                disabled={loading} // Disable while loading
+                                allowClear
+                                disabled={loading}
                                 disabledDate={(current) => {
-                                    if (!mainTask.startTime) return false; // If no start time, no restriction
-                                    return current && current <= dayjs(mainTask.startTime, 'YYYY-MM-DD HH:mm:ss'); // Disable dates that are after or equal to start date
+                                    if (!mainTask.startTime) return false;
+                                    // Chặn ngày trước ngày start
+                                    return current && current.isBefore(dayjs(mainTask.startTime), 'day');
                                 }}
                                 disabledTime={(current) => {
-                                    if (!mainTask.startTime) return false; // If no start time, no restriction
-                                    const startTime = dayjs(mainTask.startTime);
-                                    const hours = startTime.hour();
-                                    const minutes = startTime.minute();
+                                    if (!mainTask.startTime || !current) return {};
+                                    const start = dayjs(mainTask.startTime);
 
-                                    // Disable times after start time
-                                    return {
-                                        disabledHours: () => {
-                                            return Array.from({ length: 24 }, (_, i) => i <= hours ? i : null).filter(Boolean);
-                                        },
-                                        disabledMinutes: (selectedHour) => {
-                                            if (selectedHour === hours) {
-                                                return Array.from({ length: 60 }, (_, i) => i <= minutes ? i : null).filter(Boolean);
+                                    // Nếu cùng ngày thì giới hạn giờ/phút
+                                    if (current.isSame(start, 'day')) {
+                                        const disabledHours = Array.from({ length: 24 }, (_, i) =>
+                                            i < start.hour() ? i : null
+                                        ).filter((i) => i !== null);
+
+                                        const disabledMinutes = (selectedHour) => {
+                                            if (selectedHour === start.hour()) {
+                                                return Array.from({ length: 60 }, (_, i) =>
+                                                    i < start.minute() ? i : null
+                                                ).filter((i) => i !== null);
                                             }
                                             return [];
-                                        },
-                                    };
+                                        };
+
+                                        return {
+                                            disabledHours: () => disabledHours,
+                                            disabledMinutes,
+                                        };
+                                    }
+
+                                    return {};
                                 }}
                             />
                         </Descriptions.Item>
+
 
 
                     </Descriptions>

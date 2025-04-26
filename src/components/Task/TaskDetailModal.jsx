@@ -5,7 +5,7 @@ import {
   Skeleton
 } from 'antd';
 import {
-  getSubtasksOfTask, getTaskById, getTasksOfProject,
+  getSubtasksOfTask, getTaskById, getTasksOfProject, cancelTaskOfPhase,
   updateTaskOfPhase
 } from '../../redux/project/timelineSlice';
 import { fetchAllProjectMembersThunk } from '../../redux/project/projectSlice';
@@ -35,7 +35,6 @@ const TaskDetailModal = ({ statuses, taskId, isOpen, setIsOpen, projectId, phase
       try {
         const promises = [
           dispatch(getTaskById(currentTaskId)),
-          dispatch(getSubtasksOfTask(currentTaskId)),
           dispatch(getTasksOfProject(projectId)),
           dispatch(fetchAllProjectMembersThunk(projectId))
         ];
@@ -51,26 +50,25 @@ const TaskDetailModal = ({ statuses, taskId, isOpen, setIsOpen, projectId, phase
   };
 
   useEffect(() => {
-    console.log("task",taskId)
-    if (isOpen) fetchData();
-  }, [isOpen, projectId]);
+    dispatch(getSubtasksOfTask(currentTaskId));
+  }, [mainTask])
+
   useEffect(() => {
+    console.log("dang set lai currs",taskId,currentTaskId)
     setCurrentTaskId(taskId);
   }, [taskId]);
-  
+
   useEffect(() => {
-    if (isOpen && currentTaskId) {
+    console.log("fetch lai",taskId,currentTaskId)
       fetchData();
-    }
-  }, [currentTaskId]);
-  
+  }, [currentTaskId,taskId]);
+
   const handleCreateSubtask = async (subtaskData) => {
+    console.log("ssss",statuses);
     dispatch(addTaskToPhase({
       phaseId: phaseId,
-      taskData: { ...subtaskData, parentTaskId: mainTask.id }
+      taskData: { ...subtaskData, parentTaskId: mainTask.id, taskPlanStatusId: statuses.find((x) => x.statusName === "TO DO").id }
     })).then(() => {
-      setCurrentTaskId(localStorage.getItem('taskId'));
-      fetchData();
     }).catch((error) => {
       console.error("Error creating subtask:", error);
     });
@@ -84,13 +82,14 @@ const TaskDetailModal = ({ statuses, taskId, isOpen, setIsOpen, projectId, phase
     }
     dispatch(updateTaskOfPhase({ taskId: taskIdToUpdate, taskData }))
       .then(() => {
-        setCurrentTaskId(taskIdToUpdate);
-        fetchData();
       })
       .catch(error => console.error("Error updating task:", error));
-    
-
   }
+  const handleCancelTask = (id) => {
+    dispatch(cancelTaskOfPhase(id)).then(() => {
+      setIsOpen(false);
+    })
+  };
   const handleNavigateToTask = (id) => {
     if (id && id !== currentTaskId) {
       setCurrentTaskId(id);
@@ -100,7 +99,10 @@ const TaskDetailModal = ({ statuses, taskId, isOpen, setIsOpen, projectId, phase
   const parentTaskName = mainTask?.parentTask?.id ? mainTask?.parentTask.taskName : null;
 
   return (
-    <Modal open={isOpen} onCancel={() => setIsOpen(false)} footer={null} width={1000} centered>
+    <Modal open={isOpen} onCancel={() => {
+      setCurrentTaskId(null);
+      setIsOpen(false);
+    }} footer={null} width={1000} centered>
       {loading && <Skeleton active paragraph={{ rows: 10 }} />}
       {error && <Alert message="Error" description={error.message} type="error" showIcon />}
       {!loading && !error && mainTask && (
@@ -112,6 +114,7 @@ const TaskDetailModal = ({ statuses, taskId, isOpen, setIsOpen, projectId, phase
           projectMembers={allProjectMembers}
           statusOptions={statuses}
           loading={loading}
+          onCancelTask={handleCancelTask}
           onCreateSubtask={handleCreateSubtask}
           onUpdateTaskField={handleUpdateTaskField}
           onNavigateToTask={handleNavigateToTask}

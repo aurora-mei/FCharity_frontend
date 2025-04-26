@@ -6,11 +6,12 @@ import styled from 'styled-components';
 import dayjs from 'dayjs'; // Import dayjs
 import PhaseModal from '../../components/Phase/PhaseModal';
 // Make sure the path is correct and these actions exist and work
-import { getAllPhasesByProjectId, getTasksOfProject,getAllTaskStatuses, createPhase, updatePhase, addTaskToPhase, addTaskStatus, updateTaskStatus, deleteTaskStatus } from '../../redux/project/timelineSlice';
-import { fetchActiveProjectMembers } from '../../redux/project/projectSlice'; // Corrected import path assumption
+import { getAllPhasesByProjectId, getTasksOfProject, getAllTaskStatuses, createPhase, updatePhase, addTaskToPhase, addTaskStatus, updateTaskStatus, deleteTaskStatus, endPhase } from '../../redux/project/timelineSlice';
+import { fetchAllProjectMembersThunk } from '../../redux/project/projectSlice'; // Corrected import path assumption
 import { useDispatch, useSelector } from 'react-redux';
 import TaskModal from '../../components/Task/TaskModal';
 import TaskStatusModal from '../../components/Task/TaskStatusModal';
+import EndPhaseModal from '../../components/EndPhaseModal/EndPhaseModal';
 const { Title, Text } = Typography;
 
 // Styled component definition (kept as is)
@@ -37,34 +38,42 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
     const [statusModalMode, setStatusModalMode] = useState('create'); // 'create' or 'edit'
     const [isSubmittingStatus, setIsSubmittingStatus] = useState(false); // Loading state for status submission
     const [editingStatusData, setEditingStatusData] = useState(null); // Status object for editing
-    const projectMembers = useSelector((state) => state.project.projectMembers);
+    const projectMembers = useSelector((state) => state.project.allProjectMembers);
     const loadingTimeline = useSelector((state) => state.timeline.loading); // Loading state for timeline actions
     const loadingProject = useSelector((state) => state.project.loading); // Loading state for project actions (like fetching members)
     const dispatch = useDispatch();
     const [isSubmittingPhase, setIsSubmittingPhase] = useState(false);
     const [isSubmittingTask, setIsSubmittingTask] = useState(false); // Separate loading for task submission
+    const [isOpenEndPhase, setIsOpenEndPhase] = useState(false);
+    const [isOpenUpdatePhase, setIsOpenUpdatePhase] = useState(false);
     useEffect(() => {
-        // Fetch members if projectId is available and members aren't loaded
         if (projectId && (!projectMembers || projectMembers.length === 0)) {
-            dispatch(fetchActiveProjectMembers(projectId));
+            dispatch(fetchAllProjectMembersThunk(projectId));
         }
     }, [phases, projectId, dispatch]); // Removed projectMembers from dependency array to avoid potential loop if fetch modifies it
-
-    useEffect(()=>{
-        dispatch(getAllTaskStatuses(currentPhase.id));
-    },dispatch,currentPhase)
-    const handleEndPhase = (phaseId) => {
-        console.log("TODO: End phase logic for phase ID:", phaseId);
-        message.info("End Phase functionality not implemented yet.");
+   
+    useEffect(() => {
+        if (currentPhase?.phase?.id) {
+            dispatch(getAllTaskStatuses(currentPhase.phase.id));
+        }
+    }, [dispatch, currentPhase]);
+    
+    const handleEndPhase = (values) => {
+        console.log("End phase data:", values);
+        dispatch(endPhase(values)).then(() => {
+            dispatch(getAllPhasesByProjectId(projectId)); // Re-fetch phases after ending phase
+        });
+        setIsOpenEndPhase(false);
+    };
+    const handleUpdatePhase = (values) => {
+        console.log("Update phase data:", values);
+        dispatch(updatePhase(values)); // Dispatch action to end phase
+        setIsOpenUpdatePhase(false);
     };
 
-    const handleReportPhase = (phaseId) => {
-        console.log("TODO: Report phase logic for phase ID:", phaseId);
-        message.info("Report Phase functionality not implemented yet.");
-    };
 
     const handleAddTaskSubmit = async (values) => {
-        if (!currentPhase?.id) {
+        if (!currentPhase?.phase?.id) {
             message.error("Cannot add task: No current phase selected.");
             return;
         }
@@ -81,9 +90,9 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
                 ...values,
                 taskPlanStatusId: values.taskPlanStatusId || selectedStatus.id, // Use selectedStatus as fallback
                 projectId: projectId, // Include projectId if needed by backend
-                phaseId: currentPhase.id // Include phaseId if needed by backend
+                phaseId: currentPhase?.phase?.id // Include phaseId if needed by backend
             };
-            await dispatch(addTaskToPhase({ phaseId: currentPhase.id, taskData })).unwrap();
+            await dispatch(addTaskToPhase({ phaseId: currentPhase.phase?.id, taskData })).unwrap();
             setIsTaskModalOpen(false); // Close modal on success
             // Optionally: dispatch action to re-fetch tasks for the phase/project
             dispatch(getAllPhasesByProjectId(projectId)); // Re-fetch phases might re-fetch tasks if timelineSlice handles it
@@ -124,7 +133,7 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
         }
     };
 
-    const tasksForCurrentPhase = currentPhase ? tasks.filter(task => task.phaseId === currentPhase.id) : [];
+    const tasksForCurrentPhase = currentPhase ? tasks.filter(task => task.phaseId === currentPhase.phase?.id) : [];
     const handleOpenCreatePhaseModal = () => {
         setEditingPhaseData(null);
         setIsPhaseModalOpen(true);
@@ -132,7 +141,7 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
 
     // handleOpenEditPhaseModal remains the same
     const showCreateStatusModal = () => {
-        if (!currentPhase.id) {
+        if (!currentPhase.phase?.id) {
             message.error("Cannot add status: Phase information is missing.");
             return;
         }
@@ -159,10 +168,10 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
         try {
             if (phaseData.id) {
                 await dispatch(updatePhase(phaseData)).unwrap();
-                message.success("Phase updated successfully!");
             } else {
-                await dispatch(createPhase(phaseData)).unwrap();
-                message.success("Phase created successfully!");
+                await dispatch(createPhase(phaseData)).then(
+                    dispatch(getAllPhasesByProjectId(projectId))
+                )
             }
             setIsPhaseModalOpen(false);
             dispatch(getAllPhasesByProjectId(projectId)); // Re-fetch phases
@@ -176,7 +185,8 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
 
     // Prepare status options for TaskModal if needed (assuming statuses prop has { id, name } structure)
     const statusOptionsForModal = statuses.map(s => ({ value: s.id, label: s.statusName }));
-    console.log("fff",statuses)
+    const canNotReport = (tasksForCurrentPhase && tasksForCurrentPhase.length ===0)||(tasksForCurrentPhase.length > 0 && tasksForCurrentPhase.filter(task => !task.parentTask).find((x) => x.status.id !== statuses.find((x) => x.statusName === "DONE").id)!== undefined);
+    console.log("Can not report:",(tasksForCurrentPhase.length > 0 && tasksForCurrentPhase.filter(task => !task.parentTask).find((x) => x.taskPlanStatusId !== statuses.find((x) => x.statusName === "DONE").id)))
     return (
         // Add Spin wrapper for loading project members initially?
         <Spin spinning={loadingProject && !projectMembers}>
@@ -186,30 +196,41 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
                         {/* ... Phase header content remains the same ... */}
                         <Flex justify="space-between" align="center">
                             <div>
-                                <Title level={5} style={{ marginBottom: '0.25rem' }}>{currentPhase.title}</Title>
+                                <Title level={5} style={{ marginBottom: '0.25rem' }}>{currentPhase?.phase?.title}</Title>
                                 <Text type="secondary">
-                                    {dayjs(currentPhase.startTime).format('DD/MM/YYYY')} - {currentPhase.endTime ? dayjs(currentPhase.endTime).format('DD/MM/YYYY') : 'Ongoing'}
+                                    {dayjs(currentPhase?.phase?.startTime).format('DD/MM/YYYY hh:mm A')} - {currentPhase?.phase?.endTime ? dayjs(currentPhase?.phase?.endTime).format('DD/MM/YYYY hh:mm A') : 'Ongoing'}
                                 </Text>
                             </div>
-                            <Space>
-                                <Tooltip title="End Phase">
-                                    <Button
-                                        icon={<FlagOutlined />}
-                                        onClick={() => handleEndPhase(currentPhase.id)}
-                                        disabled={!!currentPhase.endTime}
-                                    >
-                                        End Phase
-                                    </Button>
-                                </Tooltip>
-                                <Tooltip title="Report Phase">
-                                    <Button
-                                        icon={<FileDoneOutlined />}
-                                        onClick={() => handleReportPhase(currentPhase.id)}
-                                    >
-                                        Report Phase
-                                    </Button>
-                                </Tooltip>
-                            </Space>
+                            {currentPhase?.phase?.status === "ACTIVE" && (
+                                <Space>
+                                    <Tooltip title="Update Phase">
+                                        <Button
+                                            icon={<FileDoneOutlined />}
+                                            onClick={() => setIsOpenUpdatePhase(true)}
+                                        >
+                                            Update Phase
+                                        </Button>
+                                    </Tooltip>
+                                    <Tooltip title={`${canNotReport ?"Report Phase":"Please add a task or set all parent tasks to be DONE before report phase"}`}>
+                                        <Button disabled={canNotReport}
+                                            icon={<FileDoneOutlined />}
+                                            onClick={() => setIsOpenEndPhase(true)}
+                                        >
+                                            Report Phase
+                                        </Button>
+                                    </Tooltip>
+                                </Space>
+                            )}
+                            {currentPhase?.phase?.status === "FINISHED" && (
+                                <Button
+                                    type="primary"
+                                    icon={<PlusOutlined />}
+                                    onClick={handleOpenCreatePhaseModal}
+                                    style={{ marginTop: '1rem' }}
+                                >
+                                    Create New Phase
+                                </Button>
+                            )}
                         </Flex>
                     </PhaseHeaderCard>
 
@@ -234,7 +255,7 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
                         statusOptions={statusOptionsForModal} // Pass formatted statuses
                         loading={isSubmittingTask} // Use task-specific loading state
                         initStatus={selectedStatus} // Pass the status selected in Kanban
-                        userOptions={projectMembers || []}
+                        userOptions={projectMembers.filter(x=>!x.leaveDate)}
                     />
                     <TaskStatusModal
                         isOpen={isStatusModalOpen}
@@ -243,7 +264,7 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
                         loading={isSubmittingStatus}
                         onSubmit={handleStatusFormSubmit}
                         setIsOpen={setIsStatusModalOpen}
-                        phaseId={currentPhase.id} // Pass the relevant phase ID
+                        phaseId={currentPhase?.phase?.id} // Pass the relevant phase ID
                     />
                 </>
             ) : (
@@ -270,6 +291,16 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
                 isLoading={isSubmittingPhase}
                 projectId={projectId}
             />
+            <EndPhaseModal onSubmit={handleEndPhase}
+                isEndPhase={true}
+                isOpen={isOpenEndPhase}
+                setIsOpen={setIsOpenEndPhase}
+                phase={currentPhase} />
+            <EndPhaseModal onSubmit={handleUpdatePhase}
+                isEndPhase={false}
+                isOpen={isOpenUpdatePhase}
+                setIsOpen={setIsOpenUpdatePhase}
+                phase={currentPhase} />
         </Spin>
     );
 };

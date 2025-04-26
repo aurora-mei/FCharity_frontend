@@ -12,7 +12,7 @@ import {
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
+import KanbanColumn from './KanbanColumn';
 const SortableKanbanColumn = ({ status, ...props }) => {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
         id: status.id,
@@ -29,3 +29,4 @@ const SortableKanbanColumn = ({ status, ...props }) => {
         </div>
     );
 };
+export default SortableKanbanColumn;

@@ -36,7 +36,7 @@ export const SpendingPlanFlex = styled(Flex)`
   width: 100%;
   flex-direction: column;
   border-radius:0.5rem;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
+//   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
   padding:2rem;
   background: #fff; // This applies to the Flex container itself if used
 `;
@@ -108,7 +108,7 @@ export const StyledButtonSubmit = styled(Button)`
 // Corrected StyledCard to target the card body for background color
 const StyledCard = styled(Card)`
     border-radius: 0.5rem;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
+    // box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
     width: 100%; /* Ensure card takes full width */
     background-color: #fff; /* Set outer card background */
 
