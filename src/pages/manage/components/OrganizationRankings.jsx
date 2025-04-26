@@ -17,6 +17,10 @@ const OrganizationRankings = () => {
   console.log("organizationsRanking: ", organizationsRanking);
 
   useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
     dispatch(getOrganizationsRanking());
   }, [dispatch]);
 

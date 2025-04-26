@@ -64,6 +64,7 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [uploadedVideos, setUploadedVideos] = useState([]);
   const [createdSuccess, setCreatedSuccess] = useState(false);
+  const currentProject = useSelector((state) => state.project.currentProject);
   const [uploading, setUploading] = useState(false);
   useEffect(() => {
     dispatch(fetchRequestById(requestId));
@@ -73,26 +74,19 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
     if (ownedOrganization?.organizationId) {
       dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
     }
-    if (form.getFieldValue("email") === undefined) {
-      initFormData();
-    }
-  }, [dispatch, ownedOrganization]);
+  }, [dispatch, myOrganization.organizationId]);
 
-  const initFormData = async () => {
-    console.log("myOrganizationmember", currentOrganizationMembers);
+  const setLeaderContact = async (user) => {
     // Lấy user từ localStorage
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
+    if (user) {
       try {
-        const parsedUser = JSON.parse(storedUser);
-
-        // Gán email, phone, location (detail) vào form
+        console.log("user", user);
         form.setFieldsValue({
-          email: parsedUser.email || "",
-          phone: parsedUser.phoneNumber || "",
+          email: user.email || "",
+          phone: user.phoneNumber || "",
         });
       } catch (error) {
-        console.error("Error parsing currentUser:", error);
+        console.error("Error parsing user:", error);
       }
     }
     setInitialLoading(false); // Kết thúc giai đoạn load dữ liệu ban đầu
@@ -218,7 +212,15 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
   const onFinish = async (values) => {
        // Tạo object gửi lên API
        const projectData = {
-         ...values,
+         projectName: values.projectName,
+         leaderId: values.leaderId,
+         email: values.email,
+          phoneNumber: values.phoneNumber,
+          projectDescription: values.projectDescription,
+         plannedStartTime: values.plannedStartTime.format(),
+          plannedEndTime: values.plannedEndTime.format(),
+          location: values.location,
+          categoryId: values.categoryId,
          requestId:requestId,
          organizationId: myOrganization.organizationId,
          tagIds: values.tagIds,
@@ -228,8 +230,12 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
    
        console.log("Final Project Data:", projectData);
        try {
-         await dispatch(createProjectThunk(projectData)).unwrap();
-         setCreatedSuccess(true);
+        const createdProject = await dispatch(createProjectThunk(projectData)).unwrap();
+
+        const newProjectId = createdProject.id; // <- Lấy id từ response
+    
+        setCreatedSuccess(true);
+        navigate(`/my-organization/projects/create/${requestId}/${newProjectId}`); // Chuyển hướng đến trang chi tiết dự án
          message.success("Create project successfully!");
        } catch (error) {
          console.error("Error creating Project:", error);
@@ -285,7 +291,7 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
 
               <Form.Item
                 label="Phone Number"
-                name="phone"
+                name="phoneNumber"
                 rules={[
                   { required: true, message: "Phone Number is required" },
                 ]}
@@ -327,9 +333,9 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
                 name="leaderId"
                 rules={[{ required: true, message: "Leader is required" }]}
               >
-                <Select placeholder="Select a leader" disabled={createdSuccess}>
-                  {currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER").map((member) => (
-                    <Option key={member.id} value={member.user.id}>
+                <Select placeholder="Select a leader" disabled={createdSuccess}  onChange={(value, option) => setLeaderContact(option.user)}>
+                  {currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER"  && x.user.userRole === "User").map((member) => (
+                    <Option key={member.id} value={member.user.id} user={member.user}>
                       {member.user.fullName}
                     </Option>
                   ))}

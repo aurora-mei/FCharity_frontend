@@ -48,10 +48,12 @@ const SidebarContainer = () => {
 
     if (mode === "manager") {
       dispatch(getManagedOrganizationsByManager());
+      dispatch(setCurrentRole("manager"));
     }
 
     if (mode === "member") {
       dispatch(getJoinedOrganizations());
+      dispatch(setCurrentRole("member"));
     }
   }, [mode]);
 

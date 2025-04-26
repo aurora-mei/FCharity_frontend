@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Typography, Row, Col, Pagination,Flex } from "antd";
+import { Card, Typography, Row, Col, Pagination,Flex, Avatar } from "antd";
 import styled from "styled-components";
 import moment from "moment";
 import PropTypes from "prop-types";
@@ -50,11 +50,8 @@ const DonationCard = ({ donation }) => {
         <Row gutter={[16, 16]} style={{ width: "100%" }}>
             <Col span={9}>
             <Flex justify="space-between" align="center" style={{ width: "100%" }}>
-                <img
-                    alt="Profile picture"
-                    src={donation.user.avatar || "https://via.placeholder.com/50"}
-                    className="profile-image"
-                />
+                <Avatar src={donation.user.avatar || "https://via.placeholder.com/50"}
+                    className="profile-image"/>
                 <div className="profile-info">
                     <Text strong style={{ fontSize: "1rem" }}>
                         {donation.user.fullName}
