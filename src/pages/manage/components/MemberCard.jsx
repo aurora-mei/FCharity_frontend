@@ -5,19 +5,23 @@ import { SiPhpmyadmin } from "react-icons/si";
 import { MdDelete } from "react-icons/md";
 import { BsThreeDots } from "react-icons/bs";
 import { MdOutlinePublishedWithChanges } from "react-icons/md";
+import { useSelector } from "react-redux";
 
 const MemberCard = ({ member, handleDeleteMember, handleChangeMemberRole }) => {
   const [openMenu, setOpenMenu] = useState(false);
   const [openRoleOptions, setOpenRoleOptions] = useState(false);
 
+  const currentRole = useSelector((state) => state.organization.currentRole);
+
   return (
     <div className="border border-gray-300 rounded-md flex justify-between items-center p-4 pb-6 relative">
       <div className="flex items-center justify-between gap-2">
-        <div className="w-20 h-20 rounded-xl overflow-hidden hover:cursor-pointer">
+        <div className="w-20 h-20 rounded-full overflow-hidden hover:cursor-pointer">
           <img
-            src={member.avatar || "https://avatar.iran.liara.run/public"}
-            alt=""
+            src={member.user.avatar || "https://avatar.iran.liara.run/public"}
+            alt="member avatar"
             className="w-full h-full object-cover"
+            onerror={`this.onerror=null; this.src=${"https://avatar.iran.liara.run/public"};`}
           />
         </div>
         <div className="flex flex-col gap-1 justify-center">
@@ -44,7 +48,7 @@ const MemberCard = ({ member, handleDeleteMember, handleChangeMemberRole }) => {
         >
           <BsThreeDots style={{ fontSize: "24px" }} />
         </div>
-        {openMenu && (
+        {openMenu && currentRole !== "member" && (
           <div className="absolute top-8 -right-1 flex flex-col w-[120px] py-1 bg-white border border-gray-100 shadow-md z-50 rounded-md">
             <div
               className="hover:cursor-pointer hover:text-green-500 hover:bg-gray-100 px-3 py-1 flex items-center gap-2"

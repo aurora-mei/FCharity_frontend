@@ -51,7 +51,6 @@ import ProjectTaskPlanContainer from "../containers/ProjectTaskPlanContainer/Pro
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
-import Organizations from "../pages/guest/Organizations.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AddProjectMemberScreen from "../screens/project/AddProjectMemberScreen.jsx";
 
@@ -59,6 +58,9 @@ const queryClient = new QueryClient();
 import OrganizationArticle from "../pages/manage/OrganizationArticle.jsx";
 import OrganizationArticleView from "../pages/guest/OrganizationArticleView.jsx";
 import OrganizationLayout from "../components/Layout/OrganizationLayout.jsx";
+import OrganizationFinance from "../pages/manage/OrganizationFinance.jsx";
+import TopLayout from "../components/Layout/TopLayout.jsx";
+import OrganizationsView from "../pages/guest/OrganizationsView.jsx";
 
 const AppRoutes = () => {
   return (
@@ -146,14 +148,19 @@ const AppRoutes = () => {
             <Route path="requests" element={<OrganizationRequest />} />
                 <Route path="schedule" element={<OrganizationSchedule />} />
                 <Route path="articles" element={<OrganizationArticle />} />
+                <Route path="finance" element={<OrganizationFinance />} />
               </Route>
             </Route>
 
             <Route path="organizations">
-              <Route index element={<Organizations />} />
-              <Route path=":organizationId" element={<OrganizationDetails />} />
+              <Route index element={<OrganizationsView />} />
               <Route path="create" element={<CreateOrganization />} />
               <Route path="rankings" element={<OrganizationRankings />} />
+            </Route>
+          </Route>
+          <Route path="/" element={<TopLayout />}>
+            <Route path="organizations">
+              <Route path=":organizationId" element={<OrganizationDetails />} />
               <Route
                 path=":organizationId/articles/:articleId"
                 element={<OrganizationArticleView />}
