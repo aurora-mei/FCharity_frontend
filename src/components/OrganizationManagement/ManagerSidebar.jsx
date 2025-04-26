@@ -10,6 +10,7 @@ import {
 import { FaBuildingUser } from "react-icons/fa6";
 import { RiCalendarScheduleFill } from "react-icons/ri";
 import { PiArticleMediumFill } from "react-icons/pi";
+import { GiTakeMyMoney } from "react-icons/gi";
 
 const ManagerSidebar = () => {
   const [selectedTab, setSelectedTab] = useState("dashboard");
@@ -83,6 +84,16 @@ const ManagerSidebar = () => {
       >
         <PiArticleMediumFill style={{ fontSize: "24px" }} />
         <span className="text-base font-medium">Articles</span>
+      </Link>
+      <Link
+        to="/my-organization/finance"
+        className={`flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200 ${
+          selectedTab === "finance" ? "bg-gray-100 text-gray-900" : ""
+        }`}
+        onClick={() => setSelectedTab("finance")}
+      >
+        <GiTakeMyMoney style={{ fontSize: "24px" }} />
+        <span className="text-base font-medium">Finance</span>
       </Link>
     </div>
   );

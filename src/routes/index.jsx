@@ -50,7 +50,6 @@ import ProjectTaskPlanContainer from "../containers/ProjectTaskPlanContainer/Pro
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
-import Organizations from "../pages/guest/Organizations.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AddProjectMemberScreen from "../screens/project/AddProjectMemberScreen.jsx";
 import ProjectMyTaskContainer from "../containers/ProjectMyTaskContainer/ProjectMyTaskContainer.jsx";

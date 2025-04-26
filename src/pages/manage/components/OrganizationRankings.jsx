@@ -14,7 +14,13 @@ const OrganizationRankings = () => {
     (state) => state.organization.organizationsRanking
   );
 
+  console.log("organizationsRanking: ", organizationsRanking);
+
   useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
     dispatch(getOrganizationsRanking());
   }, [dispatch]);
 
@@ -110,7 +116,7 @@ const OrganizationRankings = () => {
     });
 
   return (
-    <div className="flex flex-col gap-2 w-full p-3 mb-10 max-w-[1500px] mx-auto">
+    <div className="flex flex-col gap-2 w-full p-3 mb-10 max-w-[1200px] mx-auto">
       <div className="mb-3">
         <h1
           className="text-3xl font-bold text-gray-800"

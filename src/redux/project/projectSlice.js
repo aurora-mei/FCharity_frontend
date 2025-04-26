@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk, current } from '@reduxjs/toolkit';
-import projectApi from './projectApi';
+import { createSlice, createAsyncThunk, current } from "@reduxjs/toolkit";
+import projectApi from "./projectApi";
 
 const initialState = {
     loading: false,
@@ -22,164 +22,306 @@ const initialState = {
     currentConfirmRequest:{},
     error: null,
 };
-export const fetchProjectsThunk = createAsyncThunk("project/fetch", async () => {
+export const fetchProjectsThunk = createAsyncThunk(
+  "project/fetch",
+  async () => {
     return await projectApi.fetchProjects();
-});
-export const fetchMyProjectsThunk = createAsyncThunk("project/my-owner-project", async (userId) => {
+  }
+);
+export const fetchMyProjectsThunk = createAsyncThunk(
+  "project/my-owner-project",
+  async (userId) => {
     return await projectApi.fetchMyProjects(userId);
-});
-export const fetchProjectById = createAsyncThunk("project/fetch-by-id", async (id) => {
+  }
+);
+export const fetchProjectById = createAsyncThunk(
+  "project/fetch-by-id",
+  async (id) => {
     return await projectApi.fetchProjectById(id);
-});
-export const createProjectThunk = createAsyncThunk("project/create", async (projectData) => {
+  }
+);
+export const createProjectThunk = createAsyncThunk(
+  "project/create",
+  async (projectData) => {
     return await projectApi.createProject(projectData);
-});
-export const updateProjectThunk = createAsyncThunk("project/update", async (projectData) => {
+  }
+);
+export const updateProjectThunk = createAsyncThunk(
+  "project/update",
+  async (projectData) => {
     return await projectApi.updateProject(projectData);
-}
+  }
 );
-export const fetchProjectsByOrgThunk = createAsyncThunk("project/fetch-by-org", async (orgId) => {
+export const fetchProjectsByOrgThunk = createAsyncThunk(
+  "project/fetch-by-org",
+  async (orgId) => {
     return await projectApi.fetchProjectsByOrg(orgId);
-});
-//members
-export const fetchUserNotInProjectThunk = createAsyncThunk("project/members/get-user-not-in-project", async (projectId) => {
-    return await projectApi.getUserNotInProject(projectId);
-});
-export const fetchAllProjectMembersThunk = createAsyncThunk("project/all-members", async (projectId) => {
-    return await projectApi.fetchAllProjectMembers(projectId);
-});
-export const fetchActiveProjectMembers = createAsyncThunk("project/members", async (projectId) => {
-    return await projectApi.fetchActiveProjectMembers(projectId);
-});
-export const addProjectMemberThunk = createAsyncThunk("project/members/add-member", async ({ projectId, userId,role }) => {
-    return await projectApi.addProjectMember({ projectId, userId,role });
-});
-export const moveOutProjectMemberThunk = createAsyncThunk("project/members/move-out", async (memberId) => {
-    return await projectApi.moveOutProjectMember(memberId);
-});
-export const removeProjectMemberThunk = createAsyncThunk("project/members/remove", async (memberId) => {    
-    return await projectApi.removeProjectMember(memberId);
-});
-
-//requests  
-export const fetchProjectRequests = createAsyncThunk("project/requests", async (projectId) => {
-    return await projectApi.getAllProjectRequest(projectId);
-});
-export const inviteProjectMemberThunk = createAsyncThunk("project/members/invite", async ({ projectId, userId }) => {
-    return await projectApi.inviteProjectMember({ projectId, userId });
-});
-export const sendJoinRequestThunk = createAsyncThunk("project/send-join-request", async ({ projectId, requestData }) => {
-    return await projectApi.sendJoinRequest({ projectId, requestData });
-});
-export const cancelProjectRequestThunk = createAsyncThunk("project/cancel-project-request", async (requestId) => {
-    return await projectApi.cancelProjectRequest(requestId);
-});
-export const approveJoinRequestThunk = createAsyncThunk("project/approve-join-request", async (requestId) => {
-    return await projectApi.approveJoinRequest(requestId);
-});
-export const rejectJoinRequestThunk = createAsyncThunk("project/reject-join-request", async (requestId) => {
-    return await projectApi.rejectJoinRequest(requestId);
-}
+  }
 );
-export const approveLeaveRequestThunk = createAsyncThunk("project/approve-leave-request", async (requestId) => {
+//members
+export const fetchUserNotInProjectThunk = createAsyncThunk(
+  "project/members/get-user-not-in-project",
+  async (projectId) => {
+    return await projectApi.getUserNotInProject(projectId);
+  }
+);
+export const fetchAllProjectMembersThunk = createAsyncThunk(
+  "project/all-members",
+  async (projectId) => {
+    return await projectApi.fetchAllProjectMembers(projectId);
+  }
+);
+export const fetchActiveProjectMembers = createAsyncThunk(
+  "project/members",
+  async (projectId) => {
+    return await projectApi.fetchActiveProjectMembers(projectId);
+  }
+);
+export const addProjectMemberThunk = createAsyncThunk(
+  "project/members/add-member",
+  async ({ projectId, userId, role }) => {
+    return await projectApi.addProjectMember({ projectId, userId, role });
+  }
+);
+export const moveOutProjectMemberThunk = createAsyncThunk(
+  "project/members/move-out",
+  async (memberId) => {
+    return await projectApi.moveOutProjectMember(memberId);
+  }
+);
+export const removeProjectMemberThunk = createAsyncThunk(
+  "project/members/remove",
+  async (memberId) => {
+    return await projectApi.removeProjectMember(memberId);
+  }
+);
+
+//requests
+export const fetchProjectRequests = createAsyncThunk(
+  "project/requests",
+  async (projectId) => {
+    return await projectApi.getAllProjectRequest(projectId);
+  }
+);
+export const inviteProjectMemberThunk = createAsyncThunk(
+  "project/members/invite",
+  async ({ projectId, userId }) => {
+    return await projectApi.inviteProjectMember({ projectId, userId });
+  }
+);
+export const sendJoinRequestThunk = createAsyncThunk(
+  "project/send-join-request",
+  async ({ projectId, requestData }) => {
+    return await projectApi.sendJoinRequest({ projectId, requestData });
+  }
+);
+export const cancelProjectRequestThunk = createAsyncThunk(
+  "project/cancel-project-request",
+  async (requestId) => {
+    return await projectApi.cancelProjectRequest(requestId);
+  }
+);
+export const approveJoinRequestThunk = createAsyncThunk(
+  "project/approve-join-request",
+  async (requestId) => {
+    return await projectApi.approveJoinRequest(requestId);
+  }
+);
+export const rejectJoinRequestThunk = createAsyncThunk(
+  "project/reject-join-request",
+  async (requestId) => {
+    return await projectApi.rejectJoinRequest(requestId);
+  }
+);
+export const approveLeaveRequestThunk = createAsyncThunk(
+  "project/approve-leave-request",
+  async (requestId) => {
     return await projectApi.approveLeaveRequest(requestId);
-});
-export const rejectLeaveRequestThunk = createAsyncThunk("project/reject-leave-request", async (requestId) => {
+  }
+);
+export const rejectLeaveRequestThunk = createAsyncThunk(
+  "project/reject-leave-request",
+  async (requestId) => {
     return await projectApi.rejectLeaveRequest(requestId);
-}
+  }
 );
 //spending plan
-export const fetchSpendingTemplateThunk = createAsyncThunk("project/get-spending-plans", async (projectId) => {
+export const fetchSpendingTemplateThunk = createAsyncThunk(
+  "project/get-spending-plans",
+  async (projectId) => {
     return await projectApi.getSpendingTemplate(projectId);
-});
-export const importSpendingPlanThunk = createAsyncThunk("project/import-spending-plan", async ({file,projectId}) => {
-    return await projectApi.importSpendingPlan({file, projectId});
-});
-export const approveSpendingPlanThunk = createAsyncThunk("project/approve-spending-plan", async (planId) => {
-    return await projectApi.approveSpendingPlan(planId);
-});
-export const rejectSpendingPlanThunk = createAsyncThunk("project/reject-spending-plan", async ({planId,reason}) => {
-    return await projectApi.rejectSpendingPlan({planId,reason});
-});
-export const createSpendingPlanThunk = createAsyncThunk("project/create-spending-plan", async (spendingPlanData) => {
-    return await projectApi.createSpendingPlan(spendingPlanData);
-});
-export const fetchSpendingPlanOfProject = createAsyncThunk("project/get-spending-plan", async (projectId) => {
-    return await projectApi.getSpendingPlanOfProject(projectId);
-});
-export const updateSpendingPlanThunk = createAsyncThunk("project/update-spending-plan", async ({planId, dto}) => {
-    return await projectApi.updateSpendingPlan({planId, dto});
-});
-export const deleteSpendingPlanThunk = createAsyncThunk("project/delete-spending-plan", async (spendingPlanId) => {
-    return await projectApi.deleteSpendingPlan(spendingPlanId);
-});
-export const fetchSpendingPlanById = createAsyncThunk("project/get-spending-plan-by-id", async (spendingPlanId) => {
-    return await projectApi.getSpendingPlanById(spendingPlanId);
-});
-//spending item
-export const createSpendingItemThunk = createAsyncThunk("project/create-spending-item", async (spendingItemData) => {
-    return await projectApi.createSpendingItem(spendingItemData);
-});
-export const fetchSpendingItemOfPlan = createAsyncThunk("project/get-spending-items", async (planId) => {
-    return await projectApi.getItemsByPlan(planId);
-});
-export const updateSpendingItemThunk = createAsyncThunk("project/update-spending-item", async ({itemId, dto}) => {
-    return await projectApi.updateSpendingItem({itemId, dto});
-});
-export const deleteSpendingItemThunk = createAsyncThunk("project/delete-spending-item", async (spendingItemId) => {
-    return await projectApi.deleteSpendingItem(spendingItemId);
-});
-export const fetchSpendingItemById = createAsyncThunk("project/get-spending-item-by-id", async (spendingItemId) => {
-    return await projectApi.getSpendingItemById(spendingItemId);
-});
-//details
-export const fetchSpendingDetailsByProject = createAsyncThunk("project/get-spending-details-by-prid", async (projectId) => {
-    return await projectApi.getSpendingDetailsByProject(projectId);
-});
-export const createSpendingDetailThunk = createAsyncThunk("project/create-spending-details", async (spendingDetails) => {
-    return await projectApi.createSpendingDetail(spendingDetails);
-});
-export const updateSpendingDetailThunk = createAsyncThunk("project/update-spending-detail", async ({id,detailData}) => {
-    return await projectApi.updateSpendingDetail({id,detailData});
-});
-export const deleteSpendingDetailThunk = createAsyncThunk("project/delete-spending-detail", async (id) => {
-    return await projectApi.deleteSpendingDetail(id);
-}
+  }
 );
-export const fetchExpenseTemplateThunk = createAsyncThunk("project/get-expense-template", async (projectId) => {
+export const importSpendingPlanThunk = createAsyncThunk(
+  "project/import-spending-plan",
+  async ({ file, projectId }) => {
+    return await projectApi.importSpendingPlan({ file, projectId });
+  }
+);
+export const approveSpendingPlanThunk = createAsyncThunk(
+  "project/approve-spending-plan",
+  async (planId) => {
+    return await projectApi.approveSpendingPlan(planId);
+  }
+);
+export const rejectSpendingPlanThunk = createAsyncThunk(
+  "project/reject-spending-plan",
+  async ({ planId, reason }) => {
+    return await projectApi.rejectSpendingPlan({ planId, reason });
+  }
+);
+export const createSpendingPlanThunk = createAsyncThunk(
+  "project/create-spending-plan",
+  async (spendingPlanData) => {
+    return await projectApi.createSpendingPlan(spendingPlanData);
+  }
+);
+export const fetchSpendingPlanOfProject = createAsyncThunk(
+  "project/get-spending-plan",
+  async (projectId) => {
+    return await projectApi.getSpendingPlanOfProject(projectId);
+  }
+);
+export const updateSpendingPlanThunk = createAsyncThunk(
+  "project/update-spending-plan",
+  async ({ planId, dto }) => {
+    return await projectApi.updateSpendingPlan({ planId, dto });
+  }
+);
+export const deleteSpendingPlanThunk = createAsyncThunk(
+  "project/delete-spending-plan",
+  async (spendingPlanId) => {
+    return await projectApi.deleteSpendingPlan(spendingPlanId);
+  }
+);
+export const fetchSpendingPlanById = createAsyncThunk(
+  "project/get-spending-plan-by-id",
+  async (spendingPlanId) => {
+    return await projectApi.getSpendingPlanById(spendingPlanId);
+  }
+);
+//spending item
+export const createSpendingItemThunk = createAsyncThunk(
+  "project/create-spending-item",
+  async (spendingItemData) => {
+    return await projectApi.createSpendingItem(spendingItemData);
+  }
+);
+export const fetchSpendingItemOfPlan = createAsyncThunk(
+  "project/get-spending-items",
+  async (planId) => {
+    return await projectApi.getItemsByPlan(planId);
+  }
+);
+export const updateSpendingItemThunk = createAsyncThunk(
+  "project/update-spending-item",
+  async ({ itemId, dto }) => {
+    return await projectApi.updateSpendingItem({ itemId, dto });
+  }
+);
+export const deleteSpendingItemThunk = createAsyncThunk(
+  "project/delete-spending-item",
+  async (spendingItemId) => {
+    return await projectApi.deleteSpendingItem(spendingItemId);
+  }
+);
+export const fetchSpendingItemById = createAsyncThunk(
+  "project/get-spending-item-by-id",
+  async (spendingItemId) => {
+    return await projectApi.getSpendingItemById(spendingItemId);
+  }
+);
+//details
+export const fetchSpendingDetailsByProject = createAsyncThunk(
+  "project/get-spending-details-by-prid",
+  async (projectId) => {
+    return await projectApi.getSpendingDetailsByProject(projectId);
+  }
+);
+export const createSpendingDetailThunk = createAsyncThunk(
+  "project/create-spending-details",
+  async (spendingDetails) => {
+    return await projectApi.createSpendingDetail(spendingDetails);
+  }
+);
+export const updateSpendingDetailThunk = createAsyncThunk(
+  "project/update-spending-detail",
+  async ({ id, detailData }) => {
+    return await projectApi.updateSpendingDetail({ id, detailData });
+  }
+);
+export const deleteSpendingDetailThunk = createAsyncThunk(
+  "project/delete-spending-detail",
+  async (id) => {
+    return await projectApi.deleteSpendingDetail(id);
+  }
+);
+export const fetchExpenseTemplateThunk = createAsyncThunk(
+  "project/get-expense-template",
+  async (projectId) => {
     return await projectApi.getExpenseTemplate(projectId);
-});
-export const importExpensesThunk = createAsyncThunk("project/import-expenses", async ({file,projectId}) => {
-    return await projectApi.importExpenses({file, projectId});
-});
+  }
+);
+export const importExpensesThunk = createAsyncThunk(
+  "project/import-expenses",
+  async ({ file, projectId }) => {
+    return await projectApi.importExpenses({ file, projectId });
+  }
+);
 //donations
-export const createDonationThunk = createAsyncThunk("project/create-donation", async (donationData) => {
+export const createDonationThunk = createAsyncThunk(
+  "project/create-donation",
+  async (donationData) => {
     return await projectApi.createDonation(donationData);
-});
-export const fetchDonationsOfProject = createAsyncThunk("project/get-donations", async (projectId) => {
+  }
+);
+export const fetchDonationsOfProject = createAsyncThunk(
+  "project/get-donations",
+  async (projectId) => {
     return await projectApi.getDonationsOfProject(projectId);
-});
-export const fetchProjectByWallet = createAsyncThunk("project/get-by-wallet", async (walletId) => {
+  }
+);
+export const fetchProjectByWallet = createAsyncThunk(
+  "project/get-by-wallet",
+  async (walletId) => {
     return await projectApi.getProjectByWallet(walletId);
-});
+  }
+);
 
 //withdraw request
-export const fetchWithdrawRequestByProject = createAsyncThunk("project/get-withdraw-request", async (projectId) => {
+export const fetchWithdrawRequestByProject = createAsyncThunk(
+  "project/get-withdraw-request",
+  async (projectId) => {
     return await projectApi.getWithdrawRequestByProjectId(projectId);
-});
-export const createWithdrawRequest = createAsyncThunk("project/create-withdraw-request", async ({projectId,bankInfo}) => {
-    return await projectApi.sendWithdrawRequest({projectId,bankInfo});
-});
-export const updateBankInfoWithdrawRequest = createAsyncThunk("project/update-withdraw-request", async ({ reqId, bankInfo }) => {
+  }
+);
+export const createWithdrawRequest = createAsyncThunk(
+  "project/create-withdraw-request",
+  async ({ projectId, bankInfo }) => {
+    return await projectApi.sendWithdrawRequest({ projectId, bankInfo });
+  }
+);
+export const updateBankInfoWithdrawRequest = createAsyncThunk(
+  "project/update-withdraw-request",
+  async ({ reqId, bankInfo }) => {
     return await projectApi.updateBankInfoWithdraw({ reqId, bankInfo });
-});
-export const updateConfirmWithdrawRequest = createAsyncThunk("project/update-confirm-withdraw-request", async (id) => {
+  }
+);
+export const updateConfirmWithdrawRequest = createAsyncThunk(
+  "project/update-confirm-withdraw-request",
+  async (id) => {
     return await projectApi.updateConfirmWithdraw(id);
-});
-export const updateErrorWithdrawRequest = createAsyncThunk("project/update-error-withdraw-request", async ({id,note}) => {
-    return await projectApi.updateErrorWithdraw({id,note});
-});
-export const fetchProjectWallet = createAsyncThunk("project/get-wallet", async (walletId) => {
+  }
+);
+export const updateErrorWithdrawRequest = createAsyncThunk(
+  "project/update-error-withdraw-request",
+  async ({ id, note }) => {
+    return await projectApi.updateErrorWithdraw({ id, note });
+  }
+);
+export const fetchProjectWallet = createAsyncThunk(
+  "project/get-wallet",
+  async (walletId) => {
     return await projectApi.getProjectWallet(walletId);
 });
 

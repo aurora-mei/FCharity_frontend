@@ -80,8 +80,31 @@ const organizationApi = {
     api.delete(`/invitation-requests/${invitationRequestId}/cancel`),
 
   // ---------------------------  End OrganizationRequest RestController ------------------------------
+  // ---------------------------  Start OrganizationFinance RestController ------------------------------
+  getTotalIncome: (organizationId) =>
+    api.get(`/finance/organizations/${organizationId}/totalIncome`),
+  getTotalExpense: (organizationId) =>
+    api.get(`/finance/organizations/${organizationId}/totalExpense`),
+  getDonatesByOrganizationId: (organizationId) =>
+    api.get(`/finance/organizations/${organizationId}/donates`),
+  getTransactionsByOrganizationId: (organizationId) =>
+    api.get(`/finance/organizations/${organizationId}/transactions`),
+
+  createTransaction: (transactionData) =>
+    api.post(`/finance/organizations/transactions`, transactionData),
+
+  // ---------------------------  End OrganizationFinance RestController ------------------------------
 
   // ---------------------------  Start OrganizationEvent RestController ------------------------------
+  getIncludesExcludes: (organizationEventId) =>
+    api.get(`/events/${organizationEventId}/includes-excludes`),
+  createIncludesExcludes: (includesExcludesData) =>
+    api.post(`/events/includes-excludes`, includesExcludesData),
+  updateIncludesExcludes: (includesExcludesData) =>
+    api.put(`/events/includes-excludes`, includesExcludesData),
+  deleteIncludesExcludes: (includesExcludesId) =>
+    api.delete(`/events/${includesExcludesId}/includes-excludes`),
+
   getOrganizationEvents: (organizationId) =>
     api.get(`/events/organizations/${organizationId}`),
   addOrganizationEvent: (organizationEventData) =>

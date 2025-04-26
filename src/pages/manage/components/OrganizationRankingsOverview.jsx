@@ -162,7 +162,7 @@ const OrganizationRankingsOverview = () => {
       </div>
       <div className="flex items-center justify-end mt-6">
         <Link
-          to="/organizations"
+          to="/organizations/rankings"
           className="text-gray-500 hover:underline"
           style={{ margin: 0, padding: 0 }}
         >
