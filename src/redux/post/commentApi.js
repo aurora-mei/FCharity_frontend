@@ -1,6 +1,6 @@
 import { APIPrivate } from '../../config/API/api';
 
-const fetchCommentsByPost = async (postId, page = 0, size = 5) => {
+const fetchCommentsByPost = async (postId, page = 0, size = 1000) => {
     try {
         const response = await APIPrivate.get(`comments/post/${postId}`, {
             params: { page, size }
@@ -10,7 +10,14 @@ const fetchCommentsByPost = async (postId, page = 0, size = 5) => {
         throw err.response.data;
     }
 };
-
+const fetchAllCommentsByPost = async (postId) => {
+    try {
+        const response = await APIPrivate.get(`comments/post/${postId}/all`);
+        return response.data;
+    } catch (err) {
+        throw err.response.data;
+    }
+};
 const createComment = async (commentData) => {
     try {
         const response = await APIPrivate.post('comments', commentData);
@@ -66,6 +73,7 @@ const createReply = async ({commentId,replyData}) => {
 
 export default {
     fetchCommentsByPost,
+    fetchAllCommentsByPost,
     createComment,
     updateComment,
     deleteComment,

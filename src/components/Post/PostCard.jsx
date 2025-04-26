@@ -1,6 +1,22 @@
-import { useRef, useState } from "react";
-import { Card, Typography, Space, Button, Tag, Avatar, Carousel, Modal, Menu, Dropdown, Input, Radio, message } from "antd";
-import { useNavigate } from "react-router-dom";
+import React, { useRef, useState, useEffect } from "react";
+import { 
+  Card, 
+  Typography, 
+  Space, 
+  Button, 
+  Tag, 
+  Avatar, 
+  Carousel, 
+  Modal, 
+  Menu, 
+  Dropdown, 
+  Radio,
+  Input,
+  Form,
+  Select,
+  Upload,
+  message
+} from "antd";
 import { 
   UpOutlined, 
   DownOutlined, 
@@ -9,28 +25,78 @@ import {
   UserOutlined, 
   LeftOutlined, 
   RightOutlined,
-  EllipsisOutlined
+  EllipsisOutlined,
+  UploadOutlined,
+  PictureOutlined
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { votePostThunk } from "../../redux/post/postSlice";
-
+import { votePostThunk, deletePosts, updatePosts } from "../../redux/post/postSlice";
+import { uploadFileHelper } from "../../redux/helper/helperSlice";
+import { reportPostThunk } from "../../redux/post/postSlice";
+import { hidePostThunk } from "../../redux/post/postSlice";
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 const PostCard = ({ postResponse }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const carouselRef = useRef(null);
+  const [form] = Form.useForm();
   
+  // State for voting
   const [userVote, setUserVote] = useState(postResponse?.post.userVote || 0);
-  const [voteCount, setVoteCount] = useState(postResponse?.post.votes || 0);
-  const [reportVisible, setReportVisible] = useState(false);
-  const [reportReason, setReportReason] = useState('');
-  const [reportDetails, setReportDetails] = useState('');
   
+  // State for reporting
+  const [reportVisible, setReportVisible] = useState(false);
+  const [selectedReason, setSelectedReason] = useState('');
+  const [customReason, setCustomReason] = useState('');
+  
+  // State for editing
+  const [editVisible, setEditVisible] = useState(false);
+  const [editAttachments, setEditAttachments] = useState({
+    images: postResponse?.attachments?.filter(att => att.match(/\.(jpg|jpeg|png|gif)$/)) || [],
+    videos: postResponse?.attachments?.filter(att => att.match(/\.(mp4|webm)$/)) || []
+  });
+  const [uploading, setUploading] = useState(false);
+  
+  // State for deletion
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  
+  // State for hiding
+  const [hideConfirmVisible, setHideConfirmVisible] = useState(false);
+  const [hideLoading, setHideLoading] = useState(false);
+  
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const isOwner = currentUser?.id === postResponse?.post?.user?.id;
+  const isAdmin = currentUser?.role === "ADMIN";
   const taggables = postResponse?.taggables || [];
+  const attachments = postResponse?.attachments || [];
+  const currentVote = postResponse?.post.vote || 0;
+  const commentCount = postResponse?.post.commentCount || 0;
+
+  // Handle hidden post
+  if (postResponse?.post?.status === "HIDDEN" && !isOwner && !isAdmin) {
+    return null;
+  }
+
+  if (postResponse?.post?.status === "HIDDEN" && (isOwner || isAdmin)) {
+    return (
+      <Card style={{ marginBottom: 16, background: '#fffbe6', borderColor: '#ffe58f' }}>
+        <Text type="secondary">
+          🚨 Bài viết này đang được ẩn {!isOwner && "(Chỉ admin có thể xem)"}
+        </Text>
+      </Card>
+    );
+  }
 
   const formatTimeAgo = (createdAt) => {
+    if (!createdAt) return "Vừa xong";
+    
     const createdDate = new Date(createdAt);
+    if (isNaN(createdDate.getTime())) return "Vừa xong";
+    
     const now = new Date();
     const diffInSeconds = Math.floor((now - createdDate) / 1000);
     
@@ -54,40 +120,229 @@ const PostCard = ({ postResponse }) => {
   };
 
   const handleVote = async (isUpvote, e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     if (!currentUser?.id) {
       message.error("Vui lòng đăng nhập để thực hiện vote");
       return;
     }
 
-    const currentVote = userVote;
-    let newVote;
-
-    if (isUpvote) {
-      newVote = currentVote === 1 ? 0 : 1;
-    } else {
-      newVote = currentVote === -1 ? 0 : -1;
-    }
-
-    const voteDelta = newVote - currentVote;
-    const updatedVoteCount = voteCount + voteDelta;
+    const newVote = isUpvote 
+      ? (userVote === 1 ? 0 : 1) 
+      : (userVote === -1 ? 0 : -1);
 
     setUserVote(newVote);
-    setVoteCount(updatedVoteCount);
 
     try {
-      await dispatch(votePostThunk({ 
-        postId: postResponse.post.id, 
-        userId: currentUser.id, 
-        vote: newVote 
-      })).unwrap();
+      await dispatch(
+        votePostThunk({
+          postId: postResponse.post.id,
+          userId: currentUser.id,
+          vote: newVote,
+        })
+      ).unwrap();
     } catch (error) {
-      setUserVote(currentVote);
-      setVoteCount(voteCount);
+      setUserVote(userVote);
       message.error("Lỗi khi gửi vote");
     }
   };
+
+  const handleReportSubmit = async () => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      
+      if (!currentUser?.id) {
+        return message.error("Vui lòng đăng nhập");
+      }
+
+      if (!selectedReason) {
+        return message.error("Vui lòng chọn lý do báo cáo");
+      }
+
+      const finalReason = selectedReason === 'other' 
+        ? customReason 
+        : selectedReason;
+
+      if (selectedReason === 'other' && !customReason.trim()) {
+        return message.error("Vui lòng nhập lý do cụ thể");
+      }
+
+      await dispatch(reportPostThunk({
+        postId: postResponse.post.id,
+        reporterId: currentUser.id,
+        reason: finalReason
+      }));
+
+      message.success("Báo cáo thành công!");
+      setReportVisible(false);
+      setSelectedReason('');
+      setCustomReason('');
+
+    } catch (error) {
+      message.error(error.message || "Lỗi hệ thống");
+    }
+  };
+
+const handleHidePost = async () => {
+      setHideLoading(true);
+      try {
+        await dispatch(hidePostThunk({ 
+          postId: postResponse.post.id, 
+          userId: currentUser.id 
+        })).unwrap();
+        
+        message.success('Bài viết đã được ẩn');
+        setHideConfirmVisible(false);
+      } catch (error) {
+        message.error(error.message || 'Lỗi khi ẩn bài');
+      } finally {
+        setHideLoading(false);
+      }
+    };
+
+  const handleEditImageChange = async ({ fileList }) => {
+    if (fileList.length === 0) return;
+    setUploading(true);
+    const latestFile = fileList[fileList.length - 1];
+
+    try {
+      const response = await dispatch(uploadFileHelper({ 
+        file: latestFile.originFileObj, 
+        folderName: "images" 
+      })).unwrap();
+      
+      setEditAttachments(prev => ({
+        ...prev,
+        images: [...prev.images, response]
+      }));
+      message.success(`Đã tải lên ${latestFile.name}`);
+    } catch (error) {
+      message.error(`Tải lên thất bại: ${latestFile.name}`);
+    }
+    setUploading(false);
+  };
+
+  const handleEditVideoChange = async ({ fileList }) => {
+    if (fileList.length === 0) return;
+    setUploading(true);
+    const latestFile = fileList[fileList.length - 1];
+
+    try {
+      const response = await dispatch(uploadFileHelper({ 
+        file: latestFile.originFileObj, 
+        folderName: "videos" 
+      })).unwrap();
+      
+      setEditAttachments(prev => ({
+        ...prev,
+        videos: [...prev.videos, response]
+      }));
+      message.success(`Đã tải lên ${latestFile.name}`);
+    } catch (error) {
+      message.error(`Tải lên thất bại: ${latestFile.name}`);
+    }
+    setUploading(false);
+  };
+
+  const handleRemoveEditFile = (file, type) => {
+    setEditAttachments(prev => ({
+      ...prev,
+      [type]: prev[type].filter(item => item !== file.url)
+    }));
+    message.success(`Đã xóa ${file.name}`);
+  };
+
+  const handleUpdatePost = async () => {
+    try {
+      const values = await form.validateFields();
+      
+      const postData = {
+        ...values,
+        imageUrls: editAttachments.images,
+        videoUrls: editAttachments.videos,
+        status: "PENDING"
+      };
+
+      await dispatch(updatePosts({
+        id: postResponse.post.id,
+        PostData: postData
+      })).unwrap();
+
+      message.success("Bài viết đã được cập nhật và đang chờ duyệt lại");
+      setEditVisible(false);
+    } catch (error) {
+      message.error(`Cập nhật thất bại: ${error.message}`);
+    }
+  };
+
+  const handleDeletePost = async (e) => {
+    e?.stopPropagation();
+    
+    Modal.confirm({
+      title: 'Xác nhận xóa bài viết',
+      content: 'Bạn có chắc chắn muốn xóa bài viết này?',
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await dispatch(deletePosts(postResponse?.post?.id)).unwrap();
+          message.success("Xóa bài viết thành công");
+          navigate("/forum");
+        } catch (error) {
+          message.error(error.message || "Xóa bài viết thất bại");
+        }
+      }
+    });
+  };
+
+  const menu = (
+    <Menu>
+      {isOwner ? (
+        <>
+          {postResponse?.post?.status !== "HIDDEN" && (
+            <Menu.Item 
+              key="hide" 
+              onClick={(e) => {
+                e.domEvent.stopPropagation();
+                setHideConfirmVisible(true);
+              }}
+            >
+              Hide
+            </Menu.Item>
+          )}
+          <Menu.Item 
+            key="delete" 
+            onClick={(e) => {
+              e.domEvent.stopPropagation();
+              handleDeletePost(e.domEvent);
+            }}
+          >
+            Delete
+          </Menu.Item>
+          <Menu.Item 
+            key="update" 
+            onClick={(e) => {
+              e.domEvent.stopPropagation();
+              setEditVisible(true);
+            }}
+          >
+            Edit
+          </Menu.Item>
+        </>
+      ) : (
+        <Menu.Item 
+          key="report"
+          onClick={(e) => {
+            e.domEvent.stopPropagation();
+            setReportVisible(true);
+          }}
+        >
+          Report
+        </Menu.Item>
+      )}
+    </Menu>
+  );
 
   const handleTitleClick = (e) => {
     e.stopPropagation();
@@ -104,45 +359,22 @@ const PostCard = ({ postResponse }) => {
     navigate(`/posts/${postResponse.post.id}#comment-section`);
   };
 
-  const menu = (
-    <Menu>
-      <Menu.Item key="delete" onClick={(e) => e.domEvent.stopPropagation()}>
-        Delete
-      </Menu.Item>
-      <Menu.Item key="update" onClick={(e) => e.domEvent.stopPropagation()}>
-        Update
-      </Menu.Item>
-      <Menu.Item 
-        key="report"
-        onClick={(e) => {
-          e.domEvent.stopPropagation();
-          setReportVisible(true);
-        }}
-      >
-        Report
-      </Menu.Item>
-    </Menu>
-  );
-
-  const handleReportSubmit = () => {
-    console.log({
-      reason: reportReason,
-      details: reportDetails,
-      postId: postResponse.post.id
-    });
-    setReportVisible(false);
-  };
+  useEffect(() => {
+    if (editVisible) {
+      form.setFieldsValue({
+        title: postResponse?.post.title,
+        content: postResponse?.post.content,
+        tagIds: taggables.map(tag => tag.tag.id)
+      });
+    }
+  }, [editVisible, form, postResponse, taggables]);
 
   return (
     <Card
-      hoverable
       style={{
         width: "100%",
-        marginBottom: "20px",
-        borderRadius: "10px",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-        overflow: "hidden",
-        padding: "15px",
+        marginBottom: "1rem",
+        borderRadius: "8px",
       }}
     >
       {/* Header with user info and tags */}
@@ -150,7 +382,7 @@ const PostCard = ({ postResponse }) => {
         <Space>
           <Avatar src={postResponse.post.user.avatar} icon={<UserOutlined />} />
           <Text type="secondary">
-            {postResponse.post.user.fullName} {formatTimeAgo(postResponse.post.createdAt)}
+            {postResponse.post.user.fullName} • {formatTimeAgo(postResponse.post.createdAt)}
           </Text>
         </Space>
         
@@ -181,28 +413,28 @@ const PostCard = ({ postResponse }) => {
                 userSelect: 'none',
               }}
             >
-              •••
+              <EllipsisOutlined />
             </span>
           </Dropdown>
         </Space>
       </div>
 
       {/* Media content */}
-      {postResponse.attachments?.length > 0 && (
+      {attachments?.length > 0 && (
         <div style={{ textAlign: "center", marginBottom: "10px", position: "relative" }}>
-          {postResponse.attachments.length === 1 ? (
-            postResponse.attachments[0].includes(".mp4") || postResponse.attachments[0].includes(".webm") ? (
+          {attachments.length === 1 ? (
+            attachments[0].includes(".mp4") || attachments[0].includes(".webm") ? (
               <video 
                 width="100%" 
                 controls
                 onClick={(e) => e.stopPropagation()}
               >
-                <source src={postResponse.attachments[0]} type="video/mp4" />
+                <source src={attachments[0]} type="video/mp4" />
               </video>
             ) : (
               <img
                 alt="post"
-                src={postResponse.attachments[0]}
+                src={attachments[0]}
                 style={{ width: "100%", maxHeight: "350px", objectFit: "cover", cursor: "pointer" }}
                 onClick={handleTitleClick}
               />
@@ -210,7 +442,7 @@ const PostCard = ({ postResponse }) => {
           ) : (
             <>
               <Carousel ref={carouselRef} dots={false}>
-                {postResponse.attachments.map((attachment, index) => (
+                {attachments.map((attachment, index) => (
                   <div key={index}>
                     {attachment.includes(".mp4") || attachment.includes(".webm") ? (
                       <video width="100%" controls onClick={(e) => e.stopPropagation()}>
@@ -261,6 +493,24 @@ const PostCard = ({ postResponse }) => {
                   carouselRef.current.next();
                 }}
               />
+              
+              {attachments.length > 1 && (
+                <div style={{
+                  position: "absolute",
+                  bottom: 10,
+                  right: 10,
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  color: "#fff",
+                  padding: "2px 8px",
+                  borderRadius: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px"
+                }}>
+                  <PictureOutlined />
+                  {attachments.length}
+                </div>
+              )}
             </>
           )}
         </div>
@@ -289,53 +539,228 @@ const PostCard = ({ postResponse }) => {
           postResponse.post.content}
       </div>
 
-      {/* Action buttons */}
-      <div style={{ display: "flex", justifyContent: "start", alignItems: "center" }}>
-        <Space>
-          <Button 
-            shape="circle" 
-            icon={<UpOutlined style={{ color: userVote === 1 ? "#ff4500" : "#65676b" }} />} 
+      {/* Interaction */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "12px 0",
+          borderTop: "1px solid #f0f0f0",
+          borderBottom: "1px solid #f0f0f0",
+          margin: "16px 0",
+        }}
+      >
+        <Space size="middle">
+          <Button
+            shape="circle"
+            icon={<UpOutlined style={{ color: userVote === 1 ? "#ff4500" : "#65676b" }} />}
             onClick={(e) => handleVote(true, e)}
           />
-          <Text strong>{voteCount}</Text>
-          <Button 
-            shape="circle" 
-            icon={<DownOutlined style={{ color: userVote === -1 ? "#7193ff" : "#65676b" }} />} 
+          <Text strong>{currentVote}</Text>
+          <Button
+            shape="circle"
+            icon={<DownOutlined style={{ color: userVote === -1 ? "#7193ff" : "#65676b" }} />}
             onClick={(e) => handleVote(false, e)}
           />
-          <Button 
-            shape="circle" 
-            icon={<MessageOutlined />} 
-            onClick={handleCommentClick} 
-          />
-          <Button shape="circle" icon={<ShareAltOutlined />} />
+        </Space>
+        <Space size="middle">
+          <Button
+            shape="round"
+            icon={<MessageOutlined />}
+            onClick={handleCommentClick}
+          >
+            {commentCount}
+          </Button>
+          <Button shape="round" icon={<ShareAltOutlined />} />
         </Space>
       </div>
 
-      {/* Report modal */}
+      {/* Edit Modal */}
       <Modal
-        title="Report Post"
+        title="Chỉnh sửa bài viết"
+        visible={editVisible}
+        onOk={handleUpdatePost}
+        onCancel={() => setEditVisible(false)}
+        okText="Lưu"
+        cancelText="Hủy"
+        width={800}
+        confirmLoading={uploading}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item 
+            name="title" 
+            label="Tiêu đề" 
+            rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
+          >
+            <Input placeholder="Nhập tiêu đề bài viết" />
+          </Form.Item>
+
+          <Form.Item 
+            name="content" 
+            label="Nội dung" 
+            rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}
+          >
+            <Input.TextArea rows={6} placeholder="Nhập nội dung bài viết" />
+          </Form.Item>
+
+          <Form.Item
+            name="tagIds"
+            label="Tags"
+            rules={[{ required: true, message: "Vui lòng chọn ít nhất 1 tag" }]}
+          >
+            <Select
+              mode="multiple"
+              placeholder="Chọn tags"
+              allowClear
+              style={{ width: '100%' }}
+            >
+              {taggables.map(tag => (
+                <Option key={tag.tag.id} value={tag.tag.id}>
+                  {tag.tag.tagName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item label="Hình ảnh">
+            <Upload
+              multiple
+              listType="picture-card"
+              fileList={editAttachments.images.map(url => ({
+                uid: url,
+                name: url.split('/').pop(),
+                status: 'done',
+                url: url
+              }))}
+              beforeUpload={(file) => {
+                const isImage = file.type.startsWith('image/');
+                if (!isImage) {
+                  message.error('Chỉ có thể tải lên file ảnh!');
+                  return Upload.LIST_IGNORE;
+                }
+                const isLt5M = file.size / 1024 / 1024 < 5;
+                if (!isLt5M) {
+                  message.error('Ảnh phải nhỏ hơn 5MB!');
+                  return Upload.LIST_IGNORE;
+                }
+                return false;
+              }}
+              onChange={handleEditImageChange}
+              onRemove={(file) => handleRemoveEditFile(file, "images")}
+              accept="image/*"
+            >
+              {editAttachments.images.length < 10 && (
+                <div>
+                  <UploadOutlined />
+                  <div style={{ marginTop: 8 }}>Tải lên</div>
+                </div>
+              )}
+            </Upload>
+          </Form.Item>
+
+          <Form.Item label="Video">
+            <Upload
+              multiple
+              listType="picture-card"
+              fileList={editAttachments.videos.map(url => ({
+                uid: url,
+                name: url.split('/').pop(),
+                status: 'done',
+                url: url
+              }))}
+              beforeUpload={(file) => {
+                const isVideo = file.type.startsWith('video/');
+                if (!isVideo) {
+                  message.error('Chỉ có thể tải lên file video!');
+                  return Upload.LIST_IGNORE;
+                }
+                const isLt50M = file.size / 1024 / 1024 < 50;
+                if (!isLt50M) {
+                  message.error('Video phải nhỏ hơn 50MB!');
+                  return Upload.LIST_IGNORE;
+                }
+                return false;
+              }}
+              onChange={handleEditVideoChange}
+              onRemove={(file) => handleRemoveEditFile(file, "videos")}
+              accept="video/*"
+            >
+              {editAttachments.videos.length < 3 && (
+                <div>
+                  <UploadOutlined />
+                  <div style={{ marginTop: 8 }}>Tải lên</div>
+                </div>
+              )}
+            </Upload>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        title="Xác nhận xóa bài viết"
+        visible={deleteConfirmVisible}
+        onOk={handleDeletePost}
+        onCancel={() => setDeleteConfirmVisible(false)}
+        okText="Delete"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true }}
+        confirmLoading={deleteLoading}
+      >
+        <p>Bạn có chắc chắn muốn xóa bài viết này?</p>
+        <p>Hành động này không thể hoàn tác.</p>
+      </Modal>
+
+      {/* Report Modal */}
+      <Modal
+        title="Báo cáo bài viết"
         visible={reportVisible}
         onOk={handleReportSubmit}
-        onCancel={() => setReportVisible(false)}
+        onCancel={() => {
+          setReportVisible(false);
+          setSelectedReason('');
+          setCustomReason('');
+        }}
+        okText="Send"
+        cancelText="Cancel"
       >
-        <Radio.Group onChange={(e) => setReportReason(e.target.value)} value={reportReason}>
+        <Radio.Group 
+          onChange={(e) => setSelectedReason(e.target.value)} 
+          value={selectedReason}
+        >
           <Space direction="vertical">
-            <Radio value="spam">Spam</Radio>
-            <Radio value="inappropriate">Inappropriate Content</Radio>
-            <Radio value="harassment">Harassment</Radio>
-            <Radio value="other">Other</Radio>
+            <Radio value="spam">Nội dung spam</Radio>
+            <Radio value="inappropriate">Nội dung không phù hợp</Radio>
+            <Radio value="harassment">Quấy rối hoặc bắt nạt</Radio>
+            <Radio value="other">Lý do khác</Radio>
           </Space>
         </Radio.Group>
-        
-        {reportReason === "other" && (
+
+        {selectedReason === 'other' && (
           <Input.TextArea
-            placeholder="Please provide details"
-            value={reportDetails}
-            onChange={(e) => setReportDetails(e.target.value)}
+            rows={4}
+            placeholder="Vui lòng nhập lý do cụ thể..."
+            value={customReason}
+            onChange={(e) => setCustomReason(e.target.value)}
             style={{ marginTop: 16 }}
           />
         )}
+      </Modal>
+
+      {/* Hidden Confirmation Modal */}
+      <Modal
+        title="Xác nhận ẩn bài viết"
+        visible={hideConfirmVisible}
+        onOk={handleHidePost}
+        onCancel={() => setHideConfirmVisible(false)}
+        okText="Hide"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true }}
+        confirmLoading={hideLoading}
+      >
+        <p>Bạn có chắc chắn muốn ẩn bài viết này?</p>
+        <p>Bài viết ẩn sẽ không hiển thị với người dùng khác.</p>
       </Modal>
     </Card>
   );

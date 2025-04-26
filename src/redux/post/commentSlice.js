@@ -3,6 +3,7 @@ import commentApi from './commentApi';
 
 const initialState = {
     comments: [],
+    allComments:[],
     loading: false,
     error: null,
     hasMore: true,
@@ -12,7 +13,7 @@ const initialState = {
 // Fetch comments by post (pagination)
 export const fetchCommentsByPost = createAsyncThunk(
     "comments/fetchByPost",
-    async ({ postId, page = 0, size = 5 }) => {
+    async ({ postId, page = 0, size = 100 }) => {
         const response = await commentApi.fetchCommentsByPost(postId, page, size);
         return { 
             comments: response, 
@@ -21,6 +22,15 @@ export const fetchCommentsByPost = createAsyncThunk(
         };
     }
 );
+
+export const fetchAllCommentsByPostThunk = createAsyncThunk(
+    'comments/fetchAllByPost',
+    async (postId) => {
+      const response = await commentApi.fetchAllCommentsByPost(postId);
+      return response;
+    }
+  );
+
 
 // Create new comment
 export const createComment = createAsyncThunk(
@@ -58,7 +68,6 @@ export const deleteComment = createAsyncThunk(
 );
 
 // Vote comment
-// Sửa action voteComment
 export const voteComment = createAsyncThunk(
     "comments/vote",
     async ({ commentId, userId, vote }, { rejectWithValue }) => {
@@ -122,6 +131,7 @@ const commentSlice = createSlice({
             .addCase(createComment.fulfilled, (state, action) => {
                 state.loading = false;
                 state.comments.unshift(action.payload);
+                state.allComments.unshift(action.payload);
             })
             .addCase(createComment.rejected, (state, action) => {
                 state.loading = false;
@@ -155,6 +165,9 @@ const commentSlice = createSlice({
                 state.comments = state.comments.filter(
                     c => c.commentId !== action.payload
                 );
+                state.allComments = state.allComments.filter(
+                    c => c.commentId !== action.payload
+                    );
             })
             .addCase(deleteComment.rejected, (state, action) => {
                 state.loading = false;
@@ -189,11 +202,27 @@ const commentSlice = createSlice({
                     parent.replies = parent.replies || [];
                     parent.replies.push(action.payload);
                 }
+                state.allComments.push(action.payload);
             })
             .addCase(createReply.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-            });
+            })
+            
+            .addCase(fetchAllCommentsByPostThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchAllCommentsByPostThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.comments = action.payload; // Gán tất cả comments
+                state.allComments = action.payload;
+              })
+            .addCase(fetchAllCommentsByPostThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            ;
     }
 });
 
