@@ -42,7 +42,8 @@ const UserInfoCard = ({
                   selectedUser.avatar || "https://avatar.iran.liara.run/public"
                 }
                 alt="Avatar"
-                className="w-20 h-20 rounded-xl object-cover border-2 border-blue-500 transform transition-transform duration-300 hover:scale-110"
+                className="w-20 h-20 rounded-full object-cover border-2 border-blue-500 transform transition-transform duration-300 hover:scale-110"
+                onerror={`this.onerror=null; this.src=${"https://avatar.iran.liara.run/public"};`}
               />
               <div className="flex-1 space-y-2">
                 <h3 className="text-xl font-semibold text-gray-800">

@@ -32,7 +32,12 @@ const initialState = {
 
   orgCeo: null,
   ownedOrganization: null, // for ceo only one organization
+
+  currentOrganizationEvent: null,
+  currentIncludes: [],
+  currentExcludes: [],
   organizationEvents: [],
+
   verificationDocuments: [],
 
   articles: [],
@@ -46,6 +51,15 @@ const initialState = {
   organizationsRanking: [],
 
   allJoinInvitationRequests: [],
+
+  totalIncome: 0,
+  totalExpense: 0,
+
+  organizationTransactions: [],
+  toOrganizationDonations: [],
+
+  currentRole: null,
+
   loading: false,
   error: null,
 };
@@ -557,7 +571,140 @@ export const cancelInvitationRequest = createAsyncThunk(
   }
 );
 
+// ------------------------ Organization Finance -----------------
+export const getTotalIncome = createAsyncThunk(
+  "organizations/getTotalIncome",
+  async (organizationId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getTotalIncome(organizationId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error getting total income"
+      );
+    }
+  }
+);
+
+export const getTotalExpense = createAsyncThunk(
+  "organizations/getTotalExpense",
+  async (organizationId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getTotalExpense(organizationId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error getting total expense"
+      );
+    }
+  }
+);
+
+export const getDonatesByOrganizationId = createAsyncThunk(
+  "organizations/getDonatesByOrganizationId",
+  async (organizationId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getDonatesByOrganizationId(
+        organizationId
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error getting donates by organization"
+      );
+    }
+  }
+);
+
+export const getTransactionsByOrganizationId = createAsyncThunk(
+  "organizations/getTransactionsByOrganizationId",
+  async (organizationId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getTransactionsByOrganizationId(
+        organizationId
+      );
+      return response.data;
+    } catch (error) {}
+  }
+);
+
+export const createTransaction = createAsyncThunk(
+  "organizations/createTransaction",
+  async (transactionData, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.createTransaction(transactionData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error creating transaction"
+      );
+    }
+  }
+);
+
 // ------------------------ Organization Events -----------------
+export const getIncludesExcludes = createAsyncThunk(
+  "events/getIncludesExcludes",
+  async (organizationEventId, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.getIncludesExcludes(
+        organizationEventId
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error getIncludesExcludes"
+      );
+    }
+  }
+);
+
+export const createIncludesExcludes = createAsyncThunk(
+  "events/createIncludesExcludes",
+  async (includesExcludesData, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.createIncludesExcludes(
+        includesExcludesData
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error createIncludesExcludes"
+      );
+    }
+  }
+);
+
+export const updateIncludesExcludes = createAsyncThunk(
+  "events/updateIncludesExcludes",
+  async (includesExcludesData, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.updateIncludesExcludes(
+        includesExcludesData
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error updateIncludesExcludes"
+      );
+    }
+  }
+);
+
+export const deleteIncludesExcludes = createAsyncThunk(
+  "events/deleteIncludesExcludes",
+  async (includesExcludesId, { rejectWithValue }) => {
+    try {
+      await organizationApi.deleteIncludesExcludes(includesExcludesId);
+      return includesExcludesId;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error deleteIncludesExcludes"
+      );
+    }
+  }
+);
+
 export const getOrganizationEvents = createAsyncThunk(
   "events/getAllInOrganization",
   async (organizationId, { rejectWithValue }) => {
@@ -565,7 +712,15 @@ export const getOrganizationEvents = createAsyncThunk(
       const response = await organizationApi.getOrganizationEvents(
         organizationId
       );
-      return response.data;
+
+      const result = response.data.map((event) => {
+        return {
+          ...event,
+          targetAudienceGroups: event.targetAudienceGroups.split(","),
+        };
+      });
+
+      return result;
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Error getOrganizationEvents"
@@ -608,12 +763,10 @@ export const updateOrganizationEvent = createAsyncThunk(
 
 export const deleteOrganizationEvent = createAsyncThunk(
   "events/deleteOrganizationEvent",
-  async (organizationId, { rejectWithValue }) => {
+  async (organizationEventId, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.deleteOrganizationEvent(
-        organizationId
-      );
-      return response.data;
+      await organizationApi.deleteOrganizationEvent(organizationEventId);
+      return organizationEventId;
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Error deleteOrganizationEvent"
@@ -884,6 +1037,9 @@ export const organizationSlice = createSlice({
   name: "organization",
   initialState,
   reducers: {
+    setCurrentRole: (state, action) => {
+      state.currentRole = action.payload;
+    },
     setCurrentOrganization: (state, action) => {
       state.currentOrganization = action.payload;
     },
@@ -1010,7 +1166,7 @@ export const organizationSlice = createSlice({
       .addCase(getManagedOrganizationByCeo.fulfilled, (state, action) => {
         state.loading = false;
         state.ownedOrganization = action.payload;
-        state.currentOrganization = action.payload;
+        // state.currentOrganization = action.payload;
       })
       .addCase(getManagedOrganizationByCeo.rejected, (state, action) => {
         state.loading = false;
@@ -1055,28 +1211,39 @@ export const organizationSlice = createSlice({
         state.currentOrganization = action.payload;
 
         let index = state.organizations.findIndex(
-          (org) => org.id === action.payload.id
+          (org) => org.organizationId === action.payload.organizationId
         );
         if (index !== -1) {
           state.organizations[index] = action.payload;
         }
 
         index = state.joinedOrganizations.findIndex(
-          (org) => org.id === action.payload.id
+          (org) => org.organizationId === action.payload.organizationId
         );
+
         if (index !== -1) {
           state.joinedOrganizations[index] = action.payload;
         }
 
         index = state.managedOrganizations.findIndex(
-          (org) => org.id === action.payload.id
+          (org) => org.organizationId === action.payload.organizationId
         );
         if (index !== -1) {
           state.managedOrganizations[index] = action.payload;
         }
 
-        if (state.ownedOrganization.id === action.payload.id) {
+        if (
+          state.ownedOrganization.organizationId ===
+          action.payload.organizationId
+        ) {
           state.ownedOrganization = action.payload;
+        }
+
+        if (
+          state.currentOrganization?.organizationId ===
+          action.payload.organizationId
+        ) {
+          state.currentOrganization = action.payload;
         }
       })
       .addCase(updateOrganization.rejected, (state, action) => {
@@ -1426,6 +1593,131 @@ export const organizationSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      .addCase(getTotalIncome.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getTotalIncome.fulfilled, (state, action) => {
+        state.loading = false;
+        state.totalIncome = action.payload;
+      })
+      .addCase(getTotalIncome.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getTotalExpense.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getTotalExpense.fulfilled, (state, action) => {
+        state.loading = false;
+        state.totalExpense = action.payload;
+      })
+      .addCase(getTotalExpense.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getDonatesByOrganizationId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getDonatesByOrganizationId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.toOrganizationDonations = action.payload;
+      })
+      .addCase(getDonatesByOrganizationId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getTransactionsByOrganizationId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getTransactionsByOrganizationId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.organizationTransactions = action.payload;
+      })
+      .addCase(getTransactionsByOrganizationId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(createTransaction.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createTransaction.fulfilled, (state, action) => {
+        state.loading = false;
+        state.organizationTransactions = [
+          ...state.organizationTransactions,
+          action.payload,
+        ];
+      })
+      .addCase(createTransaction.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getIncludesExcludes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getIncludesExcludes.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentIncludes = [...action.payload?.includes];
+        state.currentExcludes = [...action.payload?.excludes];
+      })
+      .addCase(getIncludesExcludes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(createIncludesExcludes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createIncludesExcludes.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentIncludes = action.payload?.includes;
+        state.currentExcludes = action.payload?.excludes;
+      })
+      .addCase(createIncludesExcludes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(updateIncludesExcludes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateIncludesExcludes.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentIncludes = action.payload?.includes;
+        state.currentExcludes = action.payload?.excludes;
+      })
+      .addCase(updateIncludesExcludes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(deleteIncludesExcludes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteIncludesExcludes.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentIncludes = [];
+        state.currentExcludes = [];
+      })
+      .addCase(deleteIncludesExcludes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       .addCase(getOrganizationEvents.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -1444,7 +1736,10 @@ export const organizationSlice = createSlice({
       })
       .addCase(addOrganizationEvent.fulfilled, (state, action) => {
         state.loading = false;
-        state.organizationEvents.push(action.payload);
+        state.organizationEvents.push({
+          ...action.payload,
+          targetAudienceGroups: action.payload.targetAudienceGroups.split(","),
+        });
       })
       .addCase(addOrganizationEvent.rejected, (state, action) => {
         state.loading = false;
@@ -1456,6 +1751,18 @@ export const organizationSlice = createSlice({
       })
       .addCase(updateOrganizationEvent.fulfilled, (state, action) => {
         state.loading = false;
+        state.organizationEvents = state.organizationEvents.map((event) => {
+          if (
+            event.organizationEventId === action.payload.organizationEventId
+          ) {
+            return {
+              ...action.payload,
+              targetAudienceGroups:
+                action.payload.targetAudienceGroups.split(","),
+            };
+          }
+          return event;
+        });
       })
       .addCase(updateOrganizationEvent.rejected, (state, action) => {
         state.loading = false;
@@ -1469,8 +1776,7 @@ export const organizationSlice = createSlice({
         state.loading = false;
         state.organizationEvents = state.organizationEvents.filter(
           (organizationEvent) =>
-            organizationEvent.organizationEventId !==
-            action.payload.organizationEventId
+            organizationEvent.organizationEventId !== action.payload
         );
       })
       .addCase(deleteOrganizationEvent.rejected, (state, action) => {
@@ -1661,6 +1967,9 @@ export const organizationSlice = createSlice({
   },
 });
 
-export const { setSelectedOrganization, setCurrentOrganization } =
-  organizationSlice.actions;
+export const {
+  setSelectedOrganization,
+  setCurrentOrganization,
+  setCurrentRole,
+} = organizationSlice.actions;
 export default organizationSlice.reducer;

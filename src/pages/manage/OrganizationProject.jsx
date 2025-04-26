@@ -37,7 +37,7 @@ import {
 const { Title } = Typography;
 import { Table } from "antd";
 const OrganizationProject = () => {
-  const myOrganization = useSelector(
+  const currentOrganization = useSelector(
     (state) => state.organization.currentOrganization
   );
 
@@ -52,7 +52,7 @@ const OrganizationProject = () => {
   );
   const spendingItems = useSelector((state) => state.project.spendingItems);
   const [loading, setLoading] = useState(false);
-
+  const currentRole = useSelector((state) => state.organization.currentRole);
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
@@ -62,14 +62,16 @@ const OrganizationProject = () => {
   const projectByOrg = useSelector((state) => state.project.projects);
 
   useEffect(() => {
-    dispatch(getManagedOrganizationByCeo());
-    dispatch(getManagedOrganizationsByManager());
+    if (currentRole === "ceo") dispatch(getManagedOrganizationByCeo());
+
+    if (currentRole === "manager") dispatch(getManagedOrganizationsByManager());
   }, [dispatch]);
+
   useEffect(() => {
-    if (myOrganization && myOrganization.organizationId) {
-      dispatch(fetchProjectsByOrgThunk(myOrganization.organizationId));
+    if (currentOrganization && currentOrganization.organizationId) {
+      dispatch(fetchProjectsByOrgThunk(currentOrganization.organizationId));
     }
-  }, [dispatch, myOrganization]);
+  }, [dispatch, currentOrganization]);
 
   const projectStatusData = [
     {
@@ -266,24 +268,8 @@ const OrganizationProject = () => {
 
   return (
     <div>
-      <div className="pl-2">
-        <div className="inline-flex gap-2 items-baseline">
-          <FaLink />
-          <Link to={"/"} className="hover:underline">
-            Home
-          </Link>
-        </div>
-        <span> / </span>
-        <Link to={"/manage-organization"} className="hover:underline">
-          my-organization
-        </Link>
-        <span> / </span>
-        <Link to={"/manage-organization/projects"} className="hover:underline">
-          projects
-        </Link>
-      </div>
-      <div className="min-h-screen bg-gray-100 p-6 m-10">
-        <div className="max-w-7xl mx-auto">
+      {currentOrganization && (
+        <div className="min-h-screen mx-auto bg-gray-50 p-4">
           <h1 className="text-3xl font-semibold text-gray-800 mb-6">
             Project Management
           </h1>
@@ -292,7 +278,7 @@ const OrganizationProject = () => {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                className={`py-2 px-4 text-sm font-medium transition-colors duration-200 ${
+                className={`py-2 px-4 hover:cursor-pointer text-sm font-medium transition-colors duration-200 ${
                   activeTab === tab.id
                     ? "border-b-2 border-blue-500 text-blue-600"
                     : "text-gray-600 hover:text-blue-500"
@@ -303,12 +289,27 @@ const OrganizationProject = () => {
               </button>
             ))}
           </nav>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-sm shadow-md px-6 py-3 h-[600px] overflow-y-scroll">
             {renderContent()}
           </div>
         </div>
-      </div>
+      )}
+
+      {!currentOrganization && (
+        <div className="p-6">
+          <div className="flex justify-end items-center">
+            <Link
+              to="/organizations"
+              className="bg-blue-500 px-3 py-2 rounded-md text-white hover:bg-blue-600 hover:cursor-pointer"
+            >
+              Discover organizations
+            </Link>
+          </div>
+          <div className="flex justify-center items-center min-h-[500px]">
+            <Empty description="You are not a member of any organization" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

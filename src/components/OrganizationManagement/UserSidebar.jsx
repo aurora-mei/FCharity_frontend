@@ -26,6 +26,7 @@ const UserSidebar = () => {
         className={`flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md transition duration-200 ${
           selectedTab === "my-organization" ? "bg-gray-100 text-gray-900" : ""
         }`}
+        onClick={() => setSelectedTab("my-organization")}
       >
         <HomeFilled style={{ fontSize: "24px" }} />
         <span className="text-base font-medium">Organization</span>

@@ -124,11 +124,7 @@ const FileCard = ({
       >
         {genIcon(type)}
         <p className="text-xs mt-1 text-center truncate w-[80px]">
-          {isNew
-            ? file?.fileName
-            : String(file?.fileName).substring(
-                String(file?.fileName).lastIndexOf("_") + 1
-              )}
+          {file?.fileName}
         </p>
       </div>
 

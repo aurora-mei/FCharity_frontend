@@ -13,6 +13,7 @@ import {
   getManagedOrganizationsByManager,
   getOrganizationById,
   setCurrentOrganization,
+  setCurrentRole,
 } from "../../redux/organization/organizationSlice";
 
 import ColorThief from "colorthief";
@@ -41,6 +42,8 @@ const SidebarContainer = () => {
   useEffect(() => {
     if (mode === "ceo") {
       dispatch(getManagedOrganizationByCeo());
+      dispatch(setCurrentRole("ceo"));
+      dispatch(setCurrentOrganization(ownedOrganization));
     }
 
     if (mode === "manager") {
@@ -93,6 +96,7 @@ const SidebarContainer = () => {
           title="My owned organization"
           onClick={() => {
             setMode("ceo");
+            dispatch(setCurrentRole("ceo"));
             if (ownedOrganization) {
               handleChangeCurrentOrganization(
                 ownedOrganization?.organizationId
@@ -112,6 +116,7 @@ const SidebarContainer = () => {
           title="My managed organizations"
           onClick={() => {
             setMode("manager");
+            dispatch(setCurrentRole("manager"));
             if (managedOrganizations?.length > 0) {
               handleChangeCurrentOrganization(
                 managedOrganizations[0]?.organizationId
@@ -132,6 +137,7 @@ const SidebarContainer = () => {
           title="My joined organizations"
           onClick={() => {
             setMode("member");
+            dispatch(setCurrentRole("member"));
             if (joinedOrganizations?.length > 0) {
               handleChangeCurrentOrganization(
                 joinedOrganizations[0]?.organizationId

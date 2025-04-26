@@ -17,38 +17,56 @@ import {
   createIncludesExcludes,
   getAllMembersInOrganization,
   getAllUsersNotInOrganization,
+  getIncludesExcludes,
+  updateIncludesExcludes,
+  updateOrganizationEvent,
 } from "../../../redux/organization/organizationSlice";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
-const CreateEventModal = ({
-  isCreateModalOpen,
-  setIsCreateModalOpen,
-  newEvent,
-  setNewEvent,
+const EditEventModal = ({
+  isEditModalOpen,
+  setIsEditModalOpen,
+  selectedEvent,
 }) => {
   const dispatch = useDispatch();
+
+  const currentIncludes = useSelector(
+    (state) => state.organization.currentIncludes
+  );
+
+  const currentExcludes = useSelector(
+    (state) => state.organization.currentExcludes
+  );
 
   const usersOutsideOrganization = useSelector(
     (state) => state.organization.usersOutsideOrganization
   );
-
   const currentOrganization = useSelector(
     (state) => state.organization.currentOrganization
   );
-
   const currentOrganizationMembers = useSelector(
     (state) => state.organization.currentOrganizationMembers
   );
 
-  const [errors, setErrors] = useState([]);
-
-  // danh sách người dùng trên hệ thống
   const usersList = [
     ...usersOutsideOrganization,
     ...[...currentOrganizationMembers].map((member) => member.user),
   ];
+
+  const [editingEvent, setEditingEvent] = useState();
+
+  useEffect(() => {
+    if (selectedEvent.organizationEventId) {
+      dispatch(getIncludesExcludes(selectedEvent.organizationEventId));
+      setEditingEvent({
+        ...selectedEvent,
+      });
+    }
+  }, [selectedEvent.organizationEventId, dispatch]);
+
+  const [errors, setErrors] = useState([]);
 
   const memberList = [...currentOrganizationMembers]
     .filter((member) => member.memberRole == "MEMBER")
@@ -63,14 +81,26 @@ const CreateEventModal = ({
     .map((member) => member.user);
 
   // lưu trạng thái cho audienceGroups, sử dụng cho excludeUsers
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  // const [targetAudienceGroups, setTargetAudienceGroups] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState(
+    selectedEvent?.targetAudienceGroups.includes("ALL")
+      ? [...usersList]
+      : selectedEvent?.targetAudienceGroups.includes("MEMBER")
+      ? [...memberList]
+      : selectedEvent?.targetAudienceGroups.includes("MANAGER")
+      ? [...managerList]
+      : selectedEvent?.targetAudienceGroups.includes("CEO")
+      ? [...ceoList]
+      : []
+  );
 
   const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
 
-  const [includeUsers, setIncludeUsers] = useState([]);
-
-  const [excludeUsers, setExcludeUsers] = useState([]); // sử dụng với selectedUsers
+  const [includeUsers, setIncludeUsers] = useState([
+    ...usersList.filter((user) => currentIncludes.includes(user.email)),
+  ]);
+  const [excludeUsers, setExcludeUsers] = useState([
+    ...usersList.filter((user) => currentExcludes.includes(user.email)),
+  ]); // sử dụng với selectedUsers
 
   const colorOptions = [
     { value: "#3788d8", label: "Blue", color: "#3788d8" },
@@ -79,27 +109,23 @@ const CreateEventModal = ({
     { value: "#ffca2c", label: "Yellow", color: "#ffca2c" },
     { value: "#6f42c1", label: "Purple", color: "#6f42c1" },
   ];
-
   const handleInputChange = (e) => {
     const { name, value, checked } = e.target;
-
     if (name?.startsWith("audienceGroups")) {
       if (name === "audienceGroupsAll") {
         if (checked) {
-          setNewEvent({
-            ...newEvent,
+          setEditingEvent({
+            ...editingEvent,
             targetAudienceGroups: ["ALL", "MEMBER", "MANAGER", "CEO"],
           });
-
           setSelectedUsers([...usersList]);
           setIncludeUsers([]);
           setExcludeUsers([]);
         } else {
-          setNewEvent({
-            ...newEvent,
+          setEditingEvent({
+            ...editingEvent,
             targetAudienceGroups: [],
           });
-
           setSelectedUsers([]);
           setIncludeUsers([]);
           setExcludeUsers([]);
@@ -107,28 +133,27 @@ const CreateEventModal = ({
       }
       if (name === "audienceGroupsMember") {
         if (checked) {
-          setNewEvent({
-            ...newEvent,
-            targetAudienceGroups: [...newEvent.targetAudienceGroups, "MEMBER"],
+          setEditingEvent({
+            ...editingEvent,
+            targetAudienceGroups: [
+              ...editingEvent.targetAudienceGroups,
+              "MEMBER",
+            ],
           });
-
           setSelectedUsers((prev) => [...prev, ...memberList]);
-
           setIncludeUsers((prev) =>
             prev.filter((user) => !memberList.includes(user))
           );
         } else {
-          setNewEvent({
-            ...newEvent,
-            targetAudienceGroups: newEvent.targetAudienceGroups.filter(
+          setEditingEvent({
+            ...editingEvent,
+            targetAudienceGroups: editingEvent.targetAudienceGroups.filter(
               (group) => group !== "MEMBER"
             ),
           });
-
           setSelectedUsers((prev) =>
             prev.filter((user) => !memberList.includes(user))
           );
-
           setExcludeUsers((prev) =>
             prev.filter((user) => !memberList.includes(user))
           );
@@ -136,165 +161,139 @@ const CreateEventModal = ({
       }
       if (name === "audienceGroupsManager") {
         if (checked) {
-          setNewEvent({
-            ...newEvent,
-            targetAudienceGroups: [...newEvent.targetAudienceGroups, "MANAGER"],
+          setEditingEvent({
+            ...editingEvent,
+            targetAudienceGroups: [
+              ...editingEvent.targetAudienceGroups,
+              "MANAGER",
+            ],
           });
-
           setSelectedUsers((prev) => [...prev, ...managerList]);
-
           setIncludeUsers((prev) =>
             prev.filter((user) => !managerList.includes(user))
           );
         } else {
-          setNewEvent({
-            ...newEvent,
-            targetAudienceGroups: newEvent.targetAudienceGroups.filter(
+          setEditingEvent({
+            ...editingEvent,
+            targetAudienceGroups: editingEvent.targetAudienceGroups.filter(
               (group) => group !== "MANAGER"
             ),
           });
-
           setSelectedUsers((prev) =>
             prev.filter((user) => !managerList.includes(user))
           );
-
           setExcludeUsers((prev) =>
             prev.filter((user) => !managerList.includes(user))
           );
         }
       }
-
       if (name === "audienceGroupsCeo") {
         if (checked) {
-          setNewEvent({
-            ...newEvent,
-            targetAudienceGroups: [...newEvent.targetAudienceGroups, "CEO"],
+          setEditingEvent({
+            ...editingEvent,
+            targetAudienceGroups: [...editingEvent.targetAudienceGroups, "CEO"],
           });
-
           setSelectedUsers((prev) => [...prev, ...ceoList]);
-
           setIncludeUsers((prev) =>
             prev.filter((user) => !ceoList.includes(user))
           );
         } else {
-          setNewEvent({
-            ...newEvent,
-            targetAudienceGroups: newEvent.targetAudienceGroups.filter(
+          setEditingEvent({
+            ...editingEvent,
+            targetAudienceGroups: editingEvent.targetAudienceGroups.filter(
               (group) => group !== "CEO"
             ),
           });
-
           setSelectedUsers((prev) =>
             prev.filter((user) => !ceoList.includes(user))
           );
-
           setExcludeUsers((prev) =>
             prev.filter((user) => !ceoList.includes(user))
           );
         }
       }
     } else {
-      setNewEvent({ ...newEvent, [name]: value });
+      setEditingEvent({ ...editingEvent, [name]: value });
     }
   };
-
   const validateForm = () => {
     const newErrors = {};
-    if (!newEvent.title) newErrors.title = "Title cannot be blank";
-    if (!newEvent.start) newErrors.start = "Start time cannot be blank";
-    if (!newEvent.end) newErrors.end = "End time cannot be blank";
-    if (newEvent.start && newEvent.end && newEvent.start >= newEvent.end) {
+    if (!editingEvent.title) newErrors.title = "Title cannot be blank";
+    if (!editingEvent.start) newErrors.start = "Start time cannot be blank";
+    if (!editingEvent.end) newErrors.end = "End time cannot be blank";
+    if (
+      editingEvent.start &&
+      editingEvent.end &&
+      editingEvent.start >= editingEvent.end
+    ) {
       newErrors.end = "The end time must be after the start time.";
     }
-    if (!newEvent.location) newErrors.location = "Location cannot be empty";
-    if (!newEvent.eventType) newErrors.eventType = "Event type cannot be blank";
-
-    if (!newEvent.targetAudienceGroups)
+    if (!editingEvent.location) newErrors.location = "Location cannot be empty";
+    if (!editingEvent.eventType)
+      newErrors.eventType = "Event type cannot be blank";
+    if (!editingEvent.targetAudienceGroups)
       newErrors.targetAudienceGroups = "Participants cannot be left blank";
-    if (!newEvent.summary) newErrors.summary = "Summary cannot be left blank";
-    if (!newEvent.fullDescription)
+    if (!editingEvent.summary)
+      newErrors.summary = "Summary cannot be left blank";
+    if (!editingEvent.fullDescription)
       newErrors.fullDescription = "Details cannot be left blank";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  const handleCreateEvent = async () => {
+  const handleUpdateEvent = async () => {
     if (!validateForm()) return;
 
-    const newEventData = {
-      organizerId: currentOrganization.organizationId,
-      title: newEvent.title,
-      startTime: newEvent.start,
-      endTime: newEvent.end,
-      backgroundColor: newEvent.backgroundColor || "#3788d8",
-      borderColor: newEvent.borderColor || "#3788d8",
-      textColor: newEvent.textColor,
-      location: newEvent.location,
-      meetingLink: newEvent.meetingLink,
-      eventType: newEvent.eventType,
-      organizer: newEvent.organizer,
+    console.log("editingEvent:⌚⌚ ", editingEvent);
 
-      targetAudienceGroups: newEvent.targetAudienceGroups.join(","),
-
-      summary: newEvent.summary,
-      fullDescription: newEvent.fullDescription,
+    const editingEventData = {
+      organizationEventId: editingEvent.organizationEventId,
+      title: editingEvent.title,
+      startTime: editingEvent.start,
+      endTime: editingEvent.end,
+      backgroundColor: editingEvent.backgroundColor || "#3788d8",
+      borderColor: editingEvent.borderColor || "#3788d8",
+      textColor: editingEvent.textColor,
+      location: editingEvent.location,
+      meetingLink: editingEvent.meetingLink,
+      eventType: editingEvent.eventType,
+      organizer: editingEvent.organizer,
+      targetAudienceGroups: editingEvent.targetAudienceGroups.join(","),
+      summary: editingEvent.summary,
+      fullDescription: editingEvent.fullDescription,
     };
-
-    console.log("New Event Data: 🧊🧊", newEventData);
+    console.log("New Event Data: 🧊🧊", editingEventData);
     console.log("Organizer: ", currentOrganization);
 
-    const eventCreatedResponse = await dispatch(
-      addOrganizationEvent(newEventData)
+    const evenUpdatedResponse = await dispatch(
+      updateOrganizationEvent(editingEventData)
     ).unwrap();
 
-    console.log("eventCreatedResponse: ", eventCreatedResponse);
+    console.log("eventUpdatedResponse: ", evenUpdatedResponse);
 
     dispatch(
-      createIncludesExcludes({
+      updateIncludesExcludes({
         includes: [...includeUsers.map((user) => user.email)],
         excludes: [...excludeUsers.map((user) => user.email)],
-        organizationEventId: eventCreatedResponse.organizationEventId,
+        organizationEventId: editingEventData.organizationEventId,
       })
     );
 
-    //TODO: gửi mail tới người được mời tham gia (tự dộng gửi khi dispatch createIncludesExcludes)
-
-    setIsCreateModalOpen(false);
-
-    setNewEvent({
-      // các thuộc tính mặc định
-      title: "",
-      start: null,
-      end: null,
-      backgroundColor: "",
-      borderColor: "",
-      textColor: "",
-      // các thuộc tính mở rộng
-      location: "",
-      meetingLink: "",
-      eventType: "",
-      targetAudienceGroups: [],
-      summary: "",
-      fullDescription: "",
-    });
-
+    //TODO: gửi mail tới người được mời tham gia (tự dộng gửi khi dispatch updateIncludesExcludes)
+    setIsEditModalOpen(false);
     setErrors({});
   };
-
   // console.log("usersOutsideOrganization 🍎🍎", usersOutsideOrganization);
-  console.log("currentOrganizationMembers ⚓⚓", currentOrganizationMembers);
-
-  console.log("targetAudienceGroups: ", newEvent.targetAudienceGroups);
-  console.log("selectedUsers: ", selectedUsers);
-
-  console.log("includeUsers: ", includeUsers);
-  console.log("excludeUsers: ", excludeUsers);
+  // console.log("currentOrganizationMembers ⚓⚓", currentOrganizationMembers);
+  // console.log("targetAudienceGroups: ", editingEvent?.targetAudienceGroups);
+  // console.log("selectedUsers: ", selectedUsers);
+  // console.log("includeUsers: ", includeUsers);
+  // console.log("excludeUsers: ", excludeUsers);
+  console.log("editing event: ", editingEvent);
 
   return (
     <Modal
-      isOpen={isCreateModalOpen}
-      onRequestClose={() => setIsCreateModalOpen(false)}
+      isOpen={isEditModalOpen}
+      onRequestClose={() => setIsEditModalOpen(false)}
       style={{
         overlay: {
           backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -323,14 +322,14 @@ const CreateEventModal = ({
           className="text-xl font-bold text-gray-800"
           style={{ margin: 0, padding: 0 }}
         >
-          Create New Event
+          Edit Event
         </p>
         <button
           className="focus:outline-none hover:cursor-pointer"
           onClick={() => {
-            setIsCreateModalOpen(false);
-            setNewEvent({
-              ...newEvent,
+            setIsEditModalOpen(false);
+            setEditingEvent({
+              ...editingEvent,
               targetAudienceGroups: [],
             });
             setIncludeUsers([]);
@@ -341,7 +340,6 @@ const CreateEventModal = ({
           <IoClose className="text-gray-500 hover:text-gray-700 " />
         </button>
       </div>
-
       <div className="p-6 overflow-y-auto max-h-[70vh]">
         <div className="space-y-6">
           <div className="space-y-4">
@@ -355,7 +353,7 @@ const CreateEventModal = ({
               <input
                 type="text"
                 name="title"
-                value={newEvent.title}
+                value={editingEvent?.title}
                 onChange={handleInputChange}
                 className="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
               />
@@ -363,15 +361,16 @@ const CreateEventModal = ({
                 <p className="text-red-500 text-xs mt-1">{errors.title}</p>
               )}
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Start time
                 </label>
                 <DatePicker
-                  selected={newEvent.start}
-                  onChange={(date) => setNewEvent({ ...newEvent, start: date })}
+                  selected={editingEvent?.start}
+                  onChange={(date) =>
+                    setEditingEvent({ ...editingEvent, start: date })
+                  }
                   showTimeSelect
                   timeFormat="HH:mm"
                   timeIntervals={15}
@@ -387,8 +386,10 @@ const CreateEventModal = ({
                   End time
                 </label>
                 <DatePicker
-                  selected={newEvent.end}
-                  onChange={(date) => setNewEvent({ ...newEvent, end: date })}
+                  selected={editingEvent?.end}
+                  onChange={(date) =>
+                    setEditingEvent({ ...editingEvent, end: date })
+                  }
                   showTimeSelect
                   timeFormat="HH:mm"
                   timeIntervals={15}
@@ -400,7 +401,6 @@ const CreateEventModal = ({
                 )}
               </div>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -409,7 +409,7 @@ const CreateEventModal = ({
                 <input
                   type="text"
                   name="location"
-                  value={newEvent.location}
+                  value={editingEvent?.location}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
                 />
@@ -424,14 +424,13 @@ const CreateEventModal = ({
                 <input
                   type="text"
                   name="meetingLink"
-                  value={newEvent.meetingLink}
+                  value={editingEvent?.meetingLink}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
                 />
               </div>
             </div>
           </div>
-
           <div className="space-y-4">
             <p className="text-lg font-semibold text-gray-700">
               More information
@@ -443,7 +442,7 @@ const CreateEventModal = ({
                 </label>
                 <select
                   name="eventType"
-                  value={newEvent.eventType}
+                  value={editingEvent?.eventType}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
                 >
@@ -477,14 +476,14 @@ const CreateEventModal = ({
                         className="w-4 h-4 rounded-full mr-2"
                         style={{
                           backgroundColor:
-                            newEvent.backgroundColor || "#3788d8",
+                            editingEvent?.backgroundColor || "#3788d8",
                         }}
                       ></span>
                       <span className="flex-1">
                         {colorOptions.find(
                           (option) =>
                             option.value ===
-                            (newEvent.backgroundColor || "#3788d8")
+                            (editingEvent?.backgroundColor || "#3788d8")
                         )?.label || "Select color"}
                       </span>
                       <IoChevronDownOutline
@@ -493,7 +492,6 @@ const CreateEventModal = ({
                         }`}
                       />
                     </div>
-
                     {/* Dropdown */}
                     {isColorDropdownOpen && (
                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
@@ -502,8 +500,8 @@ const CreateEventModal = ({
                             key={option.value}
                             className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
                             onClick={() => {
-                              setNewEvent({
-                                ...newEvent,
+                              setEditingEvent({
+                                ...editingEvent,
                                 backgroundColor: option.value,
                                 borderColor: option.value,
                                 textColor:
@@ -527,7 +525,6 @@ const CreateEventModal = ({
                 </div>
               </div>
             </div>
-
             <div>
               <h3 className="mb-4 font-semibold text-gray-900">
                 Target audience
@@ -549,7 +546,9 @@ const CreateEventModal = ({
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500"
                         style={{ color: "blue" }}
                         onChange={handleInputChange}
-                        checked={newEvent.targetAudienceGroups.includes("ALL")}
+                        checked={editingEvent?.targetAudienceGroups.includes(
+                          "ALL"
+                        )}
                       />
                       <label
                         for="vue-checkbox-list"
@@ -567,8 +566,10 @@ const CreateEventModal = ({
                         value="MEMBER"
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
                         onChange={handleInputChange}
-                        disabled={newEvent.targetAudienceGroups.includes("ALL")}
-                        checked={newEvent.targetAudienceGroups.includes(
+                        disabled={editingEvent?.targetAudienceGroups.includes(
+                          "ALL"
+                        )}
+                        checked={editingEvent?.targetAudienceGroups.includes(
                           "MEMBER"
                         )}
                       />
@@ -588,8 +589,10 @@ const CreateEventModal = ({
                         value="MANAGER"
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
                         onChange={handleInputChange}
-                        disabled={newEvent.targetAudienceGroups.includes("ALL")}
-                        checked={newEvent.targetAudienceGroups.includes(
+                        disabled={editingEvent?.targetAudienceGroups.includes(
+                          "ALL"
+                        )}
+                        checked={editingEvent?.targetAudienceGroups.includes(
                           "MANAGER"
                         )}
                       />
@@ -609,8 +612,12 @@ const CreateEventModal = ({
                         value="CEO"
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
                         onChange={handleInputChange}
-                        disabled={newEvent.targetAudienceGroups.includes("ALL")}
-                        checked={newEvent.targetAudienceGroups.includes("CEO")}
+                        disabled={editingEvent?.targetAudienceGroups.includes(
+                          "ALL"
+                        )}
+                        checked={editingEvent?.targetAudienceGroups.includes(
+                          "CEO"
+                        )}
                       />
                       <label
                         for="laravel-checkbox-list"
@@ -621,7 +628,6 @@ const CreateEventModal = ({
                     </div>
                   </li>
                 </ul>
-
                 <div className="mt-4">
                   <h4 className="text-gray-800 text-md">Include</h4>
                   <Autocomplete
@@ -727,7 +733,6 @@ const CreateEventModal = ({
               </div>
             </div>
           </div>
-
           <div className="space-y-4">
             <p className="text-lg font-semibold text-gray-700">
               Detail information
@@ -738,7 +743,7 @@ const CreateEventModal = ({
               </label>
               <textarea
                 name="summary"
-                value={newEvent.summary}
+                value={editingEvent?.summary}
                 onChange={handleInputChange}
                 className="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500 h-24 resize-none"
               />
@@ -752,7 +757,7 @@ const CreateEventModal = ({
               </label>
               <textarea
                 name="fullDescription"
-                value={newEvent.fullDescription}
+                value={editingEvent?.fullDescription}
                 onChange={handleInputChange}
                 className="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500 h-32 resize-none"
               />
@@ -765,34 +770,26 @@ const CreateEventModal = ({
           </div>
         </div>
       </div>
-
       <div className="bg-gray-100 p-4 border-t border-gray-200 flex justify-end items-center gap-8">
         <div
           onClick={() => {
-            setIsCreateModalOpen(false);
-            setNewEvent({
-              ...newEvent,
-              targetAudienceGroups: [],
-            });
-            setIncludeUsers([]);
-            setExcludeUsers([]);
-            setSelectedUsers([]);
+            handleUpdateEvent();
+          }}
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors  hover:cursor-pointer"
+        >
+          Update
+        </div>
+        <div
+          onClick={() => {
+            setIsEditModalOpen(false);
           }}
           className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors hover:cursor-pointer"
         >
           Cancel
-        </div>
-        <div
-          onClick={() => {
-            handleCreateEvent();
-          }}
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors  hover:cursor-pointer"
-        >
-          Create
         </div>
       </div>
     </Modal>
   );
 };
 
-export default CreateEventModal;
+export default EditEventModal;
