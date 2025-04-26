@@ -1,28 +1,23 @@
-import React from 'react';
-import './HomeContainer.pcss';
+import React, { useEffect } from 'react';
 import Banner from "../../components/Banner/Banner";
 import Noting from "../../components/Noting/Noting";
 import FundraiserBoard from "../FundraiserBoard/FundraiserBoard";
 import EventBoard from "../EventBoard/EventBoard";
-import ForumBoard from "../ForumBoard/ForumBoard";
+import ForumBoard from "../../containers/ForumBoard/ForumBoard";
 import NotingGreen from "../../components/NotingGreen/NotingGreen";
 import RequestListScreen from "../../screens/request/RequestListScreen";
 import RequestActiveCarousel from "../../components/RequestActiveCarousel/RequestActiveCarousel";
 import { fetchProjectsThunk } from '../../redux/project/projectSlice';
-import { fetchLatestPostsThunk } from '../../redux/post/postSlice'; // Thêm action fetch posts
-import { useEffect } from 'react';
 import { Flex } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation, Trans } from 'react-i18next';
 
 const HomeContainer = () => {
     const projects = useSelector(state => state.project.projects);
-    const latestPosts = useSelector(state => state.post.latestPosts); // Lấy posts từ store
     const dispatch = useDispatch();
     
     useEffect(() => {
         dispatch(fetchProjectsThunk());
-        dispatch(fetchLatestPostsThunk({ limit: 3 })); // Fetch 3 bài post mới nhất
     }, [dispatch]);
     
     const { t, i18n } = useTranslation();
