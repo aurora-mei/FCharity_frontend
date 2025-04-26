@@ -271,7 +271,6 @@ const ProjectMoreDetailScreen = () => {
 
   useEffect(() => {
     setLoading(true);
-    setError(null);
     // Gọi API hoặc dispatch action để lấy dữ liệu
     Promise.all([
       dispatch(fetchProjectById(projectId)),
@@ -413,7 +412,7 @@ const ProjectMoreDetailScreen = () => {
           isLeader={false}
           spendingDetails={spendingDetails}
         />
-        <TaskOverviewTab />
+        <TaskOverviewTab phases ={phases} tasks ={tasks}  />
       </Flex>
       <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />
     </StyledScreen>

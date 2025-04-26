@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 // Add Tooltip import
-import { Card, Typography, Space, Button, Avatar, Progress, Modal, Skeleton, Tooltip } from "antd";
+import { Card, Typography, Space, Button, Avatar, Progress, Modal, Skeleton,Tooltip } from "antd";
 import { ShareAltOutlined, DollarOutlined, RiseOutlined, UserOutlined, FlagOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import moment from "moment-timezone";
@@ -283,10 +283,11 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
 
                     {/* Donate Button - Conditional Rendering and Disabling */}
                     {project.projectStatus === "DONATING" && (
-                        <Tooltip title={isGoalReached ? "Fundraising goal has been reached!" : ""}>
+                        <Tooltip title={`${(currentDonationValue / estimatedTotalCost * 100) >= 100 ? "Project has reach estimated fund!":"Donate for project" }`}>
                             {/* Tooltip explains why it's disabled */}
                              <Button
                                 className="full-width-button"
+                                disabled={(currentDonationValue / estimatedTotalCost * 100) >=100}
                                 type="primary"
                                 icon={<DollarOutlined />}
                                 style={{ backgroundColor: '#F99A32', borderColor: '#F99A32' }}
@@ -301,8 +302,6 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                                         setIsOpenModal(true);
                                     }
                                 }}
-                                // Disable button if goal is reached
-                                disabled={isGoalReached}
                             >
                                 Donate now
                             </Button>

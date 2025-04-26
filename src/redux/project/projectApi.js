@@ -748,10 +748,10 @@ const getConfirmReceiveRequestByRequest = async (requestId) => {
         throw err.response.data;
     }
 }
-const rejectReceiveRequest = async ({ id, message }) => {
+const rejectReceiveRequest = async ({ id, me }) => {
     try {
         const response = await APIPrivate.put(`projects/confirmation-requests/${id}/reject`, {
-            message: message
+            message: me
         });
         console.log("Confirm receive request:", response.data);
         message.success("Confirm receive request rejected successfully! The project will be checked again before send you another confirm request!");

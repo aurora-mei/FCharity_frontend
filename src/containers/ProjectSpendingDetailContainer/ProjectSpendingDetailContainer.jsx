@@ -342,7 +342,7 @@ const ProjectSpendingDetailContainer = ({
             );
 
             return (
-                <DateGroupWrapper key={dateKey}>
+                <DateGroupWrapper key={dateKey} style={{ height:"10rem",overflowY:"auto" }}>
                     <Title level={5} style={{ marginBottom: '0.5rem', paddingLeft: '0.5rem' }}>
                         Expenses on {dayjs(dateKey).format("DD MMMM YYYY")} ({expensesForSelectedDate.length} total)
                     </Title>

@@ -11,6 +11,7 @@ import userReducer from "./user/userSlice";
 import organizationReducer from "./organization/organizationSlice";
 import projectReducer from './project/projectSlice';
 import timelineReducer from './project/timelineSlice';
+import inviteRequestOrganizationReducer from "./inviterequestorganization/inviteRequestOrganizationSlice";
 const reducer = combineReducers({
   auth: authReducer,
   request: requestReducer,
@@ -23,6 +24,7 @@ const reducer = combineReducers({
   project: projectReducer,
   comment: commentReducer,
   inviteRequestProject: inviteRequestProjectReducer,
+  inviteRequestOrganization: inviteRequestOrganizationReducer,
   timeline: timelineReducer,
 });
 export const store = configureStore({
