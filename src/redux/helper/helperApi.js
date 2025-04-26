@@ -40,7 +40,11 @@ const uploadFile = async ({ file, folderName = "default-folder" }) => {
     return null;
   }
 };
-const uploadFileMedia = async ({ file, folderName = "default-folder",resourceType }) => {
+const uploadFileMedia = async ({
+  file,
+  folderName = "default-folder",
+  resourceType,
+}) => {
   console.log("Uploading file:", file);
 
   const formData = new FormData();
@@ -90,5 +94,5 @@ const getListBank = async () => {
     throw error;
   }
 };
-const helperApi = { uploadFile, getPaymentLink,uploadFileMedia,getListBank };
+const helperApi = { uploadFile, getPaymentLink, uploadFileMedia, getListBank };
 export default helperApi;

@@ -99,7 +99,7 @@ const InvitationModel = ({ setIsModelOpen }) => {
               name="searchTerm"
               id="searchTerm"
               placeholder="Find users..."
-              className="w-full pl-10 p-2 bg-gray-100 border border-gray-300 rounded-full text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-green-400 transition duration-200"
+              className="w-full pl-10 p-2 bg-gray-100 border border-gray-300 rounded-full text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -134,19 +134,20 @@ const InvitationModel = ({ setIsModelOpen }) => {
                   .map((user, index) => (
                     <div
                       key={index}
-                      className="hover:bg-gray-200 hover:cursor-pointer rounded-md flex justify-between items-center p-3 relative overflow-hidden gap-2"
+                      className="hover:bg-gray-200 border border-gray-200 hover:cursor-pointer rounded-md flex justify-between items-center p-3 pt-4 mb-2 relative overflow-hidden gap-2"
                       onClick={() => {
                         setSelectedUser(user);
                       }}
                     >
-                      <div className="w-10 h-10 rounded-xl overflow-hidden hover:cursor-pointer">
+                      <div className="w-10 h-10 rounded-full overflow-hidden hover:cursor-pointer">
                         <img
                           src={
                             user.avatar ||
                             "https://avatar.iran.liara.run/public"
                           }
-                          alt=""
+                          alt="Candidate avatar"
                           className="w-full h-full object-cover"
+                          onerror={`this.onerror=null; this.src=${"https://avatar.iran.liara.run/public"};`}
                         />
                       </div>
                       <div className="flex flex-col gap-1 justify-center grow-1">
@@ -162,7 +163,7 @@ const InvitationModel = ({ setIsModelOpen }) => {
                             <div className="flex justify-between items-center gap-3 grow-1">
                               <button
                                 type="button"
-                                className=" bg-green-400 rounded-md grow-1 hover:cursor-pointer hover:bg-green-500"
+                                className=" bg-blue-400 rounded-md grow-1 hover:cursor-pointer hover:bg-blue-500"
                                 style={{
                                   color: "white",
                                   fontSize: "12px",
@@ -214,13 +215,25 @@ const InvitationModel = ({ setIsModelOpen }) => {
 
                       <div className="absolute right-0 top-0 overflow-hidden rounded-bl-lg">
                         {user.userStatus === "Verified" && (
-                          <div className=" px-2 py-1 bg-green-500 text-white ">
+                          <div
+                            className="bg-blue-500 text-white flex items-center justify-between gap-1"
+                            style={{
+                              padding: "2px 3px",
+                            }}
+                          >
                             <FaRegCheckCircle style={{ fontSize: "10px" }} />
+                            <span style={{ fontSize: "10px" }}>Verified</span>
                           </div>
                         )}
-                        {user.userStatus === "Unverified" && (
-                          <div className=" px-2 py-1 bg-red-500 text-white ">
+                        {user.userStatus !== "Verified" && (
+                          <div
+                            className="bg-red-500 text-white flex items-center justify-between gap-1 text-xs"
+                            style={{
+                              padding: "2px 3px",
+                            }}
+                          >
                             <IoWarningOutline style={{ fontSize: "10px" }} />
+                            <span style={{ fontSize: "10px" }}>Unverified</span>
                           </div>
                         )}
                       </div>

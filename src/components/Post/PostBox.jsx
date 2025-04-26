@@ -1,11 +1,12 @@
 import React from "react";
 import { Card, Button, Typography, Tag } from "antd";
 import { Link } from "react-router-dom";
-
+import { deletePosts } from "../../redux/post/postSlice";
 const { Title, Text } = Typography;
 
 const PostBox = ({ postData }) => {
-  const { id, title, content, status, tags, createdAt } = postData;
+  const { post, taggables, attachments } = postData;
+  const {id,content,createdAt,title,vote,postStatus} = post;
 
   // Render post status badge
   const statusColor = {
@@ -31,11 +32,11 @@ const PostBox = ({ postData }) => {
         <span>Created on: {new Date(createdAt).toLocaleDateString()}</span>
       </div>
       <div style={{ marginTop: "10px" }}>
-        {tags && tags.length > 0 && (
+        {taggables && taggables.length > 0 && (
           <div>
-            {tags.map((tag) => (
-              <Tag key={tag.id} color="blue">
-                {tag.name}
+            {taggables.map((taggable) => (
+              <Tag key={taggable.tag.id} color="blue">
+                {taggable.tag.name}
               </Tag>
             ))}
           </div>

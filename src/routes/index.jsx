@@ -47,18 +47,20 @@ import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContain
 import ProjectRequestContainer from "../containers/ProjectRequestContainer/ProjectRequestContainer.jsx";
 import ProjectTaskPlanContainer from "../containers/ProjectTaskPlanContainer/ProjectTaskPlanContainer.jsx";
 
-
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
-import UserRankings from "../pages/manage/components/UserRankings.jsx";
-import ManagerLayout from "../components/Layout/ManagerLayout.jsx";
-import UserLayout from "../components/Layout/UserLayout.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AddProjectMemberScreen from "../screens/project/AddProjectMemberScreen.jsx";
 import ProjectMyTaskContainer from "../containers/ProjectMyTaskContainer/ProjectMyTaskContainer.jsx";
 
 const queryClient = new QueryClient();
+import OrganizationArticle from "../pages/manage/OrganizationArticle.jsx";
+import OrganizationArticleView from "../pages/guest/OrganizationArticleView.jsx";
+import OrganizationLayout from "../components/Layout/OrganizationLayout.jsx";
+import OrganizationFinance from "../pages/manage/OrganizationFinance.jsx";
+import TopLayout from "../components/Layout/TopLayout.jsx";
+import OrganizationsView from "../pages/guest/OrganizationsView.jsx";
 
 const AppRoutes = () => {
   return (
@@ -120,7 +122,7 @@ const AppRoutes = () => {
             <Route path="tasks" element={<ProjectTaskPlanContainer/>} />
             <Route path="mytasks" element={<ProjectMyTaskContainer/>} />
           </Route>
-          <Route path="/" element={<ManagerLayout />}>
+          <Route path="/" element={<OrganizationLayout />}>
           <Route path="my-organization">
             <Route index element={<MyOrganization />} />
             <Route path="dashboard" element={<OrganizationDashboard />} />
@@ -135,24 +137,29 @@ const AppRoutes = () => {
               element={<AddProjectMemberScreen />}
             />
             <Route path="requests" element={<OrganizationRequest />} />
-            <Route path="schedule" element={<OrganizationSchedule />} />
-          </Route>
-        </Route>
+                <Route path="schedule" element={<OrganizationSchedule />} />
+                <Route path="articles" element={<OrganizationArticle />} />
+                <Route path="finance" element={<OrganizationFinance />} />
+              </Route>
+            </Route>
 
-        <Route path="/" element={<UserLayout />}>
-          <Route path="organizations">
-            <Route path=":organizationId" element={<OrganizationDetails />} />
-            <Route path="create" element={<CreateOrganization />} />
+            <Route path="organizations">
+              <Route index element={<OrganizationsView />} />
+              <Route path="create" element={<CreateOrganization />} />
+              <Route path="rankings" element={<OrganizationRankings />} />
+            </Route>
           </Route>
-          <Route path="rankings">
-            <Route path="organizations" element={<OrganizationRankings />} />
-            <Route path="users" element={<UserRankings />} />
+          <Route path="/" element={<TopLayout />}>
+            <Route path="organizations">
+              <Route path=":organizationId" element={<OrganizationDetails />} />
+              <Route
+                path=":organizationId/articles/:articleId"
+                element={<OrganizationArticleView />}
+              />
+            </Route>
           </Route>
-        </Route>
-        </Route>
-     
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
     </QueryClientProvider>
   );
 };
