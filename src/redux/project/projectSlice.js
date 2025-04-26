@@ -198,8 +198,8 @@ export const getConfirmReceiveRequestByProjectThunk= createAsyncThunk("project/g
 export const getConfirmReceiveRequestByRequestThunk= createAsyncThunk("project/get-confirm-receive-by-request", async (requestId) => {
     return await projectApi.getConfirmReceiveRequestByRequest(requestId);
 });
-export const rejectReceiveRequestThunk= createAsyncThunk("project/reject-receive-by-project", async ({id,message}) => {
-    return await projectApi.rejectReceiveRequest({id,message});
+export const rejectReceiveRequestThunk= createAsyncThunk("project/reject-receive-by-project", async ({id,me}) => {
+    return await projectApi.rejectReceiveRequest({id,me});
 });
 
 const projectSlice = createSlice({

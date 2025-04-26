@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Typography, Space, Button, Avatar, Progress, Modal, Skeleton } from "antd";
+import { Card, Typography, Space, Button, Avatar, Progress, Modal, Skeleton,Tooltip } from "antd";
 import { ShareAltOutlined, DollarOutlined, RiseOutlined, UserOutlined, FlagOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import moment from "moment-timezone";
@@ -223,8 +223,10 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                         Share
                     </Button>
                    {project.projectStatus === "DONATING" && (
+                    <Tooltip title={`${(currentDonationValue / estimatedTotalCost * 100) >= 100 ? "Project has reach estimated fund!":"Donate for project" }`}>
                      <Button
                      className="full-width-button"
+                     disabled={(currentDonationValue / estimatedTotalCost * 100) >=100}
                      type="primary"
                      icon={<DollarOutlined />}
                      style={{ backgroundColor: '#F99A32', borderColor: '#F99A32' }}
@@ -238,6 +240,7 @@ const ProjectStatisticCard = ({ project, projectRequests, projectMembers, donati
                  >
                      Donate now
                  </Button>
+                 </Tooltip>
                    )}
                 </Space>
 

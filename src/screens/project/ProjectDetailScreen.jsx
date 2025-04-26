@@ -753,27 +753,6 @@ const ProjectDetailScreen = () => {
 
             </Card>
           </StyledWrapper>
-          <StyledWrapper>
-            <Card className="donation-card">
-              <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-                <Title level={5} style={{ margin: 0 }}>Expense Records</Title>
-                <Link to={`/projects/${projectId}/details`} style={{ marginLeft: 10 }}>See all</Link>
-              </Flex>
-              {donations.length > 0 ? (
-                <Table
-                  columns={columns}
-                  size="small"
-                  scroll={{ y: 300 }}
-                  dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
-                  rowKey="id"
-                  className="custom-table"
-                />
-              ) : (
-                <div>No donations available</div>
-              )}
-
-            </Card>
-          </StyledWrapper>
         </Col>
       </Row>
       <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />

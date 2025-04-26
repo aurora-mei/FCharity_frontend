@@ -6,10 +6,11 @@ import { fetchRequestsByUserIdThunk, fetchTransferRequestByRequest, updateConfir
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import { getListBankThunk } from "../../redux/helper/helperSlice";
-import {confirmReceiveRequestThunk, setCurrentConfirmRequest} from "../../redux/project/projectSlice";
+import { confirmReceiveRequestThunk, setCurrentConfirmRequest,rejectReceiveRequestThunk  } from "../../redux/project/projectSlice";
 import { Bar, Line } from "react-chartjs-2";
 import { useNavigate, Link } from "react-router-dom";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
+const { TextArea } = Input;
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -114,6 +115,7 @@ const MyRequestScreen = () => {
     hidden: 0,
     registered: 0,
   });
+  const [rejectNote, setRejectNote] = useState("");
   const [filters, setFilters] = useState({});
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [form] = Form.useForm();
@@ -130,9 +132,9 @@ const MyRequestScreen = () => {
   const error = useSelector((state) => state.request.error);
   const listBank = useSelector((state) => state.helper.listBank) || [];
   const [transferRequestModalOpen, setTransferRequestModalOpen] = useState(false);
-  const [confirmRequestModalOpen,setConfirmRequestModalOpen] = useState(false);
+  const [confirmRequestModalOpen, setConfirmRequestModalOpen] = useState(false);
   const currentTransferRequest = useSelector((state) => state.request.currentTransferRequest) || {};
-  const currentConfirmRequest = useSelector((state)=>state.project.currentConfirmRequest)
+  const currentConfirmRequest = useSelector((state) => state.project.currentConfirmRequest)
   // Get user from localStorage
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -202,20 +204,61 @@ const MyRequestScreen = () => {
     setTransferRequests(newMap);
   };
   const fetchAllConfirmRequests = async () => {
-    const newMap = new Map();
-    for (const request of requestsByUserId) {
-      const response = dispatch(getConfirmReceiveRequestByRequestThunk(request.helpRequest.id));
-      newMap.set(request.helpRequest.id, response.payload);
+    // Guard clause: If no requests, set an empty map and exit.
+    if (!requestsByUserId || requestsByUserId.length === 0) {
+      setConfirmRequests(new Map());
+      return;
     }
-    setConfirmRequests(newMap);
+
+    try {
+      // 1. Create an array of Promises by dispatching the thunk for each request
+      const promises = requestsByUserId.map(request =>
+        dispatch(getConfirmReceiveRequestByRequestThunk(request.helpRequest.id))
+      );
+
+      // 2. Wait for ALL promises to settle (resolve or reject)
+      const results = await Promise.all(promises); // This waits until all API calls finish
+
+      // 3. Create the map *after* all promises have resolved
+      const newMap = new Map();
+      results.forEach((response, index) => {
+        const correspondingRequest = requestsByUserId[index];
+        const requestId = correspondingRequest.helpRequest.id;
+
+        // Check if the thunk was fulfilled and has a payload
+        // Note: Redux Toolkit Query or standard createAsyncThunk responses
+        // usually wrap the result in a 'payload' property upon success.
+        // Adjust this check if your thunk returns data differently.
+        if (response && response.payload) {
+          console.log(`Successfully fetched confirm request for ${requestId}:`, response.payload);
+          newMap.set(requestId, response.payload);
+        } else {
+          // Handle cases where the thunk might have failed for a specific request
+          // or returned an empty payload (if that's possible)
+          console.warn(`No confirm request data found or fetch failed for request ID: ${requestId}`, response);
+          // You might want to set null or skip setting in the map depending on requirements
+          // newMap.set(requestId, null);
+        }
+      });
+
+      // 4. Update the state with the complete map
+      setConfirmRequests(newMap);
+
+    } catch (error) {
+      // Handle potential errors from Promise.all (if any single promise rejects)
+      console.error("Error fetching one or more confirm requests:", error);
+      // Optionally, set an error state or clear the map
+      setConfirmRequests(new Map()); // Clear map on error
+    }
   };
   useEffect(() => {
     if (requestsByUserId.length > 0) {
       fetchAllTransferRequests();
-      fetchAllConfirmRequests();
-    }
-  }, [requestsByUserId]);
 
+    }
+    fetchAllConfirmRequests();
+  }, [requestsByUserId]);
+  // console.log("conff", confirmRequests)
 
 
   // Filter requests whenever requests, filters, activeTab, or provinces change
@@ -854,6 +897,7 @@ const MyRequestScreen = () => {
 
                 </Flex>
               )}
+
               {confirmRequests && confirmRequests.get(request.helpRequest.id) && (
                 <Flex vertical gap={10}>
                   <RequestCard requestData={request} />
@@ -876,36 +920,97 @@ const MyRequestScreen = () => {
                       const confirmRequest = currentConfirmRequest;
                       const isConfirmed = confirmRequest.isConfirmed;
                       const note = confirmRequest.note;
-                      if(!isConfirmed && note.includes("Please confirm receive")){
-                        return(
-                          <Flex verticall>
+
+                      if (!isConfirmed && note && note.includes("Please confirm receive")) {
+                        return (
+                          <Flex vertical gap={16}>
                             <Text>{note}</Text>
                             <Text>You can view project details in</Text>
-                            <Button onClick={()=>dispatch(confirmReceiveRequestThunk(confirmRequest.id))}>Confirm</Button>
-                            <Button onClick={
-                              ()=>{
-                                
-                              }
-                            }>Reject</Button>
+                            <Link to={`/projects/${confirmRequest.project.id}/details`}>
+                                        {confirmRequest?.project?.projectName || 'View Project'}
+                                      </Link>
+                            <Flex gap={12}>
+                              <Button
+                                type="primary"
+                                onClick={() => {
+                                  Modal.confirm({
+                                    title: 'Are you sure you want to confirm this request?',
+                                    icon: <ExclamationCircleOutlined />,
+                                    content: 'This action will confirm the request.',
+                                    okText: 'Yes',
+                                    cancelText: 'No',
+                                    onOk() {
+                                      dispatch(confirmReceiveRequestThunk(confirmRequest.id));
+                                      setConfirmRequestModalOpen(false);
+                                    },
+                                  });
+                                }}
+                              >
+                                Confirm
+                              </Button>
+                              <Button
+                                danger
+                                onClick={() => {
+                                  Modal.confirm({
+                                    title: 'Reject Reason',
+                                    icon: <ExclamationCircleOutlined />,
+                                    content: (
+                                      <TextArea
+                                        rows={4}
+                                        placeholder="Enter rejection note..."
+                                        onChange={(e) => {
+                                        console.log(e.target.value);
+                                        setRejectNote(e.target.value);
+                                        }}
+                                      />
+                                    ),
+                                    okText: 'Send',
+                                    cancelText: 'Cancel',
+                                    onOk() {
+                                      if (rejectNote && rejectNote.trim()) {
+                                        dispatch(rejectReceiveRequestThunk({
+                                          id: confirmRequest.id,
+                                          me: rejectNote
+                                        })
+                                      );
+                                      setConfirmRequestModalOpen(false);
+                                      } else {
+                                        Modal.error({
+                                          title: 'Note is required',
+                                          content: 'Please enter a rejection reason before submitting.',
+                                        });
+                                        return Promise.reject();
+                                      }
+                                    }
+                                  });
+                                }}
+                              >
+                                Reject
+                              </Button>
+                            </Flex>
                           </Flex>
-                        )
-                      }else if(isConfirmed){
-                        return(
-                          <Flex verticall>
+                        );
+                      } else if (isConfirmed) {
+                        return (
+                          <Flex vertical>
                             <Text type="success">Request has been confirmed!</Text>
                             <Text>You can view project details in</Text>
                           </Flex>
-                        )
-                      }else if(!isConfirmed && note.includes("Please confirm receive")){
-                        return(
-                          <Flex verticall>
-                            <Text type="success">Your response has been sent to project. Please wait to project check again and send you a final confirm</Text>
+                        );
+                      } else if (!isConfirmed && note && !note.includes("Please confirm receive")) {
+                        return (
+                          <Flex vertical>
+                            <Text>
+                              Your response has been sent to project. 
+                              Please wait for the project to check again and send you a final confirmation.
+                            </Text>
                             <Text>You can view project details in</Text>
+                            <Link to={`/projects/${confirmRequest.project.id}/details`}>
+                                        {confirmRequest?.project?.projectName || 'View Project'}
+                                      </Link>
                           </Flex>
-                        )
+                        );
                       }
-                  
-                  
                     })()}
                   </Modal>
                 </Flex>

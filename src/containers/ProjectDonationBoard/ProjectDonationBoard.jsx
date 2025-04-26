@@ -116,7 +116,7 @@ const ProjectDonationBoard = ({ donations }) => {
       // No background needed for single date view
       return (
         <>
-         <DateGroupWrapper key={dateKey}>
+         <DateGroupWrapper key={dateKey}  style={{ height:"10rem",overflowY:"auto" }}>
                 <Title level={5} style={{ marginBottom: '0.5rem' }}>
                   {moment(dateKey).format("DD MMMM YYYY")} ({groupedDonations[dateKey]?.length || 0} donations)
                 </Title>
