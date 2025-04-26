@@ -111,6 +111,10 @@ const MyOrganization = () => {
   }, [currentOrganization, dispatch]);
 
   useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
     if (currentOrganization?.backgroundUrl) {
       const img = new Image();
       img.crossOrigin = "Anonymous"; // Hỗ trợ CORS
