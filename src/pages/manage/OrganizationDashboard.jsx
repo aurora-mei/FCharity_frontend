@@ -1,276 +1,476 @@
-import React, { useEffect } from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  LineChart,
-  Line,
-  ResponsiveContainer,
-} from "recharts";
-import ManagerLayout from "../../components/Layout/ManagerLayout";
-
-import {
-  getOrganizationMembers,
-  getOrganizationJoinRequests,
-  getOrganizationInviteRequests,
-} from "../../redux/organization/organizationSlice";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaLink } from "react-icons/fa";
+import {
+  getAllMembersInOrganization,
+  getArticleByOrganizationId,
+  getDonatesByOrganizationId,
+  getOrganizationEvents,
+  getTotalExpense,
+  getTotalIncome,
+  getTransactionsByOrganizationId,
+} from "../../redux/organization/organizationSlice";
+import { fetchProjectsByOrgThunk } from "../../redux/project/projectSlice";
+import UserRoleDashboardChart from "./components/charts/UserRoleDashboardChart";
+import MemberOverTimeChart from "./components/charts/MemberOverTimeChart";
+import ProjectStatusChart from "./components/charts/ProjectStatusChart";
 import { Link } from "react-router-dom";
-
+import { Empty } from "antd";
 const OrganizationDashboard = () => {
-  const { selectedOrganization } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    dispatch(getOrganizationMembers(selectedOrganization?.organizationId));
-    // dispatch(getOrganizationJoinRequests(selectedOrganization?.organizationId));
-    // dispatch(
-    //   getOrganizationInviteRequests(selectedOrganization?.organizationId)
-    // );
-  }, [selectedOrganization, dispatch]);
-
-  const { members, joinRequests, inviteRequests } = useSelector(
-    (state) => state.organization
+  const currentOrganization = useSelector(
+    (state) => state.organization.currentOrganization
   );
 
-  console.log("Members:", members);
+  const currentOrganizationMembers = useSelector(
+    (state) => state.organization.currentOrganizationMembers
+  );
 
-  const joinRequestStatusData = [
-    {
-      name: "Pending",
-      value: joinRequests.filter((r) => r.status === "pending").length || 2,
-    },
-    {
-      name: "Approved",
-      value: joinRequests.filter((r) => r.status === "approved").length || 3,
-    },
-    {
-      name: "Rejected",
-      value: joinRequests.filter((r) => r.status === "rejected").length || 5,
-    },
-  ];
+  const organizationArticles = useSelector(
+    (state) => state.organization.organizationArticles
+  );
 
-  const inviteRequestStatusData = [
-    {
-      name: "Pending",
-      value: inviteRequests.filter((r) => r.status === "pending").length || 21,
-    },
-    {
-      name: "Accepted",
-      value: inviteRequests.filter((r) => r.status === "accepted").length || 10,
-    },
-    {
-      name: "Declined",
-      value: inviteRequests.filter((r) => r.status === "declined").length || 5,
-    },
-  ];
+  const organizationEvents = useSelector((state) => state.organization.events);
 
-  // Dữ liệu cho biểu đồ số lượng thành viên theo thời gian
-  const memberTrendData = members.reduce((acc, member) => {
-    const date = new Date(member.joinDate).toLocaleDateString();
-    acc[date] = (acc[date] || 0) + 1;
-    return acc;
-  }, {});
+  const projects = useSelector((state) => state.project.projects);
 
-  // const memberChartData = Object.entries(memberTrendData).map(
-  //   ([date, count]) => ({
-  //     date,
-  //     count,
-  //   })
-  // );
+  const totalIncome = useSelector((state) => state.organization.totalIncome);
+  const totalExpense = useSelector((state) => state.organization.totalExpense);
 
-  const memberChartData = [
-    { date: "01/01/2023", count: 1 },
-    { date: "01/15/2023", count: 2 },
-    { date: "02/01/2023", count: 1 },
-    { date: "02/15/2023", count: 3 },
-    { date: "03/01/2023", count: 2 },
-    { date: "03/15/2023", count: 4 },
-    { date: "04/01/2023", count: 3 },
-  ];
+  const organizationTransactions = useSelector(
+    (state) => state.organization.organizationTransactions
+  );
 
-  const COLORS = ["#f1c40f", "#2ecc71", "#e74c3c", "#3498db"];
+  const toOrganizationDonations = useSelector(
+    (state) => state.organization.toOrganizationDonations
+  );
+
+  useEffect(() => {
+    if (currentOrganization) {
+      dispatch(getArticleByOrganizationId(currentOrganization.organizationId));
+      dispatch(getAllMembersInOrganization(currentOrganization.organizationId));
+      dispatch(fetchProjectsByOrgThunk(currentOrganization.organizationId));
+      dispatch(getOrganizationEvents(currentOrganization.organizationId));
+
+      dispatch(getTotalIncome(currentOrganization.organizationId));
+      dispatch(getTotalExpense(currentOrganization.organizationId));
+      dispatch(getDonatesByOrganizationId(currentOrganization.organizationId));
+      dispatch(
+        getTransactionsByOrganizationId(currentOrganization.organizationId)
+      );
+    }
+  }, [currentOrganization]);
+
+  const [showManagerInfo, setShowManagerInfo] = useState(-1);
+
+  // console.log("current Organization", currentOrganization);
+  // console.log("projects", projects);
+  // console.log("totalIncome", totalIncome);
+  // console.log("totalExpense", totalExpense);
+  console.log("toOrganizationDonations", toOrganizationDonations);
+  console.log("organizationTransactions", organizationTransactions);
 
   return (
-    <ManagerLayout>
-      <div className="pl-2">
-        <div className="inline-flex gap-2 items-baseline">
-          <FaLink />
-          <Link to={"/"} className="hover:underline">
-            Home
-          </Link>
-        </div>
-        <span> / </span>
-        <Link to={"/manage-organization"} className="hover:underline">
-          my-organization
-        </Link>
-        <span> / </span>
-        <Link to={"/manage-organization/dashboard"} className="hover:underline">
-          dashboard
-        </Link>
-      </div>
-      <div className="min-h-screen bg-gray-100 p-6 m-10">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-semibold text-gray-800 text-center mb-8">
+    <div>
+      {currentOrganization && (
+        <div className="p-5 min-h-[390px] overflow-y-scroll bg-gray-50">
+          <p className="text-5xl font-bold mb-4 text-center bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
             Organization Dashboard
-          </h1>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <h3 className="text-lg font-medium text-gray-600 mb-2">
-                Total Members
-              </h3>
-              <p className="text-3xl font-semibold text-gray-800">
-                {members.length}
-              </p>
+          </p>
+          <div className="flex items-center justify-center gap-10 mt-16">
+            <div className="w-[200px] h-[100px] bg-white rounded-md shadow-md hover:transform hover:scale-105 transition duration-300 p-3 relative flex justify-center items-center">
+              <div className="flex items-center gap-2 justify-center">
+                <p
+                  style={{ margin: 0 }}
+                  className="text-4xl font-semibold text-purple-500"
+                >
+                  {organizationArticles?.length || 0}
+                </p>
+                <p
+                  style={{ margin: 0 }}
+                  className="text-xl font-semibold text-purple-500"
+                >
+                  Articles
+                </p>
+              </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <h3 className="text-lg font-medium text-gray-600 mb-2">
-                Join Requests
-              </h3>
-              <p className="text-3xl font-semibold text-gray-800">
-                {joinRequests.length}
-              </p>
+            <div className="w-[200px] h-[100px] bg-white rounded-md shadow-md hover:transform hover:scale-105 transition duration-300 p-3 relative flex justify-center items-center">
+              <div className="flex items-center gap-2 justify-center">
+                <p
+                  style={{ margin: 0 }}
+                  className="text-4xl font-semibold text-red-500"
+                >
+                  {projects?.length || 0}
+                </p>
+                <p
+                  style={{ margin: 0 }}
+                  className="text-xl font-semibold text-red-500"
+                >
+                  Projects
+                </p>
+              </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <h3 className="text-lg font-medium text-gray-600 mb-2">
-                Invite Requests
-              </h3>
-              <p className="text-3xl font-semibold text-gray-800">
-                {inviteRequests.length}
+            <div className="w-[200px] h-[100px] bg-white rounded-md shadow-md hover:transform hover:scale-105 transition duration-300 p-3 relative flex justify-center items-center">
+              <div className="flex items-center gap-2 justify-center">
+                <p
+                  style={{ margin: 0 }}
+                  className="text-4xl font-semibold text-blue-500"
+                >
+                  {currentOrganizationMembers?.length || 0}
+                </p>
+                <p
+                  style={{ margin: 0 }}
+                  className="text-xl font-semibold text-blue-500"
+                >
+                  Users
+                </p>
+              </div>
+            </div>
+            <div className="w-[200px] h-[100px] bg-white rounded-md shadow-md hover:transform hover:scale-105 transition duration-300 p-3 relative flex justify-center items-center">
+              <div className="flex items-center gap-2 justify-center">
+                <p
+                  style={{ margin: 0 }}
+                  className="text-4xl font-semibold text-orange-500"
+                >
+                  {organizationEvents?.length || 0}
+                </p>
+                <p
+                  style={{ margin: 0 }}
+                  className="text-xl font-semibold text-orange-500"
+                >
+                  Events
+                </p>
+              </div>
+            </div>
+            <div className="w-[200px] h-[100px] bg-white rounded-md shadow-md hover:transform  hover:scale-105 transition duration-300 p-3 relative flex justify-center items-center">
+              <div className="flex items-center gap-2 justify-center">
+                <p
+                  style={{ margin: 0 }}
+                  className="text-4xl font-semibold text-green-500"
+                >
+                  ${currentOrganization?.walletAddress?.balance}+
+                </p>
+                <p
+                  style={{ margin: 0 }}
+                  className="text-xl font-semibold text-green-500"
+                >
+                  CFund
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-10 w-full grid grid-cols-5 gap-8">
+            <div className="col-span-3 bg-white rounded-md shadow-md p-4 ">
+              <p style={{ margin: 0 }} className="text-xl text-gray-700">
+                Member over time
               </p>
+              <div className="mt-4 flex justify-center items-center">
+                <div className="h-[370px] w-full">
+                  <MemberOverTimeChart members={currentOrganizationMembers} />
+                </div>
+              </div>
+            </div>
+            <div className="col-span-2 flex flex-col justify-between gap-8">
+              <div className="bg-white rounded-md shadow-md p-4">
+                <p style={{ margin: 0 }} className="text-xl text-gray-700">
+                  Role distribution chart
+                </p>
+                <div className="w-[320px] h-[200px] flex justify-center items-center">
+                  <div className="w-full h-full">
+                    <UserRoleDashboardChart
+                      currentOrganizationMembers={currentOrganizationMembers}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-md shadow-md p-4 grow-1">
+                <p style={{ margin: 0 }} className="text-xl text-gray-700">
+                  Managers{" "}
+                  <span className="text-gray-400 text-sm">(max 3)</span>
+                </p>
+                <div className="mt-4 flex items-center gap-3">
+                  {currentOrganizationMembers
+                    .filter((member) => member.memberRole === "MANAGER")
+                    .map((member, index) => (
+                      <div
+                        key={member.membershipId}
+                        className="shadow-md rounded-md h-[75px] p-2 flex items-center gap-2 hover:cursor-pointer hover:bg-gray-100 transition-all duration-500 ease-in-out"
+                      >
+                        <div
+                          className="w-15 h-15 rounded-full overflow-hidden border-4 border-green-500 hover:scale-105"
+                          onClick={() => {
+                            setShowManagerInfo((prev) =>
+                              prev != index ? index : -1
+                            );
+                          }}
+                        >
+                          <img
+                            src={member?.user?.avatar}
+                            alt="manager avatars"
+                            className="w-full h-full object-cover"
+                            onerror={`this.onerror=null; this.src=${"https://avatar.iran.liara.run/public"};`}
+                          />
+                        </div>
+                        {showManagerInfo === index && (
+                          <div className="flex flex-col gap-1">
+                            <p
+                              style={{ margin: 0 }}
+                              className="font-semibold hover:underline"
+                            >
+                              {member?.user?.fullName}
+                            </p>
+                            <p style={{ margin: 0 }}>{member?.user?.email}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Biểu đồ */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Biểu đồ trạng thái yêu cầu tham gia */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-medium text-gray-700 text-center mb-4">
-                Join Requests Status
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={joinRequestStatusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                    outerRadius={100}
-                    dataKey="value"
-                  >
-                    {joinRequestStatusData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
+          <div className="mt-10 bg-white rounded-md shadow-md p-4">
+            <p style={{ margin: 0 }} className="text-xl text-gray-700">
+              Organization projects status
+            </p>
+            <ProjectStatusChart projects={projects} />
+          </div>
+
+          <div className="mt-10  pt-4 ">
+            <p
+              style={{ margin: 0 }}
+              className="text-2xl font-bold text-gray-700"
+            >
+              Fund Statistics
+            </p>
+            <div className="grid grid-cols-7 gap-4 mt-3">
+              <div className="col-span-2 flex flex-col gap-3">
+                <div className="flex gap-3">
+                  <div className="shadow-md rounded-md p-4 bg-white w-[100px] h-[100px] flex flex-col justify-center items-center gap-3">
+                    <p
+                      style={{ margin: 0 }}
+                      className="font-semibold text-gray-600"
+                    >
+                      Income
+                    </p>
+                    <span
+                      style={{ margin: 0 }}
+                      className="text-green-500 text-2xl font-semibold"
+                    >
+                      ${totalIncome}+
+                    </span>
+                  </div>
+                  <div className="shadow-md rounded-md p-4 bg-white w-[100px] h-[100px] flex flex-col justify-center items-center gap-3">
+                    <p
+                      style={{ margin: 0 }}
+                      className=" font-semibold text-gray-600"
+                    >
+                      Expense
+                    </p>
+                    <span
+                      style={{ margin: 0 }}
+                      className="text-red-500  text-2xl font-semibold"
+                    >
+                      ${totalExpense}
+                    </span>
+                  </div>
+                </div>
+                <div className="shadow-md rounded-md p-4 bg-white grow-1">
+                  <p style={{ margin: 0 }} className="text-md text-gray-700">
+                    Top big expenses
+                  </p>
+                  <div className="mt-2 flex flex-col gap-1 h-[180px] overflow-y-scroll border border-gray-300 rounded-sm p-1">
+                    {organizationTransactions.map((transaction) => (
+                      <div
+                        key={transaction.id}
+                        title={transaction.message}
+                        className="hover:cursor-pointer shadow-md rounded-md p-2 flex flex-col gap-1 hover:bg-gray-100 transition-all duration-500 ease-in-out text-sm"
+                      >
+                        <p style={{ margin: 0 }}>
+                          To project: {"  "}
+                          <span>{transaction.project.projectName}</span>
+                        </p>
+                        <p style={{ margin: 0 }}>
+                          Amount: <span>$ {transaction.amount}</span>
+                        </p>
+                        <p style={{ margin: 0 }}>
+                          Type:{" "}
+                          <span className="text-xs font-semibold">
+                            {transaction.transactionType}
+                          </span>
+                        </p>
+                        <p style={{ margin: 0 }}>
+                          Date:{" "}
+                          <span>
+                            {transaction.transactionTime.split(".")[0]}
+                          </span>
+                        </p>
+                      </div>
                     ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+              <div className="col-span-5 shadow-md rounded-md p-4 h-[350px] bg-white">
+                <p style={{ margin: 0 }} className="text-md text-gray-700">
+                  Cash flow chart over time
+                </p>
+                <div className="w-full mt-3 rounded-sm h-[290px] border border-gray-300"></div>
+              </div>
             </div>
 
-            {/* Biểu đồ trạng thái lời mời tham gia */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-medium text-gray-700 text-center mb-4">
-                Invite Requests Status
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={inviteRequestStatusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                    outerRadius={100}
-                    dataKey="value"
-                  >
-                    {inviteRequestStatusData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <div className=" p-4 mt-3 min-h-[300px]">
+              <p
+                style={{ margin: 0 }}
+                className="text-xl font-semibold text-gray-700"
+              >
+                Recent transaction history
+              </p>
 
-            {/* Biểu đồ xu hướng thành viên */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-medium text-gray-700 text-center mb-4">
-                Members Over Time
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={memberChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="count" stroke="#3498db" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+              <div className="shadow-md rounded-md p-4  bg-white flex flex-col mt-6 h-[400px]">
+                <p style={{ margin: 0 }} className="text-md text-gray-700">
+                  Donations
+                </p>
+                <div className="grid grid-cols-9 w-full bg-gray-300 px-4 py-2 rounded-t-md mt-3">
+                  <div className="col-span-2 font-semibold text-gray-600">
+                    From user
+                  </div>
+                  <div className="col-span-2 font-semibold text-gray-600">
+                    To organization
+                  </div>
+                  <div className="col-span-2 font-semibold text-gray-600">
+                    Message
+                  </div>
+                  <div className="col-span-1 font-semibold text-gray-600">
+                    Amount
+                  </div>
+                  <div className="col-span-2 font-semibold text-gray-600">
+                    Date
+                  </div>
+                </div>
+                <div className="border border-gray-300 rounded-b-md grow-1 overflow-y-scroll px-1 py-2 flex flex-col gap-1">
+                  {toOrganizationDonations.map((donation) => (
+                    <div
+                      key={donation.id}
+                      className="w-full h-[35px] border-b-2 border-gray-300 grid grid-cols-9 pl-3 pt-1"
+                    >
+                      <div className="col-span-2">
+                        <p
+                          style={{ margin: 0 }}
+                          className="font-semibold text-gray-600"
+                        >
+                          {donation.user.fullName}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <p
+                          style={{ margin: 0 }}
+                          className="font-semibold text-gray-600"
+                        >
+                          {donation.organization.organizationName}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <p style={{ margin: 0 }} className="text-sm">
+                          {donation.message}
+                        </p>
+                      </div>
+                      <div className="col-span-1">
+                        <p style={{ margin: 0 }}>$ {donation.amount}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p style={{ margin: 0 }}>
+                          {donation.donationTime.split(".")[0]}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            {/* Biểu đồ số lượng yêu cầu theo trạng thái */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-medium text-gray-700 text-center mb-4">
-                Requests Breakdown
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={[
-                    {
-                      name: "Join Requests",
-                      Pending: joinRequestStatusData[0].value,
-                      Approved: joinRequestStatusData[1].value,
-                      Rejected: joinRequestStatusData[2].value,
-                    },
-                    {
-                      name: "Invite Requests",
-                      Pending: inviteRequestStatusData[0].value,
-                      Accepted: inviteRequestStatusData[1].value,
-                      Declined: inviteRequestStatusData[2].value,
-                    },
-                  ]}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="Pending" stackId="a" fill="#f1c40f" />
-                  <Bar dataKey="Approved" stackId="a" fill="#2ecc71" />
-                  <Bar dataKey="Rejected" stackId="a" fill="#e74c3c" />
-                  <Bar dataKey="Accepted" stackId="a" fill="#2ecc71" />
-                  <Bar dataKey="Declined" stackId="a" fill="#e74c3c" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="shadow-md rounded-md p-4  bg-white flex flex-col mt-6 h-[400px]">
+                <p style={{ margin: 0 }} className="text-md text-gray-700">
+                  Transactions
+                </p>
+                <div className="grid grid-cols-9 w-full bg-gray-300 px-4 py-2 rounded-t-md mt-3">
+                  <div className="col-span-2 font-semibold text-gray-600">
+                    From organization
+                  </div>
+                  <div className="col-span-2 font-semibold text-gray-600">
+                    To project
+                  </div>
+                  <div className="col-span-2 font-semibold text-gray-600">
+                    Type
+                  </div>
+                  <div className="col-span-1 font-semibold text-gray-600">
+                    Amount
+                  </div>
+                  <div className="col-span-2 font-semibold text-gray-600">
+                    Date
+                  </div>
+                </div>
+                <div className="border border-gray-300 rounded-b-md grow-1 overflow-y-scroll px-1 py-2 flex flex-col gap-1">
+                  {organizationTransactions.map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className="w-full h-[35px] border-b-2 border-gray-300 grid grid-cols-9 pl-3 pt-1"
+                    >
+                      <div className="col-span-2">
+                        <p
+                          style={{ margin: 0 }}
+                          className="font-semibold text-gray-600"
+                        >
+                          {transaction.organization.organizationName}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <p
+                          style={{ margin: 0 }}
+                          className="font-semibold text-gray-600"
+                        >
+                          {transaction.project.projectName}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <p style={{ margin: 0 }} className="text-sm">
+                          {transaction.transactionType}
+                        </p>
+                      </div>
+                      <div className="col-span-1">
+                        <p style={{ margin: 0 }}>$ {transaction.amount}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p style={{ margin: 0 }}>
+                          {transaction.transactionTime.split(".")[0]}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </ManagerLayout>
+      )}
+      {!currentOrganization && (
+        <div className="p-6">
+          <div className="flex justify-end items-center">
+            <Link
+              to="/organizations"
+              className="bg-blue-500 px-3 py-2 rounded-md text-white hover:bg-blue-600 hover:cursor-pointer"
+            >
+              Discover organizations
+            </Link>
+          </div>
+          <div className="flex justify-center items-center min-h-[500px]">
+            <Empty description="You are not a manager of any organization" />
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
 export default OrganizationDashboard;
+
+// "EXTRACT_EXTRA_COST";
+// "ALLOCATE_EXTRA_COST";

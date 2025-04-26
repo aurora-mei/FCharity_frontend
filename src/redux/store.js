@@ -6,10 +6,12 @@ import tagReducer from "./tag/tagSlice";
 import helperReducer from "./helper/helperSlice";
 import postReducer from "./post/postSlice";
 import commentReducer from './post/commentSlice';
-
+import inviteRequestProjectReducer from "./inviterequestproject/inviteRequestProjectSlice";
 import userReducer from "./user/userSlice";
 import organizationReducer from "./organization/organizationSlice";
 import projectReducer from './project/projectSlice';
+import timelineReducer from './project/timelineSlice';
+import inviteRequestOrganizationReducer from "./inviterequestorganization/inviteRequestOrganizationSlice";
 const reducer = combineReducers({
   auth: authReducer,
   request: requestReducer,
@@ -20,7 +22,10 @@ const reducer = combineReducers({
   user: userReducer,
   organization: organizationReducer,
   project: projectReducer,
-  comment: commentReducer
+  comment: commentReducer,
+  inviteRequestProject: inviteRequestProjectReducer,
+  inviteRequestOrganization: inviteRequestOrganizationReducer,
+  timeline: timelineReducer,
 });
 export const store = configureStore({
   reducer: reducer,

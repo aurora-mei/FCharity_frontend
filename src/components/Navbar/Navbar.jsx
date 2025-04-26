@@ -1,30 +1,157 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { SearchOutlined, CaretDownOutlined } from "@ant-design/icons";
-import { Affix, Button, Flex, Space, Row, Col, Dropdown } from "antd";
-import avatar from "../../assets/charity.jpg";
+import {
+  SearchOutlined,
+  CaretDownOutlined,
+  // Example icons you might want for the popover:
+  // BulbOutlined, TeamOutlined, ReadOutlined, PlusCircleOutlined
+} from "@ant-design/icons";
+import {
+  Affix,
+  Button,
+  Flex,
+  Space,
+  Row,
+  Col,
+  Dropdown, // Keep for User Menu
+  Popover, // **** ADD Popover ****
+  Typography, // **** ADD Typography ****
+} from "antd";
+import avatar from "../../assets/download (11).jpg";
 import { logOut } from "../../redux/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation, Trans } from "react-i18next";
-import { getManagedOrganizations, fetchMyOrganization } from "../../redux/organization/organizationSlice";
-
+import {
+  getManagedOrganizationByCeo, // tự động lấy tổ chức do mình tạo ra
+  getManagedOrganizationsByManager, // lấy các tổ chức do mình nắm vai trò quản lý
+  getJoinedOrganizations, // lấy các tổ chức mà mình đã tham gia (member)
+} from "../../redux/organization/organizationSlice";
+import logo from "../../assets/apgsoohzrdamo4loggow.svg";
+import NotificationBell from "./NotificationBell";
+import "./Navbar.pcss";
+import { fetchMyProjectsThunk } from "../../redux/project/projectSlice"; // Import your thunk action
 const lngs = {
   en: { nativeName: "English" },
   ja: { nativeName: "Japan" },
 };
-import logo from "../../assets/apgsoohzrdamo4loggow.svg";
+
+// **** ADD Popover Content Component ****
+const FundraisePopoverContent = () => {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    // Popover usually closes on navigation or click outside,
+    // manual close logic is typically not needed here.
+  };
+
+  return (
+    // Add a wrapper div with a class for styling from Navbar.pcss
+    <div className="fundraise-content-wrapper">
+      <Flex align="center" gap="10px" className="fundraise-popover-header">
+        {/* <BulbOutlined className="popover-header-icon" /> */}
+        <Typography.Title level={5} style={{ margin: 0 }}>
+          {t("fundraisingResources", "Fundraising Resources")}
+        </Typography.Title>
+      </Flex>
+
+      <Row gutter={[24, 16]}>
+        {" "}
+        {/* Use gutter for spacing between columns */}
+        {/* Column 1 */}
+        <Col xs={24} sm={12}>
+          <div
+            className="popover-item"
+            onClick={() => handleNavigate("/requests/create")}
+          >
+            {/* <PlusCircleOutlined className="popover-item-icon" /> */}
+            <div className="popover-item-text">
+              <Typography.Text strong>
+                {t("createRequestWithAI", "Create Request with AI")}
+              </Typography.Text>
+              <Typography.Text type="secondary">
+                {t(
+                  "startNewSupportRequestAI",
+                  "Start a new support request using AI."
+                )}
+              </Typography.Text>
+            </div>
+          </div>
+          <div
+            className="popover-item"
+            onClick={() => handleNavigate("/fundraising-ideas")}
+          >
+            {/* <BulbOutlined className="popover-item-icon" /> */}
+            <div className="popover-item-text">
+              <Typography.Text strong>
+                {t("fundraisingIdeas", "Fundraising Ideas")}
+              </Typography.Text>
+              <Typography.Text type="secondary">
+                {t("ideasToSparkCreativity", "Ideas to spark your creativity.")}
+              </Typography.Text>
+            </div>
+          </div>
+          {/* Add more items like "Fundraising Categories" here if needed */}
+        </Col>
+        {/* Column 2 */}
+        <Col xs={24} sm={12}>
+          <div
+            className="popover-item"
+            onClick={() => handleNavigate("/fundraising-tips")}
+          >
+            {/* <ReadOutlined className="popover-item-icon" /> */}
+            <div className="popover-item-text">
+              <Typography.Text strong>
+                {t("fundraisingTips", "Fundraising Tips")}
+              </Typography.Text>
+              <Typography.Text type="secondary">
+                {t(
+                  "ultimateFundraisingGuide",
+                  "The ultimate fundraising tips guide."
+                )}
+              </Typography.Text>
+            </div>
+          </div>
+
+          <div
+            className="popover-item"
+            onClick={() => handleNavigate("/team-fundraising")}
+          >
+            {/* <TeamOutlined className="popover-item-icon" /> */}
+            <div className="popover-item-text">
+              <Typography.Text strong>
+                {t("teamFundraising", "Team Fundraising")}
+              </Typography.Text>
+              <Typography.Text type="secondary">
+                {t("fundraiseTogether", "Fundraise together with a team.")}
+              </Typography.Text>
+            </div>
+          </div>
+          {/* Add more items like "Charity Fundraising" or "Sign up as Charity" here if needed */}
+        </Col>
+      </Row>
+      {/* Optional Footer Button (Example) */}
+      {/* <Button type="primary" className="popover-footer-button" block onClick={() => handleNavigate('/start-fundraiser')}>
+          {t('startAFundraiser', 'Start a Fundraiser')}
+       </Button> */}
+    </div>
+  );
+};
+// **** End Popover Content Component ****
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const myOrganization = useSelector((state) => state.organization.myOrganization);
 
   const token = useSelector((state) => state.auth.token);
   const storedUser = localStorage.getItem("currentUser");
-
   const dispatch = useDispatch();
+  const myProjects = useSelector((state) => state.project.myProjects);
+  const [ownedProject, setOwnedProject] = useState([]); // State to hold owned projects
+  const [joinedProject, setJoinedProject] = useState([]); // State to hold joined projects
+  const [projectId, setProjectId] = useState(null); // State to hold project ID
   let currentUser = {};
-
   try {
     currentUser = storedUser ? JSON.parse(storedUser) : {};
   } catch (error) {
@@ -32,143 +159,228 @@ const Navbar = () => {
     currentUser = {};
   }
 
-  const logout = async () => {
+  // *** Updated logout function - prefer navigation over full page reload ***
+  const logout = () => {
     dispatch(logOut());
-    window.location.reload();
-    window.location.href = "/";
+    navigate("/auth/login");
   };
 
+  const { ownedOrganization, managedOrganizations } = useSelector(
+    (state) => state.organization
+  );
+
   useEffect(() => {
-    if (currentUser?.id && (!myOrganization || !myOrganization.id)) {
-        dispatch(fetchMyOrganization(currentUser.id));
+    if (currentUser && currentUser.id !== undefined) {
+      dispatch(fetchMyProjectsThunk(currentUser.id));
     }
-}, [currentUser.id, dispatch]);
- 
+    dispatch(getManagedOrganizationByCeo());
+    dispatch(getManagedOrganizationsByManager());
+    dispatch(getJoinedOrganizations());
+  }, []);
 
-  const { managedOrganizations } = useSelector((state) => state.organization);
+  useEffect(() => {
+    if (myProjects && myProjects.length > 0 && currentUser) {
+      const owned = myProjects.filter(
+        (data) => data.project.leader.id === currentUser.id
+      );
+      const joined = myProjects.filter(
+        (data) => data.project.leader.id !== currentUser.id
+      );
 
-  const items = [
+      setOwnedProject(owned);
+      setJoinedProject(joined);
+
+      const defaultProjectId =
+        owned.length > 0
+          ? owned[0].project.id
+          : joined.length > 0
+          ? joined[0].project.id
+          : "";
+
+      setProjectId(defaultProjectId);
+    }
+  }, [myProjects]);
+
+  // *** This is NO LONGER needed if using Popover ***
+  // const fundraiseMenuItems = [ ... ];
+
+  // User Menu Items (Dropdown) - Renamed for clarity
+  const userMenuItems = [
     {
       key: "1",
       label: (
-        <Link rel="noopener noreferrer" to="/user/manage-profile/profile">
-          User Dashboard
+        <Link to="/user/manage-profile/profile">
+          {t("userDashboard", "User Dashboard")}
         </Link>
       ),
     },
     {
       key: "2",
+      label: ownedOrganization ? (
+        <Link rel="noopener noreferrer" to="/my-organization">
+          My Organizations
+        </Link>
+      ) : (
+        <Link rel="noopener noreferrer" to="/organizations/create">
+          Create Your Organization
+        </Link>
+      ),
+    },
+    {
+      key: "3",
       label:
-      myOrganization && myOrganization.organizationId ? (
-          <Link rel="noopener noreferrer" to="/manage-organization">
-            My Organizations
+        myProjects && myProjects.length > 0 ? (
+          <Link
+            rel="noopener noreferrer"
+            to={`/manage-project/${projectId}/home`}
+          >
+            My Project
           </Link>
         ) : (
-          <Link rel="noopener noreferrer" to="/organizations/create">
-            Create Organization
+          <Link rel="noopener noreferrer" to="/manage-project">
+            Discover Project
           </Link>
         ),
     },
     {
-      key: "3",
+      key: "4",
+      // Use a span or div for onClick if not a real navigation link
       label: (
-        <Link to="/" onClick={logout}>
-          Sign out
-        </Link>
+        <span onClick={logout} style={{ cursor: "pointer", display: "block" }}>
+          {t("signOut", "Sign out")}
+        </span>
       ),
     },
-  ];
+  ].filter((item) => item.label); // Filter out items that shouldn't be rendered (like key '3' if not leader)
 
   return (
-    <Affix offsetTop={0} onChange={(affixed) => console.log(affixed)}>
-      <Row className="navbar">
-        <Col span={8}>
-          <Flex justify="flex-start" align="center" gap="10px">
+    // Removed onChange from Affix as it was just logging
+    <Affix offsetTop={0}>
+      {/* Apply the .navbar class from your pcss file */}
+      <Row className="navbar" align="middle">
+        {" "}
+        {/* Added align="middle" for vertical centering */}
+        {/* Column 1: Left Links */}
+        <Col xs={24} md={8}>
+          {" "}
+          {/* Responsive Columns */}
+          <Flex justify="flex-start" align="center" gap="10px" wrap="wrap">
+            {" "}
+            {/* Added wrap */}
             <Button
               className="btn-custom"
               type="text"
               icon={<SearchOutlined />}
             >
-              Search
+              {t("search", "Search")}
             </Button>
             <Button className="btn-custom" type="text">
               <Space>
-                Donate <CaretDownOutlined />
+                {t("donate", "Donate")} <CaretDownOutlined />
               </Space>
             </Button>
-            <Button className="btn-custom" type="text">
-              <Space>
-                Fundraise <CaretDownOutlined />
-              </Space>
-            </Button>
-            {/* <Button className='btn-custom' type='text'><Space>{t('play', 'play')} </Space></Button> */}
+            {/* **** REPLACE Dropdown with Popover **** */}
+            <Popover
+              content={<FundraisePopoverContent />}
+              trigger="click"
+              placement="bottomLeft"
+              overlayClassName="fundraise-popover-panel" // Class for styling the panel
+              // arrow={false} // Optionally hide the arrow pointer
+            >
+              <Button className="btn-custom" type="text">
+                <Space>
+                  {t("fundraise", "Fundraise")} <CaretDownOutlined />
+                </Space>
+              </Button>
+            </Popover>
+            {/* **** End Replacement **** */}
             <Button
               type="text"
               className="btn-custom"
-              onClick={() => {
-                console.log("Navigating to ForumPage...");
-                navigate("/forum");
-              }}
+              onClick={() => navigate("/forum")}
             >
-              Forum
+              {t("forum", "Forum")}
             </Button>
           </Flex>
         </Col>
-        <Col span={8}>
-          <Flex justify="center" align="flex-start" style={{ height: "80px" }}>
-            <a href="/">
-              <img src={logo} alt="" style={{ height: "90px" }} />
-            </a>
+        {/* Column 2: Logo */}
+        {/* Hide logo on smaller screens to prevent layout issues if needed */}
+        <Col xs={0} md={8}>
+          <Flex justify="center" align="center" style={{ height: "100%" }}>
+            {" "}
+            {/* Use 100% height */}
+            {/* Use Link for internal navigation */}
+            <Link to="/">
+              {/* Ensure alt text is descriptive */}
+              <img
+                src={logo}
+                alt="FCharity Logo"
+                style={{ height: "90px", display: "block" }}
+              />{" "}
+              {/* Added display block */}
+            </Link>
           </Flex>
         </Col>
-        <Col span={8}>
-          <Flex justify="flex-end" align="center" gap="10px">
-            {/* <Button className='btn-custom' type='text'><Space>About <CaretDownOutlined /></Space></Button> */}
+        {/* Column 3: Right Actions */}
+        <Col xs={24} md={8}>
+          {" "}
+          {/* Responsive Columns */}
+          <Flex justify="flex-end" align="center" gap="10px" wrap="wrap">
+            {" "}
+            {/* Added wrap */}
             {token ? (
-              <Dropdown menu={{ items }} placement="bottomRight">
-                <Button className="btn-custom" type="text">
-                  <img
-                    src={currentUser.avatar ?? avatar}
-                    alt="avatar"
-                    style={{
-                      borderRadius: "50%",
-                      width: "35px",
-                      height: "35px",
-                    }}
-                  />
-                  {currentUser.fullName}
-                </Button>
-              </Dropdown>
+              // Use the renamed user menu items
+              <Flex align="center" gap="16px">
+                <NotificationBell />
+                <Dropdown
+                  menu={{ items: userMenuItems }}
+                  placement="bottomRight"
+                >
+                  {/* Added specific class for potential user button styling */}
+                  <Button className="btn-custom btn-user" type="text">
+                    <img
+                      src={currentUser?.avatar ?? avatar} // Use optional chaining
+                      alt="User avatar" // Better alt text
+                      className="user-avatar" // Add class for styling
+                    />
+                    {/* Wrap name in span for styling/hiding on small screens */}
+                    <span className="user-name">{currentUser?.fullName}</span>
+                  </Button>
+                </Dropdown>
+              </Flex>
             ) : (
               <Button
                 className="btn-custom"
                 type="text"
                 onClick={() => navigate("/auth/login")}
               >
-                Sign in
+                {t("signIn", "Sign in")}
               </Button>
             )}
             <Button
               type="primary"
               shape="round"
+              // Use the class from your pcss
               className="request-btn"
               onClick={() => navigate("/requests/create")}
             >
-              {/* <b>Start a request</b> */}
               {t("startRequest", "Start a request")}
             </Button>
-            <Flex vertical>
+            {/* Language Switcher */}
+            <Flex vertical className="language-switcher">
               {Object.keys(lngs).map((lng) => (
                 <button
                   key={lng}
-                  style={{
-                    fontWeight:
-                      i18n.resolvedLanguage === lng ? "bold" : "normal",
-                  }}
-                  type="submit"
+                  // Add classes for styling from pcss
+                  className={`language-button ${
+                    i18n.resolvedLanguage === lng ? "active" : ""
+                  }`}
+                  // *** Use type="button" for non-submitting buttons ***
+                  type="button"
                   onClick={() => {
                     i18n.changeLanguage(lng);
                   }}
+                  // Remove inline style if handled by CSS/PCSS
                 >
                   {lngs[lng].nativeName}
                 </button>

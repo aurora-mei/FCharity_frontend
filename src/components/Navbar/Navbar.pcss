@@ -1,64 +1,335 @@
 /* Navbar.pcss */
 
-.ant{
-    font-family: var(--primary-font-family);
+/* Variables (Keep if you use them elsewhere) */
+:root {
+  /* Example variable definitions - adjust as needed */
+  --primary-font-family: 'Arial', sans-serif;
+  --button-font-size: 1rem; /* Adjusted from 1.1rem which was on request-btn */
+  --button-border-radius: 6px;
+  --button-padding: 0.5rem 1rem; /* Default padding */
+  --button-bg-color: transparent;
 }
-.navbar{
-    padding: 0.4rem 6rem;
-    display: flex;
-    z-index:10;
-    justify-content: center;
-    background-color: transparent;
-    align-items: center;
-    transition: background-color 0.3s ease-in-out;
+
+/* General Ant Design font override (Keep if desired) */
+.ant {
+  font-family: var(--primary-font-family);
 }
-.ant-btn {
+
+/* Navbar container */
+.navbar {
+  /* Your existing padding */
+  padding: 0.4rem 6rem;
+  /* Added for flex behavior if not already covered */
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  z-index: 10;
+  justify-content: space-between; /* Space out columns */
+  background-color: transparent;
+  align-items: center; /* Vertically align items in the navbar row */
+  transition: background-color 0.3s ease-in-out;
+  min-height: 80px; /* Ensure navbar has height */
+}
+
+/* --- Button Styling --- */
+
+/* General Ant Button Overrides (Use with caution - applies to ALL ant buttons) */
+/* Consider removing if causing conflicts, style specific buttons instead */
+/* .ant-btn {
     font-size: var(--button-font-size) !important;
     border-radius: var(--button-border-radius) ;
     padding: var(--button-padding);
     background-color: var(--button-bg-color);
+} */
+
+/* Custom Text Buttons (Search, Donate, Fundraise, Forum, Sign in) */
+.btn-custom {
+  /* Your existing padding - Note: 1.4rem top/bottom is quite large */
+  padding: 1.4rem 1rem;
+  display: inline-flex; /* Use inline-flex for better alignment with icons/space */
+  align-items: center;
+  font-size: var(--button-font-size); /* Use variable */
+  border-radius: var(--button-border-radius); /* Use variable */
+  background-color: var(--button-bg-color); /* Use variable */
+  color: #333; /* Example text color */
+  border: none; /* Ensure text buttons have no border by default */
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
-.btn-custom{
-    padding: 1.4rem 1rem;
-    display: flex;
-    align-items: center;
+.btn-custom:hover {
+   background-color: rgba(0, 0, 0, 0.04); /* Subtle hover background */
+   color: #0056b3; /* Example hover text color */
 }
+.btn-custom .anticon {
+   margin-left: 4px; /* Space before caret down */
+}
+
+/* User button specific styles */
+.btn-user {
+    gap: 8px; /* Space between avatar and name */
+    padding: 0.5rem 0.8rem; /* Adjust padding for user button */
+}
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover; /* Prevent image stretching */
+}
+.user-name {
+    /* Styles for the name, e.g., hide on small screens */
+    display: inline; /* Default */
+    max-width: 120px; /* Limit width */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle; /* Align with avatar */
+}
+
+/* Start a Request Button */
 .request-btn {
-    font-size: 1.1rem;
-    border: 1px solid black;
-    color: black;
-    background-color: transparent;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  /* Keep your specific styles */
+  font-size: 1.1rem; /* Specific font size override */
+  border: 1px solid black;
+  color: black;
+  background-color: transparent;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  padding: 0.6rem 1.2rem; /* Adjust padding if needed */
+  font-weight: bold;
+  line-height: normal; /* Ensure text is vertically centered */
 }
 
 .request-btn:hover {
-    background-color: #008044 !important;
-    border-color: #008044;
+  /* Keep your hover styles - Remove !important if possible */
+  background-color: #008044 !important;
+  border-color: #008044;
+  color: white !important; /* Ensure text is readable on dark background */
+}
+
+/* Caret Down Icon Override (Use with caution - applies to ALL carets) */
+/* .anticon-caret-down {
+  color: gray !important;
+  font-size: 0.8rem !important;
+} */
+/* Prefer targeting within button if possible */
+.btn-custom .anticon-caret-down {
+   color: gray;
+   font-size: 0.8rem;
 }
 
 
-.anticon-caret-down {
-    color: gray !important;
-    font-size: 0.8rem !important; /* Không nên dùng 0.3rem quá nhỏ */
-}
-
+/* --- Affix Styling --- */
 .ant-affix {
-    background-color: transparent !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* Your background override */
+  background-color: transparent !important;
+  /* Existing shadow */
+  /* box-shadow: 0 2px 4px rgba(0,0,0,0.1); */ /* This might be unwanted when transparent */
+  z-index: 1000  !important;
 }
-
+/* Style the navbar *when* it's inside an affix */
 .ant-affix .navbar {
-    background-color: white !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hiệu ứng shadow */
+  background-color: white !important; /* White background when scrolled */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Existing shadow */
+  padding-top: 0.4rem; /* Keep padding consistent */
+  padding-bottom: 0.4rem;
+}
+
+/* --- Menu Styling (For User Dropdown) --- */
+/* Apply these carefully as they affect all menus */
+.ant-dropdown .ant-menu { /* Target menus inside dropdowns */
+  border-bottom: none !important; /* Your style */
+  /* background-color: transparent !important; */ /* Transparent background might look weird */
+  background-color: #fff; /* Standard white background */
+  box-shadow: 0 3px 6px -4px rgba(0,0,0,.12), 0 6px 16px 0 rgba(0,0,0,.08), 0 9px 28px 8px rgba(0,0,0,.05); /* Ant standard shadow */
+  border-radius: 4px;
+  padding: 4px 0; /* Add some padding */
+}
+.ant-dropdown .ant-menu-item {
+    padding: 8px 12px; /* Adjust padding for items */
+}
+.ant-dropdown .ant-menu-item::after,
+.ant-dropdown .ant-menu-submenu::after {
+  display: none !important; /* Your style */
+}
+.ant-dropdown .ant-menu-item > span > a,
+.ant-dropdown .ant-menu-item > span > span { /* Target links and spans inside items */
+    color: rgba(0, 0, 0, 0.85);
+    transition: color 0.3s;
+}
+.ant-dropdown .ant-menu-item:hover > span > a,
+.ant-dropdown .ant-menu-item:hover > span > span {
+    color: #1890ff; /* Ant standard hover color */
+}
+.ant-dropdown .ant-menu-item:hover {
+    background-color: #f5f5f5; /* Slight hover background */
 }
 
 
-.ant-menu{
-    border-bottom: none !important;
-    background-color: transparent !important;
+/* --- Language Switcher --- */
+.language-switcher {
+    /* Container styles if needed */
 }
-.ant-menu-item::after,
-.ant-menu-submenu::after {
-    display: none !important;
+.language-button {
+  background: none;
+  border: none;
+  padding: 1px 4px; /* Small padding */
+  cursor: pointer;
+  font-size: 0.8em; /* Small font */
+  color: #888; /* Dim color */
+  font-weight: normal;
+  transition: color 0.3s ease, font-weight 0.3s ease;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+.language-button:hover {
+  color: #333;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+.language-button.active {
+  font-weight: bold;
+  color: #1890ff; /* Example active color */
+}
+
+
+/* --- **** NEW Popover Styling **** --- */
+
+/* Style the popover panel itself */
+.fundraise-popover-panel .ant-popover-inner {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  padding: 0; /* Remove default padding, use wrapper padding */
+}
+.fundraise-popover-panel .ant-popover-inner-content {
+  padding: 0; /* Remove default padding */
+}
+.fundraise-popover-panel .ant-popover-arrow {
+  /* Optional: style the arrow or hide it */
+  /* display: none; */
+}
+
+/* Style the content wrapper inside the popover */
+.fundraise-content-wrapper {
+  width: 550px; /* Adjust width */
+  max-width: 90vw;
+  padding: 20px 24px;
+}
+
+/* Popover Header */
+.fundraise-popover-header {
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.popover-header-icon {
+  font-size: 22px;
+  color: #888;
+}
+
+/* Individual clickable items in the popover */
+.popover-item {
+  display: flex; /* Use flex for icon alignment */
+  align-items: flex-start; /* Align items to the top */
+  gap: 12px; /* Space between icon and text */
+  padding: 12px 10px; /* Padding within each item */
+  margin-bottom: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+.popover-item:hover {
+  background-color: #f7f7f7; /* Hover background */
+}
+
+/* Icon within popover items (if you add them) */
+.popover-item-icon {
+    font-size: 18px;
+    color: #555; /* Or your theme color */
+    margin-top: 2px; /* Align icon slightly */
+}
+
+/* Text container within popover items */
+.popover-item-text {
+    flex: 1; /* Allow text to take remaining space */
+}
+
+/* Description text styling */
+.popover-item .ant-typography-secondary {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.9em;
+  line-height: 1.4;
+  color: #666;
+}
+
+/* Optional Footer Button */
+.popover-footer-button {
+    margin-top: 20px;
+}
+
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1200px) {
+    .navbar {
+        padding: 0.4rem 3rem; /* Reduce padding */
+    }
+}
+
+@media (max-width: 992px) { /* Medium devices (tablets, less than 992px) */
+    .navbar {
+        padding: 0.4rem 1.5rem; /* Further reduce padding */
+        justify-content: space-between; /* Ensure space between ends */
+    }
+    .navbar .ant-col-md-8:nth-child(2) { /* Hide logo column */
+        display: none;
+    }
+     .navbar .ant-col-md-8 { /* Make other columns take up half */
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+     .navbar .ant-col-md-8:last-child > .ant-flex { /* Ensure right items stay right */
+        justify-content: flex-end;
+    }
+     /* Adjust button padding on medium screens */
+    .btn-custom {
+        padding: 1rem 0.8rem;
+    }
+    .user-name {
+        display: none; /* Hide user name */
+    }
+    .fundraise-content-wrapper {
+        width: 450px; /* Adjust popover width */
+    }
+}
+
+@media (max-width: 767px) { /* Small devices (landscape phones, less than 768px) */
+    .navbar {
+        padding: 0.4rem 1rem;
+         min-height: 60px; /* Reduce min height */
+    }
+     .navbar .ant-col-md-8 { /* Full width for nav sections */
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+     .navbar .ant-col-md-8:first-child > .ant-flex { /* Center left items maybe */
+        justify-content: center;
+        padding-bottom: 5px; /* Add space if they stack */
+     }
+      .navbar .ant-col-md-8:last-child > .ant-flex { /* Center right items */
+        justify-content: center;
+    }
+     .btn-custom {
+        padding: 0.8rem 0.6rem; /* Smaller padding */
+        font-size: 0.9rem; /* Smaller font */
+     }
+     .request-btn {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+     }
+    .fundraise-content-wrapper {
+        width: 350px; /* Adjust popover width */
+    }
+     /* Stack columns in popover */
+     .fundraise-content-wrapper .ant-col-sm-12 {
+         flex: 0 0 100%;
+         max-width: 100%;
+     }
 }

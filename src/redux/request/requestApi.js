@@ -1,5 +1,6 @@
 import { APIPrivate } from '../../config/API/api';
-
+import { message } from 'antd';
+import { API_URL } from "../../constants/env-config";
 const fetchRequests = async () => {
     try {
         const response = await APIPrivate.get('requests');
@@ -22,6 +23,7 @@ const fetchActiveRequests = async () => {
 
 const createRequest = async (requestData) => {
     try {
+        console.log("api", API_URL);
         const response = await APIPrivate.post('requests/create', requestData);
         console.log("Request created:", response.data);
         return response.data;
@@ -73,6 +75,60 @@ export const fetchRequestsByUserId = async (userId, filters = {}) => {
         throw error.response?.data || error;
     }
 };
+const fetchTransferRequestByRequestId = async (requestId) => {
+    try {
+        const response = await APIPrivate.get(`requests/${requestId}/transfer-request`);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching confirmation request by ID:", err);
+        throw err.response.data;
+    }
+}
+const updateBankInfo = async ({id, bankInfo}) => {
+    try {
+        const response = await APIPrivate.put(`/transfer-requests/${id}/update-bank-info`, null, {
+            params: {
+              bankBin: bankInfo.bankBin,
+              accountNumber: bankInfo.accountNumber,
+              accountHolder: bankInfo.accountHolder,
+            }});
+            message.success("Update bank info successfully");
+        return response.data;
+    } catch (err) {
+        console.error("Error updating bank info:", err);
+        message.error("Update bank info failed");
+        throw err.response.data;
+    }
+} 
+const updateConfirmTransfer = async (id) => {
+    try {
+        const response = await APIPrivate.put(`transfer-requests/${id}/update-confirm-transfer`);
+        message.success("Update confirm transfer successfully");
+        return response.data;
+    } catch (err) {
+        message.error("Update confirm transfer failed");
+        console.error("Error updating confirm transfer:", err);
+        throw err.response.data;
+    }
+}
 
-const requestApi = { fetchRequests, createRequest, updateRequest, deleteRequest, fetchRequestById, fetchActiveRequests, fetchRequestsByUserId };
+const updateErrorTransfer = async ({id,note}) => {
+    try {
+        const response = await APIPrivate.put(`transfer-requests/${id}/update-error-transfer`,null,
+           {
+            params:{
+                note: note
+            }
+           }
+        );
+        message.success("Update error transfer successfully");
+        return response.data;
+    } catch (err) {
+        message.error("Update error transfer failed");
+        console.error("Error updating error transfer:", err);
+        throw err.response.data;
+    }
+}
+const requestApi = { fetchRequests, createRequest, updateRequest, deleteRequest, fetchRequestById, fetchActiveRequests,
+     fetchRequestsByUserId, fetchTransferRequestByRequestId,updateBankInfo,updateConfirmTransfer,updateErrorTransfer };
 export default requestApi;
