@@ -47,7 +47,7 @@ const FormStyled = styled.div`
   }
 `;
 
-const ProjectForm = ({ requestId, ownedOrganization }) => {
+const ProjectForm = ({ requestId, myOrganization }) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -235,7 +235,7 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
         const newProjectId = createdProject.id; // <- Lấy id từ response
     
         setCreatedSuccess(true);
-        navigate(`/my-organization/projects/create/${requestId}/${newProjectId}`); // Chuyển hướng đến trang chi tiết dự án
+        navigate(`/projects/create/${requestId}/${newProjectId}`); // Chuyển hướng đến trang chi tiết dự án
          message.success("Create project successfully!");
        } catch (error) {
          console.error("Error creating Project:", error);
@@ -385,13 +385,7 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
               <Form.Item
                 label="Location"
                 name="location"
-                rules={[
-                  {
-                    // required: true,
-                    required: false,
-                    message: "Address is required",
-                  },
-                ]}
+                rules={[{ required: true, message: "Address is required" }]}
               >
                 <Input readOnly />
               </Form.Item>
@@ -463,7 +457,7 @@ const ProjectForm = ({ requestId, ownedOrganization }) => {
 };
 ProjectForm.propTypes = {
   requestId: PropTypes.string.isRequired,
-  ownedOrganization: PropTypes.shape({
+  myOrganization: PropTypes.shape({
     organizationId: PropTypes.string,
   }).isRequired,
 };
