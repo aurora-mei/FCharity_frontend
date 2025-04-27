@@ -351,6 +351,8 @@ const projectSlice = createSlice({
         setCurrentConfirmRequest(state, action) {
           state.currentConfirmRequest = action.payload;
         },
+        setOrgProjects: (state, action) => {
+            state.projects = action.payload;},
       },
     extraReducers: (builder) => {
         builder
@@ -1003,5 +1005,5 @@ const projectSlice = createSlice({
 
     },
 });
-export const { setCurrentConfirmRequest } = projectSlice.actions;
+export const { setCurrentConfirmRequest,setOrgProjects } = projectSlice.actions;
 export default projectSlice.reducer;

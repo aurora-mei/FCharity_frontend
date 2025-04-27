@@ -165,7 +165,7 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
     if (!Array.isArray(phases) || phases.length === 0) {
         return <Empty description="No phases have been defined for this project yet." style={{ marginTop: '2rem' }} />;
     }
-
+    console.log("currentConfirmRequest",currentConfirmRequest)
     return (
         <div style={{ padding: '1rem' }}>
             <Title level={4} style={{ marginBottom: '1rem' }}>Project Phases</Title>
