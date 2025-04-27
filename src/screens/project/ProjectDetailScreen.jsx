@@ -475,7 +475,7 @@ const ProjectDetailScreen = () => {
                 );
              }
         } else {
-            setCountdownDisplay(<Text strong style={{ color: 'grey', fontSize: '1rem' }}>Project has ended.</Text>); // Changed color
+            setCountdownDisplay(<Text strong style={{ color: 'grey', fontSize: '1rem' }}>Project has started.</Text>); // Changed color
             if (intervalId) {
                 clearInterval(intervalId);
                 intervalId = null;

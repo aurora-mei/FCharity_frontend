@@ -10,10 +10,20 @@ const fetchProjects = async () => {
         console.log("posts: " + response.data);
         return response.data;
     } catch (err) {
-        console.error("Error fetching posts:", err);
+        console.error("Error fetching projects:", err);
         throw err.response.data;
     }
 };
+const fetchProjectsNeedDonate = async()=>{
+    try {
+        const response = await APIPrivate.get('projects/need-donate');
+        console.log("posts: " + response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching project need donate:", err);
+        throw err.response.data;
+    }
+}
 const createProject = async (ProjectData) => {
     try {
         const response = await APIPrivate.post('projects/create', ProjectData);
@@ -764,7 +774,7 @@ const rejectReceiveRequest = async ({ id, me }) => {
 }
 const projectApi = {
     sendConfirmReceiveRequest, confirmReceiveRequest, getConfirmReceiveRequestByProject, getConfirmReceiveRequestByRequest,rejectReceiveRequest,
-    fetchProjects, createProject, fetchProjectById, fetchMyProjects, updateProject, fetchProjectsByOrg,
+    fetchProjects,fetchProjectsNeedDonate, createProject, fetchProjectById, fetchMyProjects, updateProject, fetchProjectsByOrg,
     getUserNotInProject, addProjectMember, fetchAllProjectMembers, fetchActiveProjectMembers, moveOutProjectMember, removeProjectMember, inviteProjectMember,
     getAllProjectRequest, sendJoinRequest, cancelProjectRequest, approveJoinRequest, rejectJoinRequest,
     approveLeaveRequest, rejectLeaveRequest,

@@ -246,6 +246,27 @@ const timelineSlice = createSlice({
       .addCase(cancelPhase.fulfilled, (state, action) => {
         state.loading = false;
         state.phases = state.phases.filter((phase) => phase.id !== action.payload.id);
+        let activePhase = null;
+        const now = dayjs();
+
+        const ongoingOrFuturePhases = state.phases
+          .filter(p => !p.phase.endTime || dayjs(p.phase.endTime).isAfter(now))
+          .sort((a, b) => dayjs(a.phase.startTime).valueOf() - dayjs(b.phase.startTime).valueOf()); // Sort by start time
+
+        if (ongoingOrFuturePhases.length > 0) {
+          // Find the earliest one that has started or is the next upcoming one
+          activePhase = ongoingOrFuturePhases.find(p => dayjs(p.phase.startTime).isBefore(now)) || ongoingOrFuturePhases[0];
+        }
+
+        // If no ongoing or future phases, find the most recently ended one
+        if (!activePhase && state.phases.length > 0) {
+          activePhase = [...state.phases].sort((a, b) => {
+            const endTimeA = a.phase.endTime ? dayjs(a.phase.endTime).valueOf() : -Infinity;
+            const endTimeB = b.phase.endTime ? dayjs(b.phase.endTime).valueOf() : -Infinity;
+            return endTimeB - endTimeA; // Sort descending by end time
+          })[0];
+        }
+        state.currentPhase = activePhase || null; // Set the active phase
       })
       .addCase(cancelPhase.rejected, (state, action) => {
         state.loading = false;

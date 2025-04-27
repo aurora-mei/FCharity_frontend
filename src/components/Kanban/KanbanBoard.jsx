@@ -187,14 +187,14 @@ const KanbanBoard = ({
             {/* Filter Section */}
             <FilterWrapper>
                  <Input
-                   style={{padding:0}}
+                   style={{padding:0,height:"2.3rem"}}
                      placeholder="Search task name..."
                      value={filterTaskName}
                      onChange={handleTaskNameFilterChange}
                      allowClear
                  />
                  <RangePicker
-                    style={{ width: '100%',padding:"0.5rem" }}
+                    style={{ width: '100%',padding:"0.5rem",height:"2.3rem" }}
                      value={filterTaskDateRange}
                      onChange={handleTaskDateFilterChange}
                      format="DD/MM/YYYY"

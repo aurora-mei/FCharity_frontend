@@ -6,7 +6,7 @@ import { fetchRequestsByUserIdThunk, fetchTransferRequestByRequest, updateConfir
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
 import { getListBankThunk } from "../../redux/helper/helperSlice";
-import { confirmReceiveRequestThunk, setCurrentConfirmRequest,rejectReceiveRequestThunk  } from "../../redux/project/projectSlice";
+import { confirmReceiveRequestThunk, setCurrentConfirmRequest, rejectReceiveRequestThunk } from "../../redux/project/projectSlice";
 import { Bar, Line } from "react-chartjs-2";
 import { useNavigate, Link } from "react-router-dom";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
@@ -925,10 +925,10 @@ const MyRequestScreen = () => {
                         return (
                           <Flex vertical gap={16}>
                             <Text>{note}</Text>
-                            <Text>You can view project details in</Text>
-                            <Link to={`/projects/${confirmRequest.project.id}/details`}>
-                                        {confirmRequest?.project?.projectName || 'View Project'}
-                                      </Link>
+                            <span><Text>You can view project details in </Text>
+                              <Link to={`/projects/${confirmRequest.project.id}/details`}>
+                                {confirmRequest?.project?.projectName || 'View Project'}
+                              </Link></span>
                             <Flex gap={12}>
                               <Button
                                 type="primary"
@@ -940,7 +940,9 @@ const MyRequestScreen = () => {
                                     okText: 'Yes',
                                     cancelText: 'No',
                                     onOk() {
-                                      dispatch(confirmReceiveRequestThunk(confirmRequest.id));
+                                      dispatch(confirmReceiveRequestThunk(confirmRequest.id)).then(
+                                        () => dispatch(getConfirmReceiveRequestByRequestThunk(confirmRequest.request.id))
+                                      );
                                       setConfirmRequestModalOpen(false);
                                     },
                                   });
@@ -959,8 +961,8 @@ const MyRequestScreen = () => {
                                         rows={4}
                                         placeholder="Enter rejection note..."
                                         onChange={(e) => {
-                                        console.log(e.target.value);
-                                        setRejectNote(e.target.value);
+                                          console.log(e.target.value);
+                                          setRejectNote(e.target.value);
                                         }}
                                       />
                                     ),
@@ -972,8 +974,8 @@ const MyRequestScreen = () => {
                                           id: confirmRequest.id,
                                           me: rejectNote
                                         })
-                                      );
-                                      setConfirmRequestModalOpen(false);
+                                        );
+                                        setConfirmRequestModalOpen(false);
                                       } else {
                                         Modal.error({
                                           title: 'Note is required',
@@ -992,22 +994,32 @@ const MyRequestScreen = () => {
                         );
                       } else if (isConfirmed) {
                         return (
-                          <Flex vertical>
-                            <Text type="success">Request has been confirmed!</Text>
-                            <Text>You can view project details in</Text>
-                          </Flex>
+
+                          <Alert
+                            message="Request has been confirmed!"
+                            description={
+                              <span>
+                                <Text>You can view project details in </Text>
+                                <Link to={`/projects/${confirmRequest.project.id}/details`}>
+                                  {confirmRequest?.project?.projectName || 'View Project'}
+                                </Link>
+                              </span>
+                            }
+                            type="success"
+                            showIcon
+                          />
                         );
                       } else if (!isConfirmed && note && !note.includes("Please confirm receive")) {
                         return (
                           <Flex vertical>
                             <Text>
-                              Your response has been sent to project. 
+                              Your response has been sent to project.
                               Please wait for the project to check again and send you a final confirmation.
                             </Text>
                             <Text>You can view project details in</Text>
                             <Link to={`/projects/${confirmRequest.project.id}/details`}>
-                                        {confirmRequest?.project?.projectName || 'View Project'}
-                                      </Link>
+                              {confirmRequest?.project?.projectName || 'View Project'}
+                            </Link>
                           </Flex>
                         );
                       }
@@ -1015,7 +1027,6 @@ const MyRequestScreen = () => {
                   </Modal>
                 </Flex>
               )}
-              <RequestCard requestData={request} />
             </List.Item>
           )}
         />

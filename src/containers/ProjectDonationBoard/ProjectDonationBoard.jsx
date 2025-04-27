@@ -193,19 +193,19 @@ const ProjectDonationBoard = ({ donations }) => {
       {/* Use Card for overall structure, but control padding manually */}
       <Card className="donation-card-wrapper" bordered={false}>
          {/* Header Section - Add padding here */}
-        <div style={{ padding: '1rem 1rem 0 1rem' }}>
-            <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-            <Text strong style={{ fontSize: "1.1rem" }}>Donation Records</Text>
-              <Text style={{ fontSize: "1rem", fontWeight: 500 }}>
+        <div style={{ padding: '0' }}>
+            <Flex justify="space-between" align="center" style={{ marginBottom: "1rem" }}>
+            <Title level={5} >Donation Records</Title>
+              <Text style={{  fontWeight: 500 }}>
                 Total Completed:{" "}
-                <Text type="success" style={{ fontSize: "1.1rem" }}>
+                <Text type="success" style={{  }}>
                   {totalDonationAmount.toLocaleString()} VND
                 </Text>
               </Text>
             </Flex>
 
             {/* Date Search Section */}
-            <Flex justify="flex-end" style={{ marginBottom: 16 }}> {/* Reduced margin */}
+            <Flex justify="flex-end" style={{ marginBottom: "1rem" }}> {/* Reduced margin */}
               <DatePicker
                 onChange={handleDateChange}
                 value={selectedDate}
@@ -218,7 +218,7 @@ const ProjectDonationBoard = ({ donations }) => {
         </div>
 
         {/* Donation List Section - Add padding here */}
-         <div style={{padding: "0 1rem 1rem 1rem"}}>
+         <div style={{padding: "0", overflowY:"auto", height:"35rem"}}>
             {renderContent()}
          </div>
 

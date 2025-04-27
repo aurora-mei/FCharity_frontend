@@ -168,7 +168,7 @@ const ProjectMemberContainer = () => {
         );
     }
     return (
-        <Flex vertical gap={25} style={{  padding: "0 1rem", scrollbarWidth: "none" }}>
+        <Flex vertical gap={25} style={{  padding: "0", scrollbarWidth: "none" }}>
             <Row gutter={16} style={{ marginTop: 16 }}>
                 <Col span={8}>
                     <StyledCard icon={<TeamOutlined />} title="Total Active Members" bordered={false}>

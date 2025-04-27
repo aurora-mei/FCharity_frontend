@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Typography, Flex, Card, Tooltip, Space, message, Spin } from 'antd'; // Added message
-import { PlusOutlined, SettingOutlined, FlagOutlined, FileDoneOutlined } from '@ant-design/icons';
+import { Button, Typography, Flex, Card, Tooltip, Space, message, Spin, Modal } from 'antd'; // Added message
+import { PlusOutlined, SettingOutlined, FlagOutlined, FileDoneOutlined, DeleteOutlined } from '@ant-design/icons';
 import KanbanBoard from '../../components/Kanban/KanbanBoard';
 import styled from 'styled-components';
 import dayjs from 'dayjs'; // Import dayjs
 import PhaseModal from '../../components/Phase/PhaseModal';
 // Make sure the path is correct and these actions exist and work
-import { getAllPhasesByProjectId, getTasksOfProject, getAllTaskStatuses, createPhase, updatePhase, addTaskToPhase, addTaskStatus, updateTaskStatus, deleteTaskStatus, endPhase } from '../../redux/project/timelineSlice';
+import { getAllPhasesByProjectId, getTasksOfProject, getAllTaskStatuses, createPhase, updatePhase,cancelPhase, addTaskToPhase, addTaskStatus, updateTaskStatus, deleteTaskStatus, endPhase } from '../../redux/project/timelineSlice';
 import { fetchAllProjectMembersThunk } from '../../redux/project/projectSlice'; // Corrected import path assumption
 import { useDispatch, useSelector } from 'react-redux';
 import TaskModal from '../../components/Task/TaskModal';
@@ -185,6 +185,7 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
 
     // Prepare status options for TaskModal if needed (assuming statuses prop has { id, name } structure)
     const statusOptionsForModal = statuses.map(s => ({ value: s.id, label: s.statusName }));
+    const canNotCancel = (tasksForCurrentPhase && tasksForCurrentPhase.length > 0);
     const canNotReport = (tasksForCurrentPhase && tasksForCurrentPhase.length ===0)||(tasksForCurrentPhase.length > 0 && tasksForCurrentPhase.filter(task => !task.parentTask).find((x) => x.status.id !== statuses.find((x) => x.statusName === "DONE").id)!== undefined);
     console.log("Can not report:",(tasksForCurrentPhase.length > 0 && tasksForCurrentPhase.filter(task => !task.parentTask).find((x) => x.taskPlanStatusId !== statuses.find((x) => x.statusName === "DONE").id)))
     return (
@@ -211,7 +212,26 @@ const TaskKanbanTab = ({ phases = [], tasks = [], statuses = [], projectId, onVi
                                             Update Phase
                                         </Button>
                                     </Tooltip>
-                                    <Tooltip title={`${canNotReport ?"Report Phase":"Please add a task or set all parent tasks to be DONE before report phase"}`}>
+                                    <Tooltip title={`${canNotCancel ? "Cannot cancel while having ongoing tasks":"Cancel Phase"}`}>
+                                        <Button disabled={canNotCancel}
+                                            icon={<DeleteOutlined />}
+                                            onClick={() => {
+                                                Modal.confirm({
+                                                  title: 'Are you sure you want to cancel this phase?',
+                                                  content: 'This action cannot be undone.',
+                                                  okText: 'Yes, Cancel it',
+                                                  okType: "danger",
+                                                  cancelText: 'No',
+                                                  onOk: () => {
+                                                    dispatch(cancelPhase(currentPhase.phase.id));
+                                                  },
+                                                });
+                                              }}
+                                        >
+                                            Cancel Phase
+                                        </Button>
+                                    </Tooltip>
+                                    <Tooltip title={`${canNotReport ? "Please add a task or set all parent tasks to be DONE before report phase": "Report Phase"}`}>
                                         <Button disabled={canNotReport}
                                             icon={<FileDoneOutlined />}
                                             onClick={() => setIsOpenEndPhase(true)}
