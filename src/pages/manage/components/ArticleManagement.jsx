@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { FaEye } from "react-icons/fa";
 import { MdEditSquare, MdDelete } from "react-icons/md";
 import { IoSearch } from "react-icons/io5";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { deleteArticle } from "../../../redux/organization/organizationSlice";
+import { getCurrentUser } from "../../../redux/user/userSlice";
 
 const formatDate = (isoString) => {
   return new Intl.DateTimeFormat("vi-VN", {
@@ -41,6 +42,11 @@ const ArticleManagement = ({
 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const currentRole = useSelector((state) => state.organization.currentRole);
+
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  console.log("currentUser", currentUser);
 
   // State cho tìm kiếm, dữ liệu đã lọc, phân trang
   const [selectedArticles, setSelectedArticles] = useState([]);
@@ -125,12 +131,13 @@ const ArticleManagement = ({
               <th className="border border-gray-300 p-2">Short description</th>
               <th className="border border-gray-300 p-2">Author</th>
               <th className="border border-gray-300 p-2">Created at</th>
+              <th className="border border-gray-300 p-2">Updated at</th>
               <th className="border border-gray-300 p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentData.map((article, index) => (
-              <tr key={index} className="hover:bg-gray-50">
+              <tr key={index} className="hover:bg-gray-50 text-sm">
                 <td className="border border-gray-300 p-2 text-center">
                   <input type="checkbox" className="w-4 h-4" />
                 </td>
@@ -149,6 +156,9 @@ const ArticleManagement = ({
                   {formatDate(article.createdAt)}
                 </td>
                 <td className="border border-gray-300 p-2">
+                  {formatDate(article.updatedAt)}
+                </td>
+                <td className="border border-gray-300 p-2">
                   <div className="flex gap-2 items-center justify-center">
                     <div
                       className="flex items-center justify-center gap-1 text-green-500 hover:text-green-600 hover:cursor-pointer hover:bg-green-100 px-2 py-1 border rounded-md"
@@ -161,25 +171,29 @@ const ArticleManagement = ({
                       <FaEye style={{ fontSize: "12px" }} />
                       <span className="text-xs">View</span>
                     </div>
-                    <div
-                      className="flex items-center justify-center gap-1 text-yellow-500 hover:text-yellow-600 hover:cursor-pointer hover:bg-yellow-100 px-2 py-1 border rounded-md"
-                      onClick={() => {
-                        setEditingArticle(article);
-                        setIsEditingArticle(true);
-                      }}
-                    >
-                      <MdEditSquare style={{ fontSize: "12px" }} />
-                      <span className="text-xs">Edit</span>
-                    </div>
-                    <div
-                      className="flex items-center justify-center gap-1 text-red-500 hover:text-red-600 hover:cursor-pointer hover:bg-red-100 px-2 py-1 border rounded-md"
-                      onClick={() => {
-                        handleDeleteArticle(article?.articleId);
-                      }}
-                    >
-                      <MdDelete style={{ fontSize: "12px" }} />
-                      <span className="text-xs">Delete</span>
-                    </div>
+                    {currentUser.id === article?.author?.id && (
+                      <div
+                        className="flex items-center justify-center gap-1 text-yellow-500 hover:text-yellow-600 hover:cursor-pointer hover:bg-yellow-100 px-2 py-1 border rounded-md"
+                        onClick={() => {
+                          setEditingArticle(article);
+                          setIsEditingArticle(true);
+                        }}
+                      >
+                        <MdEditSquare style={{ fontSize: "12px" }} />
+                        <span className="text-xs">Edit</span>
+                      </div>
+                    )}
+                    {currentUser.id === article?.author?.id && (
+                      <div
+                        className="flex items-center justify-center gap-1 text-red-500 hover:text-red-600 hover:cursor-pointer hover:bg-red-100 px-2 py-1 border rounded-md"
+                        onClick={() => {
+                          handleDeleteArticle(article?.articleId);
+                        }}
+                      >
+                        <MdDelete style={{ fontSize: "12px" }} />
+                        <span className="text-xs">Delete</span>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>

@@ -127,7 +127,11 @@ const InvitationsReviewModel = ({ setIsModelOpen }) => {
                         "https://avatar.iran.liara.run/public"
                       }
                       alt="avatar image"
+                      onError={(e) =>
+                        (e.target.src = "https://avatar.iran.liara.run/public")
+                      }
                     />
+
                     <div className="ps-3">
                       <div className="text-base font-semibold">
                         {invitation.user.fullName}

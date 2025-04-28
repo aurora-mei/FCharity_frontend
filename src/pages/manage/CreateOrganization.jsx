@@ -26,31 +26,21 @@ const CreateOrganization = () => {
     walletId: "",
     organizationDescription: "",
     organizationStatus: "PENDING",
-    avatarUrl: null,
     backgroundUrl: null,
   });
 
-  const [avatar, setAvatar] = useState(null);
+  const [errors, setErrors] = useState([]);
+
   const [background, setBackground] = useState(null);
   const [backgroundColor, setBackgroundColor] = useState(null);
 
-  const avatarInputRef = useRef(null);
   const backgroundInputRef = useRef(null);
 
-  const triggerAvatarUpload = () => avatarInputRef.current.click();
   const triggerBackgroundUpload = () => backgroundInputRef.current.click();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setOrgInfo((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setAvatar(imageUrl);
-    }
   };
 
   const handleBackgroundChange = (e) => {
@@ -78,19 +68,41 @@ const CreateOrganization = () => {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (orgInfo.organizationName.trim() === "")
+      newErrors.organizationName = "Organization name cannot be blank";
+
+    if (orgInfo.email.trim() === "") newErrors.email = "Email cannot be blank";
+    else if (
+      !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(orgInfo.email)
+    )
+      newErrors.email = "Invalid email";
+
+    if (orgInfo.phoneNumber.trim() === "")
+      newErrors.phoneNumber = "Phone number cannot be blank";
+    else if (!/^\d{10}$/.test(orgInfo.phoneNumber))
+      newErrors.phoneNumber = "Invalid phone number";
+
+    if (orgInfo.address.trim() === "")
+      newErrors.address = "Address cannot be blank";
+
+    if (orgInfo.organizationDescription.trim() === "")
+      newErrors.organizationDescription = "Description cannot be blank";
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
 
     try {
       let updatedOrgInfo = { ...orgInfo };
       showInfo("Đang tạo tổ chức...");
-      if (avatarInputRef.current?.files[0]) {
-        const avatarUrl = await uploadFile({
-          file: avatarInputRef.current.files[0],
-          folderName: "organizations",
-        });
-        updatedOrgInfo = { ...updatedOrgInfo, avatarUrl };
-      }
 
       if (backgroundInputRef.current?.files[0]) {
         const backgroundUrl = await uploadFile({
@@ -115,12 +127,10 @@ const CreateOrganization = () => {
             walletId: "",
             organizationDescription: "",
             organizationStatus: "PENDING",
-            avatarUrl: "",
             backgroundUrl: "",
           });
-          setAvatar(null);
+
           setBackground(null);
-          avatarInputRef.current.value = null;
           backgroundInputRef.current.value = null;
           navigate("/my-organization");
         })
@@ -149,7 +159,7 @@ const CreateOrganization = () => {
       >
         <div
           className="w-[90%] aspect-video  overflow-hidden rounded-bl-2xl rounded-br-2xl relative bg-gray-300"
-          style={{ maxWidth: "1250px", maxHeight: "460px" }}
+          style={{ maxWidth: "1250px", maxHeight: "360px" }}
         >
           {background && (
             <img
@@ -174,33 +184,8 @@ const CreateOrganization = () => {
             className="hidden"
           ></input>
         </div>
-        <div className="-mt-8 ml-20 self-start">
+        <div className="mt-8 ml-20 self-start">
           <div className="flex gap-8 items-end px-8">
-            <div className="relative h-32 w-32">
-              <div className="rounded-full h-full w-full border-4 border-white overflow-hidden bg-gray-500">
-                {avatar && (
-                  <img
-                    src={avatar}
-                    alt="Avatar image"
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={triggerAvatarUpload}
-                className="p-[6px] rounded-full absolute bottom-0 right-0 bg-gray-200 flex items-center justify-center hover:cursor-pointer hover:bg-gray-300"
-              >
-                <IoCamera style={{ fontSize: "24px" }} />
-              </button>
-              <input
-                type="file"
-                ref={avatarInputRef}
-                onChange={handleAvatarChange}
-                accept="image/*"
-                className="hidden"
-              />
-            </div>
             <div className="flex flex-col gap-2 mb-4">
               <p className="font-semibold text-3xl" style={{ margin: 0 }}>
                 {orgInfo.organizationName || "Organization Name"}
@@ -216,92 +201,125 @@ const CreateOrganization = () => {
           Basic Information
         </p>
         <form className="space-y-3 ml-8" onSubmit={handleSubmit}>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-start">
             <label htmlFor="name" className="w-[160px] shrink-0">
-              Organization name
+              Organization name <span className="text-red-500">*</span>
             </label>
-            <input
-              id="name"
-              type="text"
-              name="organizationName"
-              placeholder="Fpt Software Academy"
-              value={orgInfo.organizationName}
-              onChange={handleChange}
-              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-            />
+            <div className="flex flex-col gap-1 w-full">
+              <input
+                id="name"
+                type="text"
+                name="organizationName"
+                placeholder="Fpt Software Academy"
+                value={orgInfo.organizationName}
+                onChange={handleChange}
+                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+              />
+              {errors.organizationName && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.organizationName}
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-start">
             <label htmlFor="email" className="w-[160px] shrink-0">
-              Email
+              Email <span className="text-red-500">*</span>
             </label>
-            <input
-              id="email"
-              type="text"
-              name="email"
-              placeholder="duc@gmail.com"
-              value={orgInfo.email}
-              onChange={handleChange}
-              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-            />
+            <div className="flex flex-col gap-1 w-full">
+              <input
+                id="email"
+                type="text"
+                name="email"
+                placeholder="duc@gmail.com"
+                value={orgInfo.email}
+                onChange={handleChange}
+                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+              />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
+            </div>
           </div>
 
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-start">
             <label htmlFor="phone" className="w-[160px] shrink-0">
-              Phone number
+              Phone number <span className="text-red-500">*</span>
             </label>
-            <input
-              id="phone"
-              type="text"
-              name="phoneNumber"
-              placeholder="0123456789"
-              value={orgInfo.phoneNumber}
-              onChange={handleChange}
-              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-            />
+            <div className="flex flex-col gap-1 w-full">
+              <input
+                id="phone"
+                type="text"
+                name="phoneNumber"
+                placeholder="0123456789"
+                value={orgInfo.phoneNumber}
+                onChange={handleChange}
+                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+              />
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.phoneNumber}
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-start">
             <label htmlFor="address" className="w-[160px] shrink-0">
-              Address
+              Address <span className="text-red-500">*</span>
             </label>
-            <input
-              id="address"
-              type="text"
-              name="address"
-              placeholder="Số 1, phường Hòa Hải, quận Ngũ Hành Sơn, tp Đà Nẵng."
-              value={orgInfo.address}
-              onChange={handleChange}
-              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-            />
+            <div className="flex flex-col gap-1 w-full">
+              <input
+                id="address"
+                type="text"
+                name="address"
+                placeholder="Số 1, phường Hòa Hải, quận Ngũ Hành Sơn, tp Đà Nẵng."
+                value={orgInfo.address}
+                onChange={handleChange}
+                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+              />
+              {errors.address && (
+                <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+              )}
+            </div>
           </div>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-start">
             <label htmlFor="wallet" className="w-[160px] shrink-0">
               Wallet address
             </label>
-            <input
-              id="wallet"
-              type="text"
-              name="walletId"
-              placeholder="987-234234KKF-234423 (Auto-generate after creating organization.)"
-              value={""}
-              disabled
-              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-            />
+            <div className="flex flex-col gap-1 w-full">
+              <input
+                id="wallet"
+                type="text"
+                name="walletId"
+                placeholder="987-234234KKF-234423 (Auto-generate after creating organization.)"
+                value={""}
+                disabled
+                className="w-full p-3 bg-gray-100 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+              />
+            </div>
           </div>
           <div className="flex gap-2 items-start">
             <label htmlFor="description" className="w-[160px] shrink-0 mt-3">
-              Descriptions
+              Descriptions <span className="text-red-500">*</span>
             </label>
-            <textarea
-              id="description"
-              type="text"
-              name="organizationDescription"
-              placeholder="Tổ chức giáo dục phi lợi nhuận."
-              value={orgInfo.organizationDescription}
-              onChange={handleChange}
-              className="w-full h-[120px] p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-            />
+            <div className="flex flex-col gap-1 w-full">
+              <textarea
+                id="description"
+                type="text"
+                name="organizationDescription"
+                placeholder="Message | Mô tả về chi tiết về tổ chức giáo dức phi lợi nhuận"
+                value={orgInfo.organizationDescription}
+                onChange={handleChange}
+                className="w-full h-[120px] p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+              />
+              {errors.organizationDescription && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.organizationDescription}
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex flex-row-reverse mt-8">
             <button className="bg-green-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-green-700 hover:cursor-pointer hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-300">

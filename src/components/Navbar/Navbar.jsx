@@ -165,9 +165,8 @@ const Navbar = () => {
     navigate("/auth/login");
   };
 
-  const { ownedOrganization, managedOrganizations } = useSelector(
-    (state) => state.organization
-  );
+  const { ownedOrganization, managedOrganizations, joinedOrganizations } =
+    useSelector((state) => state.organization);
 
   useEffect(() => {
     if (currentUser && currentUser.id !== undefined) {
@@ -216,15 +215,18 @@ const Navbar = () => {
     },
     {
       key: "2",
-      label: ownedOrganization ? (
-        <Link rel="noopener noreferrer" to="/my-organization">
-          My Organizations
-        </Link>
-      ) : (
-        <Link rel="noopener noreferrer" to="/organizations/create">
-          Create Your Organization
-        </Link>
-      ),
+      label:
+        ownedOrganization ||
+        managedOrganizations.length > 0 ||
+        joinedOrganizations.length > 0 ? (
+          <Link rel="noopener noreferrer" to="/my-organization">
+            My Organizations
+          </Link>
+        ) : (
+          <Link rel="noopener noreferrer" to="/organizations/create">
+            Create Your Organization
+          </Link>
+        ),
     },
     {
       key: "3",

@@ -30,6 +30,8 @@ import { Empty } from "antd";
 const MyOrganization = () => {
   const dispatch = useDispatch();
 
+  const [errors, setErrors] = useState([]);
+
   const currentRole = useSelector((state) => state.organization.currentRole);
   const currentOrganization = useSelector(
     (state) => state.organization.currentOrganization
@@ -247,7 +249,38 @@ const MyOrganization = () => {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (orgInfo.organizationName.trim() === "")
+      newErrors.organizationName = "Organization name cannot be blank";
+
+    if (orgInfo.email.trim() === "") newErrors.email = "Email cannot be blank";
+    else if (
+      !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(orgInfo.email)
+    )
+      newErrors.email = "Invalid email";
+
+    if (orgInfo.phoneNumber.trim() === "")
+      newErrors.phoneNumber = "Phone number cannot be blank";
+    else if (!/^\d{10}$/.test(orgInfo.phoneNumber))
+      newErrors.phoneNumber = "Invalid phone number";
+
+    if (orgInfo.address.trim() === "")
+      newErrors.address = "Address cannot be blank";
+
+    if (orgInfo.organizationDescription.trim() === "")
+      newErrors.organizationDescription = "Description cannot be blank";
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    setIsEditing(false);
+
     try {
       let updatedOrgInfo = { ...orgInfo };
       showInfo("Cập nhật tổ chức...");
@@ -422,93 +455,130 @@ const MyOrganization = () => {
                 <div className="space-y-3 ml-8">
                   <div className="flex gap-2 items-center">
                     <label htmlFor="name" className="w-[160px] shrink-0">
-                      Organization name
+                      Organization name <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      id="name"
-                      type="text"
-                      name="organizationName"
-                      placeholder="Fpt Software Academy"
-                      value={orgInfo.organizationName}
-                      onChange={handleChange}
-                      className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-                    />
+                    <div className="w-full flex flex-col gap-1">
+                      <input
+                        id="name"
+                        type="text"
+                        name="organizationName"
+                        placeholder="Fpt Software Academy"
+                        value={orgInfo.organizationName}
+                        onChange={handleChange}
+                        className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                      />
+                      {errors.organizationName && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.organizationName}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-2 items-center">
                     <label htmlFor="email" className="w-[160px] shrink-0">
-                      Email
+                      Email <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      id="email"
-                      type="text"
-                      name="email"
-                      placeholder="duc@gmail.com"
-                      value={orgInfo.email}
-                      onChange={handleChange}
-                      className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-                    />
+                    <div className="w-full flex flex-col gap-1">
+                      <input
+                        id="email"
+                        type="text"
+                        name="email"
+                        placeholder="duc@gmail.com"
+                        value={orgInfo.email}
+                        onChange={handleChange}
+                        className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                      />
+                      {errors.email && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-2 items-center">
                     <label htmlFor="phone" className="w-[160px] shrink-0">
-                      Phone number
+                      Phone number <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      id="phone"
-                      type="text"
-                      name="phoneNumber"
-                      placeholder="0123456789"
-                      value={orgInfo.phoneNumber}
-                      onChange={handleChange}
-                      className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-                    />
+                    <div className="w-full flex flex-col gap-1">
+                      <input
+                        id="phone"
+                        type="text"
+                        name="phoneNumber"
+                        placeholder="0123456789"
+                        value={orgInfo.phoneNumber}
+                        onChange={handleChange}
+                        className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                      />
+                      {errors.phoneNumber && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.phoneNumber}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-2 items-center">
                     <label htmlFor="address" className="w-[160px] shrink-0">
-                      Address
+                      Address <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      id="address"
-                      type="text"
-                      name="address"
-                      placeholder="Số 1, phường Hòa Hải, quận Ngũ Hành Sơn, tp Đà Nẵng."
-                      value={orgInfo.address}
-                      onChange={handleChange}
-                      className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-                    />
+                    <div className="w-full flex flex-col gap-1">
+                      <input
+                        id="address"
+                        type="text"
+                        name="address"
+                        placeholder="Số 1, phường Hòa Hải, quận Ngũ Hành Sơn, tp Đà Nẵng."
+                        value={orgInfo.address}
+                        onChange={handleChange}
+                        className="w-full p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                      />
+                      {errors.address && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.address}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-2 items-center">
                     <label htmlFor="wallet" className="w-[160px] shrink-0">
                       Wallet address
                     </label>
-                    <input
-                      id="wallet"
-                      type="text"
-                      name="walletId"
-                      placeholder="987-234234KKF-234423 (Auto-generate after creating organization.)"
-                      value={orgInfo.walletAddress.id}
-                      disabled
-                      className="w-full p-3 bg-gray-100 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-                    />
+                    <div className="w-full flex flex-col gap-1">
+                      <input
+                        id="wallet"
+                        type="text"
+                        name="walletId"
+                        placeholder="987-234234KKF-234423 (Auto-generate after creating organization.)"
+                        value={orgInfo.walletAddress.id}
+                        disabled
+                        className="w-full p-3 bg-gray-100 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                      />
+                    </div>
                   </div>
                   <div className="flex gap-2 items-start">
                     <label
                       htmlFor="description"
                       className="w-[160px] shrink-0 mt-3"
                     >
-                      Descriptions
+                      Descriptions <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                      id="description"
-                      type="text"
-                      name="organizationDescription"
-                      placeholder="Tổ chức giáo dục phi lợi nhuận."
-                      value={orgInfo.organizationDescription}
-                      onChange={handleChange}
-                      className="w-full h-[120px] p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
-                    />
+                    <div className="w-full flex flex-col gap-1">
+                      <textarea
+                        id="description"
+                        type="text"
+                        name="organizationDescription"
+                        placeholder="Tổ chức giáo dục phi lợi nhuận."
+                        value={orgInfo.organizationDescription}
+                        onChange={handleChange}
+                        className="w-full h-[120px] p-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white focus:border-blue-400 transition duration-200"
+                      />
+                      {errors.organizationDescription && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.organizationDescription}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex flex-row-reverse mt-8 gap-3">
                     <button
@@ -526,7 +596,6 @@ const MyOrganization = () => {
                       type="submit"
                       className="bg-blue-600  px-6 py-2 rounded-md font-semibold transition duration-300 hover:bg-blue-700 hover:shadow-md  hover:cursor-pointer  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300"
                       onClick={() => {
-                        setIsEditing(false);
                         handleSubmit();
                       }}
                     >
@@ -540,36 +609,36 @@ const MyOrganization = () => {
                 {/* Thông tin tổ chức */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <span className="w-[160px] font-semibold text-gray-700">
-                      Organization name
-                    </span>
+                    <div className="w-[160px] font-semibold text-gray-700">
+                      Organization name <span className="text-red-500">*</span>
+                    </div>
                     <span className="text-gray-800  px-3 py-1 rounded-md">
                       {orgInfo.organizationName}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <span className="w-[160px] font-semibold text-gray-700">
-                      Email
-                    </span>
-                    <span className="text-gray-800  px-3 py-1 rounded-md">
+                    <div className="w-[160px] font-semibold text-gray-700">
+                      Email <span className="text-red-500">*</span>
+                    </div>
+                    <div className="text-gray-800  px-3 py-1 rounded-md">
                       {orgInfo.email}
-                    </span>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <span className="w-[160px] font-semibold text-gray-700">
-                      Phone number
-                    </span>
+                    <div className="w-[160px] font-semibold text-gray-700">
+                      Phone number <span className="text-red-500">*</span>
+                    </div>
                     <span className="text-gray-800  px-3 py-1 rounded-md">
                       {orgInfo.phoneNumber}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <span className="w-[160px] font-semibold text-gray-700">
-                      Address
-                    </span>
+                    <div className="w-[160px] font-semibold text-gray-700">
+                      Address <span className="text-red-500">*</span>
+                    </div>
                     <span className="text-gray-800  px-3 py-1 rounded-md">
                       {orgInfo.address}
                     </span>
@@ -585,9 +654,9 @@ const MyOrganization = () => {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <span className="w-[160px] font-semibold text-gray-700">
-                      Descriptions
-                    </span>
+                    <div className="w-[160px] font-semibold text-gray-700">
+                      Descriptions <span className="text-red-500">*</span>
+                    </div>
                     <span className="text-gray-800  px-3 py-1 rounded-md flex-1">
                       {orgInfo.organizationDescription}
                     </span>
@@ -760,15 +829,34 @@ const MyOrganization = () => {
       {!currentOrganization && (
         <div className="p-6">
           <div className="flex justify-end items-center">
-            <Link
-              to="/organizations"
-              className="bg-blue-500 px-3 py-2 rounded-md text-white hover:bg-blue-600 hover:cursor-pointer"
-            >
-              Discover organizations
-            </Link>
+            {currentRole == "ceo" && (
+              <Link
+                to="/organizations/create"
+                className="bg-blue-500 px-3 py-2 rounded-md text-white hover:bg-blue-600 hover:cursor-pointer"
+              >
+                Create your organization
+              </Link>
+            )}
+            {currentRole == "manager" ||
+              (currentRole == "member" && (
+                <Link
+                  to="/organizations"
+                  className="bg-blue-500 px-3 py-2 rounded-md text-white hover:bg-blue-600 hover:cursor-pointer"
+                >
+                  Discover organizations
+                </Link>
+              ))}
           </div>
           <div className="flex justify-center items-center min-h-[500px]">
-            <Empty description="You are not a member of any organization" />
+            <Empty
+              description={
+                currentRole === "ceo"
+                  ? "You haven't owned any organization yet."
+                  : currentRole === "manager"
+                  ? "You have no organization to manage."
+                  : "You are not a member of any organization"
+              }
+            />
           </div>
         </div>
       )}

@@ -205,10 +205,16 @@ const OrganizationDashboard = () => {
                           }}
                         >
                           <img
-                            src={member?.user?.avatar}
+                            src={
+                              member?.user?.avatar ||
+                              "https://avatar.iran.liara.run/public"
+                            }
                             alt="manager avatars"
                             className="w-full h-full object-cover"
-                            onerror={`this.onerror=null; this.src=${"https://avatar.iran.liara.run/public"};`}
+                            onError={(e) =>
+                              (e.target.src =
+                                "https://avatar.iran.liara.run/public")
+                            }
                           />
                         </div>
                         {showManagerInfo === index && (

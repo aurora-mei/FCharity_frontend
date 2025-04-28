@@ -65,7 +65,7 @@ const ArticleCard = ({ article }) => {
         </p>
         <div className="flex items-center justify-end gap-2 my-2 text-xs">
           <div>{article?.views} views</div>
-          <div>{article?.likes} likes</div>
+          {/* <div>{article?.likes} likes</div> */}
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

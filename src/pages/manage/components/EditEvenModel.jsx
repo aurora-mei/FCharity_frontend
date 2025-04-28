@@ -231,7 +231,7 @@ const EditEventModal = ({
     if (!editingEvent.location) newErrors.location = "Location cannot be empty";
     if (!editingEvent.eventType)
       newErrors.eventType = "Event type cannot be blank";
-    if (!editingEvent.targetAudienceGroups)
+    if (selectedUsers.length === 0)
       newErrors.targetAudienceGroups = "Participants cannot be left blank";
     if (!editingEvent.summary)
       newErrors.summary = "Summary cannot be left blank";
@@ -348,7 +348,7 @@ const EditEventModal = ({
             </p>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Title
+                Title <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -364,7 +364,7 @@ const EditEventModal = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Start time
+                  Start time <span className="text-red-500">*</span>
                 </label>
                 <DatePicker
                   selected={editingEvent?.start}
@@ -383,7 +383,7 @@ const EditEventModal = ({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  End time
+                  End time <span className="text-red-500">*</span>
                 </label>
                 <DatePicker
                   selected={editingEvent?.end}
@@ -404,7 +404,7 @@ const EditEventModal = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
+                  Location <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -438,7 +438,7 @@ const EditEventModal = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Event type
+                  Event type <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="eventType"
@@ -527,7 +527,7 @@ const EditEventModal = ({
             </div>
             <div>
               <h3 className="mb-4 font-semibold text-gray-900">
-                Target audience
+                Target audience <span className="text-red-500">*</span>
                 <span className="text-sm text-gray-500">
                   (For sending invitation emails)
                 </span>
@@ -725,11 +725,27 @@ const EditEventModal = ({
                     }}
                   />
                 </div>
-                {errors.targetAudience && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.targetAudience}
-                  </p>
-                )}
+              </div>
+              {errors.targetAudienceGroups && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.targetAudienceGroups}
+                </p>
+              )}
+              <div className="mt-4">
+                <p style={{ margin: 0 }}>Selected users</p>
+                <div className="mt-1 w-full overflow-y-scroll h-[100px] border rounded-sm border-gray-300 p-2 flex gap-1 flex-wrap items-start">
+                  {selectedUsers.length > 0 &&
+                    selectedUsers
+                      .filter((user) => !excludeUsers.includes(user))
+                      .map((user, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-gray-200 rounded-full text-gray-600 shrink-0"
+                        >
+                          {user.fullName} {"  "} ({user.email})
+                        </span>
+                      ))}
+                </div>
               </div>
             </div>
           </div>
@@ -739,7 +755,7 @@ const EditEventModal = ({
             </p>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Summary
+                Summary <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="summary"
@@ -753,7 +769,7 @@ const EditEventModal = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Details
+                Details <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="fullDescription"

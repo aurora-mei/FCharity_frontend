@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { FcLike, FcLikePlaceholder } from "react-icons/fc";
 import { useSelector } from "react-redux";
+import { MdOutlineRemoveRedEye } from "react-icons/md";
 
 const ArticleDetail = () => {
   const [liked, setLiked] = useState(false);
@@ -70,8 +71,9 @@ const ArticleDetail = () => {
           </div>
 
           <div className="flex items-center">
+            <span>Created at: </span>
             <svg
-              className="w-4 h-4 mr-1"
+              className="w-4 h-4 mr-1 ml-3"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -86,6 +88,30 @@ const ArticleDetail = () => {
             {format(new Date(currentArticle.createdAt), "dd MMMM yyyy", {
               locale: vi,
             })}
+          </div>
+          <div className="flex items-center">
+            <span>Updated at: </span>
+            <svg
+              className="w-4 h-4 mr-1 ml-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {format(new Date(currentArticle.updatedAt), "dd MMMM yyyy", {
+              locale: vi,
+            })}
+          </div>
+          <div className="flex items-center gap-1">
+            <span>Views: </span>
+            {currentArticle.views}
+            <MdOutlineRemoveRedEye />
           </div>
         </div>
       </div>

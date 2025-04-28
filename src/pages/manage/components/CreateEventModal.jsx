@@ -209,7 +209,9 @@ const CreateEventModal = ({
     if (!newEvent.location) newErrors.location = "Location cannot be empty";
     if (!newEvent.eventType) newErrors.eventType = "Event type cannot be blank";
 
-    if (!newEvent.targetAudienceGroups)
+    // if (!newEvent.targetAudienceGroups)
+    //   newErrors.targetAudienceGroups = "Participants cannot be left blank";
+    if (selectedUsers.length === 0)
       newErrors.targetAudienceGroups = "Participants cannot be left blank";
     if (!newEvent.summary) newErrors.summary = "Summary cannot be left blank";
     if (!newEvent.fullDescription)
@@ -350,7 +352,7 @@ const CreateEventModal = ({
             </p>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Title
+                Title <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -367,7 +369,7 @@ const CreateEventModal = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Start time
+                  Start time <span className="text-red-500">*</span>
                 </label>
                 <DatePicker
                   selected={newEvent.start}
@@ -384,7 +386,7 @@ const CreateEventModal = ({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  End time
+                  End time <span className="text-red-500">*</span>
                 </label>
                 <DatePicker
                   selected={newEvent.end}
@@ -404,7 +406,7 @@ const CreateEventModal = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
+                  Location <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -439,7 +441,7 @@ const CreateEventModal = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Event type
+                  Event type <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="eventType"
@@ -530,7 +532,7 @@ const CreateEventModal = ({
 
             <div>
               <h3 className="mb-4 font-semibold text-gray-900">
-                Target audience
+                Target audience <span className="text-red-500">*</span>
                 <span className="text-sm text-gray-500">
                   (For sending invitation emails)
                 </span>
@@ -719,11 +721,27 @@ const CreateEventModal = ({
                     }}
                   />
                 </div>
-                {errors.targetAudience && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.targetAudience}
-                  </p>
-                )}
+              </div>
+              {errors.targetAudienceGroups && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.targetAudienceGroups}
+                </p>
+              )}
+              <div className="mt-4">
+                <p style={{ margin: 0 }}>Selected users</p>
+                <div className="mt-1 w-full overflow-y-scroll h-[100px] border rounded-sm border-gray-300 p-2 flex gap-1 flex-wrap items-start">
+                  {selectedUsers.length > 0 &&
+                    selectedUsers
+                      .filter((user) => !excludeUsers.includes(user))
+                      .map((user, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-gray-200 rounded-full text-gray-600 shrink-0"
+                        >
+                          {user.fullName} {"  "} ({user.email})
+                        </span>
+                      ))}
+                </div>
               </div>
             </div>
           </div>
@@ -734,7 +752,7 @@ const CreateEventModal = ({
             </p>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Summary
+                Summary <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="summary"
@@ -748,7 +766,7 @@ const CreateEventModal = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Details
+                Details <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="fullDescription"
