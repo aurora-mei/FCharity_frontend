@@ -542,8 +542,7 @@ const ProjectDetailScreen = () => {
         amount: values.amount,
         paymentContent: values.message??"Donation for project",
         objectType: "PROJECT",
-        // Make sure returnUrl points to the correct page after payment
-        returnUrl: window.location.href, // Return to the current project page
+        returnUrl: window.location.href, 
       })
     );
     setIsOpenModal(false);

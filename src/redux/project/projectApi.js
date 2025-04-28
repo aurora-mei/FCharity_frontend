@@ -725,10 +725,12 @@ const sendConfirmReceiveRequest = async (projectId) => {
         throw err.response.data;
     }
 }
-const confirmReceiveRequest = async (id) => {
+const confirmReceiveRequest = async ({ id, me }) => {
 
     try {
-        const response = await APIPrivate.put(`projects/confirmation-requests/${id}/confirm`);
+        const response = await APIPrivate.put(`projects/confirmation-requests/${id}/confirm`, {
+            message: me
+        });
         console.log("Confirm receive request:", response.data);
         message.success("Confirm receive request successfully!");
         return response.data;

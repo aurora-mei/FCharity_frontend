@@ -349,8 +349,8 @@ export const fetchProjectWallet = createAsyncThunk(
 export const sendConfirmReceiveRequestThunk = createAsyncThunk("project/send-confirm-receive", async (projectId) => {
   return await projectApi.sendConfirmReceiveRequest(projectId);
 });
-export const confirmReceiveRequestThunk = createAsyncThunk("project/confirm-receive", async (id) => {
-  return await projectApi.confirmReceiveRequest(id);
+export const confirmReceiveRequestThunk = createAsyncThunk("project/confirm-receive", async ({ id, me }) => {
+  return await projectApi.confirmReceiveRequest({ id, me });
 });
 export const getConfirmReceiveRequestByProjectThunk = createAsyncThunk("project/get-confirm-receive-by-project", async (projectId) => {
   return await projectApi.getConfirmReceiveRequestByProject(projectId);

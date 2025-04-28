@@ -228,7 +228,7 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
                     />
                 </Space>
 
-                {currentProject && currentProject.project.leader.id === currentUser.id &&(
+                {currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id &&(
                     <Space>
                     {currentConfirmRequest && currentConfirmRequest.id ? (
                         <Button

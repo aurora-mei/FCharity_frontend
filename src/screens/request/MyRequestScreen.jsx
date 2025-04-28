@@ -116,6 +116,7 @@ const MyRequestScreen = () => {
     registered: 0,
   });
   const [rejectNote, setRejectNote] = useState("");
+  const [confirmNote, setConfirmNote] = useState("");
   const [filters, setFilters] = useState({});
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [form] = Form.useForm();
@@ -936,14 +937,43 @@ const MyRequestScreen = () => {
                                   Modal.confirm({
                                     title: 'Are you sure you want to confirm this request?',
                                     icon: <ExclamationCircleOutlined />,
-                                    content: 'This action will confirm the request.',
-                                    okText: 'Yes',
+                                    okText: 'Confirm',
                                     cancelText: 'No',
-                                    onOk() {
-                                      dispatch(confirmReceiveRequestThunk(confirmRequest.id)).then(
-                                        () => dispatch(getConfirmReceiveRequestByRequestThunk(confirmRequest.request.id))
-                                      );
-                                      setConfirmRequestModalOpen(false);
+                                    // Use 'content' to render custom JSX
+                                    content: (
+                                      <>
+                                        <Alert
+                                          message="This action will confirm the request!"
+                                          type="info" // Use 'info' or 'warning' for better semantic meaning
+                                          showIcon
+                                          style={{ marginBottom: '16px' }} // Add some spacing
+                                        />
+                                        <TextArea
+                                          rows={4}
+                                          placeholder="Enter some note... (Optional)"
+                                          onChange={(e) => {
+                                            setConfirmNote(e.target.value);
+                                          }}
+                                        />
+                                      </>
+                                    ),
+                                    onOk: async () => {
+                                      try {
+                                        await dispatch(confirmReceiveRequestThunk({
+                                          id: confirmRequest.id,
+                                          note: confirmNote // *** CORRECTED KEY *** (Adjust 'note' if your thunk expects differently)
+                                        })).unwrap(); // Use unwrap() to catch errors here
+
+                                        dispatch(getConfirmReceiveRequestByRequestThunk(confirmRequest.request.id));
+
+                                        setConfirmRequestModalOpen(false);
+
+                                      } catch (error) {
+                                        console.error('Confirmation failed:', error);
+                                      }
+                                    },
+                                    onCancel() {
+                                      setConfirmNote('');
                                     },
                                   });
                                 }}

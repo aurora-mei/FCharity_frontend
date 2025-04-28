@@ -18,7 +18,7 @@ import {
   fetchSpendingItemOfPlan,
   approveSpendingPlanThunk,
   rejectSpendingPlanThunk,
-  setOrgProjects,
+  // setOrgProjects,
 } from "../../redux/project/projectSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { getManagedOrganizationsByManager } from "../../redux/organization/organizationSlice";
@@ -138,7 +138,7 @@ const OrganizationProject = () => {
             <Row gutter={[16, 16]}>
               {projectByOrg &&
                 Array.isArray(projectByOrg) &&
-                projectByOrg.length > 1 &&
+                projectByOrg.length > 0 &&
                 projectByOrg.map((project) => (
                   <Col
                     key={project.project.id}

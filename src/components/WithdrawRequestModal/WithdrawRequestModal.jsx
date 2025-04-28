@@ -5,7 +5,7 @@ import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { createWithdrawRequest, updateErrorWithdrawRequest, fetchWithdrawRequestByProject, updateConfirmWithdrawRequest } from "../../redux/project/projectSlice";
 import { Link } from "react-router-dom";
-const WithdrawRequestModal = ({ form, isOpenWithdrawalModal, setIsOpenWithdrawalModal }) => {
+const WithdrawRequestModal = ({ form, isOpenWithdrawalModal, setIsOpenWithdrawalModal,handleConfirm }) => {
   const formatCurrency = (amount) => {
     // Ensure amount is a number before formatting
     const numericAmount = Number(amount) || 0;
@@ -39,7 +39,6 @@ const WithdrawRequestModal = ({ form, isOpenWithdrawalModal, setIsOpenWithdrawal
       dispatch(createWithdrawRequest({ projectId, bankInfo: { bankBin, accountNumber, accountHolder } }))
         .then(() => {
           fetchWithdrawRequestByProject(projectId);
-          dispatch(fetchProjectWallet(currentProject.project.walletId))
           setIsOpenWithdrawalModal(false);
         })
         .catch((error) => {
@@ -215,11 +214,7 @@ const WithdrawRequestModal = ({ form, isOpenWithdrawalModal, setIsOpenWithdrawal
                       />
                       <Button
                         type="primary"
-                        onClick={() => {
-                          dispatch(updateConfirmWithdrawRequest(currentWithdrawRequest.id))
-                          .then(() => dispatch(fetchProjectWallet(currentProject.project.walletId)));
-                          setIsOpenWithdrawalModal(false);
-                        }}
+                        onClick={()=>handleConfirm(currentWithdrawRequest.id)}
                         style={{ width: 'auto' }} // Button width fits content
                       >
                         Confirm Receipt

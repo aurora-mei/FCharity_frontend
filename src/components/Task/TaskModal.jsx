@@ -14,6 +14,7 @@ const TaskModal = ({
     onCancel, // <-- Use standard onCancel prop name
     userOptions = [],
     statusOptions = [],
+    parentTaskOptions = [],
     initStatus,
 }) => {
     const [form] = Form.useForm();
@@ -90,6 +91,22 @@ console.log("member", userOptions)
              );
         });
     };
+    const renderParentTaskOptions = ()=>{
+        console.log("parentTaskOptions",parentTaskOptions)
+        if (!Array.isArray(parentTaskOptions)) return null; // Add check for safety
+        return parentTaskOptions.map(opt => {
+             // Check if structure is as expected
+             if (!opt || !opt.id) {
+                 console.warn("Skipping invalid user option:", opt);
+                 return null;
+             }
+            return (
+                 <Option key={opt.id} value={opt.id}>
+                     {opt.taskName}
+                 </Option>
+             );
+        });
+    }
 console.log("status op", statusOptions);
     // Ensure statusOptions have the correct structure: { value: '...', label: '...' }
      const renderStatusOptions = () => {
@@ -192,7 +209,16 @@ console.log("status op", statusOptions);
                             {renderStatusOptions()}
                         </Select>
                     </Form.Item>
-
+                    <Form.Item
+                        name="parentTaskId"
+                        label="Parent task"
+                    >
+                        <Select placeholder="Select parent task" allowClear showSearch filterOption={(input, option) =>
+                            (option?.children ?? '').toLowerCase().includes(input.toLowerCase()) // Safer filtering
+                        }>
+                            {renderParentTaskOptions()}
+                        </Select>
+                    </Form.Item>
                 </Form>
             </Spin>
         </Modal>

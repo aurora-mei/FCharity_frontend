@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import { useParams } from 'react-router-dom';
 import {
-    deleteSpendingItemThunk, fetchProjectById, deleteSpendingPlanThunk, fetchWithdrawRequestByProject,
+    deleteSpendingItemThunk, fetchProjectById, deleteSpendingPlanThunk, fetchWithdrawRequestByProject,updateConfirmWithdrawRequest,
     fetchSpendingTemplateThunk, importSpendingPlanThunk, fetchSpendingDetailsByProject,
     fetchDonationsOfProject, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan,
     createSpendingPlanThunk, createSpendingItemThunk, updateSpendingPlanThunk,
@@ -269,7 +269,11 @@ const ProjectFinancePlanContainer = () => {
             </Flex>
         );
     }
-
+    const handleConfirmWithdraw = (requestId) => {
+        dispatch(updateConfirmWithdrawRequest(requestId))
+            .then(() => dispatch(fetchProjectWallet(currentProject.project.walletId)));
+        setIsOpenWithdrawalModal(false);
+    }
     return (
         <Flex vertical gap="2rem" style={{ padding: "0" }}>
 
@@ -335,7 +339,7 @@ const ProjectFinancePlanContainer = () => {
                             Request Withdrawal
                         </Button>
                     )}
-                    <WithdrawRequestModal form={form} isOpenWithdrawalModal={isOpenWithdrawalModal} setIsOpenWithdrawalModal={setIsOpenWithdrawalModal} />
+                    <WithdrawRequestModal form={form} isOpenWithdrawalModal={isOpenWithdrawalModal} setIsOpenWithdrawalModal={setIsOpenWithdrawalModal} handleConfirm={handleConfirmWithdraw} />
 
                 </Flex>
             </StyledCard>
