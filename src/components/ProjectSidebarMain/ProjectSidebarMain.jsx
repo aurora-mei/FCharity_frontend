@@ -31,16 +31,14 @@ const SideBarMain = () => {
     const [isLeader, setIsLeader] = React.useState(false);
 
     useEffect(() => {
+        console.log(projectId)
         dispatch(fetchProjectById(projectId));
-      }, [projectId, dispatch]);
-      
-      useEffect(() => {
-        if (currentProject?.project?.leader?.id === currentUser?.id) {
-          setIsLeader(true);
-        } else {
-          setIsLeader(false);
+        if (currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id) {
+            console.log(currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id)
+            setIsLeader(true);
         }
-      }, [currentProject, currentUser]);
+        console.log("dsfdf",isLeader)
+    }, [projectId, dispatch]);
     return (
         <Sider width={250} theme="light">
             {currentProject && currentProject.project && (
@@ -49,10 +47,9 @@ const SideBarMain = () => {
                         <Flex vertical style={{width: "100%"}} gap="10px" align="left">
                             <Flex justify="space-between" align="center" gap="10px">
                             <Text strong>{currentProject.project.projectName}</Text>
-                        {
-                            isLeader && <Button style={{ padding: "1rem" }} icon={<EditOutlined />} type="text"
-                            onClick={() => setIsOpenModal(true)} />
-                        }
+                        
+                                    <Button style={{ padding: "1rem" }} icon={<EditOutlined />} type="text"
+                                        onClick={() => setIsOpenModal(true)} />
                             </Flex>
                             <Tag color="blue" style={{width:"fit-content"}}><b>{currentProject.project.projectStatus}</b></Tag>
                         </Flex>
@@ -76,6 +73,7 @@ const SideBarMain = () => {
                             <Menu.Item key="home" icon={<HomeOutlined />}>Home</Menu.Item>
                             <Menu.Item key="members" icon={<TeamOutlined />}>Members</Menu.Item>
                             <Menu.Item key="finance" icon={<DollarOutlined />}>Finance Plan</Menu.Item>
+                            <Menu.Item key="donations" icon={<FileTextOutlined />}>Donations Records</Menu.Item>
                             <Menu.Item key="tasks" icon={<OrderedListOutlined />}>Task Plan</Menu.Item>
                             <Menu.Item key={`request/${currentProject.project.requestId}`} icon={<QuestionCircleOutlined />}>Help Request</Menu.Item>
                         </Menu.ItemGroup>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, Button, Typography, Tag } from "antd";
 import { Link } from "react-router-dom";
-import { deletePosts } from "../../redux/post/postSlice";
+
 const { Title, Text } = Typography;
 
 const PostBox = ({ postData }) => {

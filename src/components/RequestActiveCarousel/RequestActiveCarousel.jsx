@@ -1,19 +1,22 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Carousel, Form, Input, Select, Flex, Skeleton, Empty, Modal, Button, Space } from "antd";
-import { LeftOutlined, RightOutlined, FilterOutlined, ClearOutlined } from "@ant-design/icons";
+import { Carousel, Form, Input, Select, Flex, Skeleton, Empty, Modal, Button, Space } from "antd"; // Thêm Modal, Button, Space
+import { LeftOutlined, RightOutlined, FilterOutlined, ClearOutlined } from "@ant-design/icons"; // Thêm FilterOutlined, ClearOutlined
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import RequestCard from "../RequestCard/RequestCard"; 
-import { fetchActiveRequests } from "../../redux/request/requestSlice";
-import { fetchCategories } from "../../redux/category/categorySlice"; 
-import { fetchTags } from "../../redux/tag/tagSlice"; 
-import provinceCoordinates from "./provinceCoordinates"; 
+import RequestCard from "../RequestCard/RequestCard"; // Đảm bảo đường dẫn đúng
+import { fetchActiveRequests } from "../../redux/request/requestSlice"; // Đảm bảo đường dẫn đúng
+import { fetchCategories } from "../../redux/category/categorySlice"; // Đảm bảo đường dẫn đúng
+import { fetchTags } from "../../redux/tag/tagSlice"; // Đảm bảo đường dẫn đúng
+import provinceCoordinates from "./provinceCoordinates"; // Đảm bảo file này tồn tại và đúng
 
+// Import React Leaflet cho map
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from 'leaflet'; 
+import L from 'leaflet'; // Import L để sửa lỗi icon marker
 import "leaflet/dist/leaflet.css";
 
-
+// ---- Sửa lỗi Icon Marker của Leaflet ----
+// Leaflet không tự tìm thấy icon khi dùng với bundler như Webpack
+// Cần import và đặt lại đường dẫn thủ công
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
@@ -28,7 +31,7 @@ L.Icon.Default.mergeOptions({
 // -----------------------------------------
 
 
-// Hàm parse location
+// Hàm parse location (giữ nguyên)
 function parseLocationString(locationString = "") {
   const parts = locationString.split(",").map(p => p.trim());
   if(parts.length < 3) {
@@ -45,7 +48,7 @@ function parseLocationString(locationString = "") {
   return { detail, communeName, districtName, provinceName };
 }
 
-// Hàm normalize
+// Hàm normalize (giữ nguyên)
 function normalizeString(str = "") {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
@@ -63,9 +66,9 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
   const [provinces, setProvinces] = useState([]);
 
   // State filter và modal
-  const [filters, setFilters] = useState({}); 
+  const [filters, setFilters] = useState({}); // State chứa bộ lọc ĐÃ ÁP DỤNG
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm(); 
+  const [form] = Form.useForm(); // Form instance cho modal
 
   const [filteredRequests, setFilteredRequests] = useState([]);
 
@@ -82,6 +85,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
     }
   }, [dispatch, categories.length, tags.length, activeRequests.length]);
 
+  // Lọc danh sách request mỗi khi activeRequests hoặc filters (đã áp dụng) thay đổi
   useEffect(() => {
     let data = [...activeRequests];
 
@@ -123,14 +127,14 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
                 const { provinceName } = parseLocationString(item.helpRequest.location || "");
                 requestProvName = normalizeString(provinceName);
             }
-
+             // Check if requestProvName contains any of the filterProv values
             return filterProvs.some((filterProv) => requestProvName.includes(filterProv));
           });
       }
     }
 
     setFilteredRequests(data);
-  }, [activeRequests, filters, provinces]);
+  }, [activeRequests, filters, provinces]); // Phụ thuộc vào filters đã áp dụng
 
   // --- Modal Handlers ---
   const showModal = () => {
@@ -151,40 +155,44 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
 
   const handleCancelModal = () => {
     setIsModalVisible(false);
+     // Không cần reset form ở đây vì khi mở lại, nó sẽ lấy giá trị từ `filters`
   };
 
   const handleClearAllFilters = () => {
     setFilters({}); // Xóa bộ lọc chính
-    form.resetFields(); 
+    form.resetFields(); // Xóa các trường trong form (bao gồm cả form trong modal nếu đang mở)
+     // Không cần đóng modal ở đây, nút này thường ở ngoài modal
   };
   // --------------------
 
+  // Carousel settings (giữ nguyên)
   const settings = {
-    dots: false, 
-    infinite: filteredRequests.length > 4, 
+    dots: false, // Ẩn dots mặc định nếu dùng custom arrows nổi bật
+    infinite: filteredRequests.length > 4, // Chỉ infinite nếu đủ thẻ để cuộn
     speed: 500,
     slidesToShow: 4,
     slidesToScroll: 1,
     arrows: true,
     prevArrow: <CustomPrevArrow />,
     nextArrow: <CustomNextArrow />,
-     draggable: true, 
+     draggable: true, // Cho phép kéo trên mobile
     responsive: [
       {
-        breakpoint: 1200, 
+        breakpoint: 1200, // Điều chỉnh breakpoint
         settings: { slidesToShow: 3, slidesToScroll: 1, infinite: filteredRequests.length > 3 },
       },
        {
-        breakpoint: 992, 
+        breakpoint: 992, // Điều chỉnh breakpoint
         settings: { slidesToShow: 2, slidesToScroll: 1, infinite: filteredRequests.length > 2 },
       },
       {
-        breakpoint: 768, 
+        breakpoint: 768, // Điều chỉnh breakpoint
         settings: { slidesToShow: 1, slidesToScroll: 1, infinite: filteredRequests.length > 1 },
       },
     ],
   };
 
+  // Xử lý dữ liệu cho Map (giữ nguyên)
   const requestsByProvince = {};
   filteredRequests.forEach((request) => {
     let provinceName = "";
@@ -213,19 +221,21 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
   });
 
 
-  if (loading) return <Skeleton active paragraph={{ rows: 10 }}/>; 
+  if (loading) return <Skeleton active paragraph={{ rows: 10 }}/>; // Skeleton chi tiết hơn
   if (error) return <div>Error loading requests: {error.message || 'Unknown error'}</div>;
 
   return (
-    <div className="request-active-carousel" style={{ padding: '0 10px' }}> 
+    <div className="request-active-carousel" style={{ padding: '0 10px' }}> {/* Thêm padding nhỏ */}
 
       <Flex justify="space-between" align="center" style={{ marginBottom: "1rem" }}>
         <b style={{ fontSize: "1.4rem" }}>Requests Waiting To Be Registered</b>
+        {/* Chỉ hiển thị nút Filter/Clear nếu prop search là true */}
         {search && (
           <Space>
             <Button icon={<FilterOutlined />} onClick={showModal}>
               Filter & Search
             </Button>
+             {/* Chỉ hiển thị nút Clear nếu có bộ lọc đang được áp dụng */}
             {Object.keys(filters).length > 0 && (
               <Button icon={<ClearOutlined />} onClick={handleClearAllFilters} danger>
                 Clear Filters
@@ -240,7 +250,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
             title="Filter & Search Requests"
             visible={isModalVisible}
             onCancel={handleCancelModal}
-            destroyOnClose 
+            destroyOnClose // Reset form state khi modal đóng hoàn toàn
             footer={[
                 <Button key="clear" onClick={() => form.resetFields()}>
                     Reset Fields
@@ -305,24 +315,27 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
           ))}
         </Carousel>
       ) : (
+         // Hiển thị Empty state nếu không có request nào sau khi lọc
         <Empty description={Object.keys(filters).length > 0 ? "No requests match your filters" : "No active requests found"} />
       )}
 
+      {/* Map (giữ nguyên logic hiển thị map) */}
       {map && (
         <div style={{ marginTop: "2rem" }}>
-           <Flex vertical={true}> 
+           <Flex vertical={true}> {/* Sửa lỗi typo vertical='true' thành vertical={true} */}
                 <b style={{ fontSize: "1.4rem", marginBottom:"1rem" }}>Requests Distribution Map</b>
             </Flex>
+            {/* Đảm bảo MapContainer có chiều cao */}
             <MapContainer
                 center={[16.0471, 108.2062]}
-                zoom={6} 
-                style={{ height: '500px', width: '100%' }} 
-                scrollWheelZoom={true}
-                maxBounds={[[8.1, 101.0], [23.5, 110.0]]} 
+                zoom={6} // Zoom nhỏ hơn để thấy tổng quan VN
+                style={{ height: '500px', width: '100%' }} // Đặt chiều cao rõ ràng
+                scrollWheelZoom={true} // Cho phép zoom bằng cuộn chuột
+                maxBounds={[[8.1, 101.0], [23.5, 110.0]]} // Điều chỉnh giới hạn chặt hơn một chút
                 maxBoundsViscosity={1.0}
-                attributionControl={false}
             >
                 <TileLayer
+                    attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 {Object.keys(requestsByProvince).map((provKey) => {
@@ -336,7 +349,7 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
                 }
 
                 const requestCount = data.requests.length;
-                const displayName = data.displayName;
+                const displayName = data.displayName; // Lấy tên hiển thị đã lưu
 
                 return (
                     <Marker key={provKey} position={[coord.lat, coord.lng]}>
@@ -368,12 +381,13 @@ const RequestActiveCarousel = ({ search = true, map = true }) => {
   );
 };
 
+// Custom Arrows (giữ nguyên)
 const CustomPrevArrow = (props) => {
   const { className, style, onClick } = props;
   return (
     <LeftOutlined
-       className={className}
-      style={{ ...style, display: "block", left: "-25px", fontSize: "20px", color: "#555" , zIndex: 10 }}
+       className={className} // Giữ lại className để có thể style từ CSS của Carousel nếu cần
+      style={{ ...style, display: "block", left: "-25px", fontSize: "20px", color: "#555" , zIndex: 10 }} // Điều chỉnh style
       onClick={onClick}
     />
   );

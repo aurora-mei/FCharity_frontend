@@ -257,10 +257,10 @@ const ProjectRequestList = ({ isLeader, projectId }) => {
         },
     ];
     return (
-        <div style={{ boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 8px 0px", borderRadius:"0.5rem",
+        <div style={{ boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 8px 0px", borderRadius:"1rem",
             padding:"2rem",
-              background: "#fff"}}> 
-            <Flex vertical style={{ marginTop: 0,marginBottom:"0.8rem" }}>
+              background: "#fff"}}>
+            <Flex vertical style={{ marginTop: 0 }}>
                 <Title level={5} styled={{ margin: "0 !important" }}>Requests List</Title>
                 <Space>
                     <StyledSearch><Search onSearch={onSearch} /></StyledSearch>

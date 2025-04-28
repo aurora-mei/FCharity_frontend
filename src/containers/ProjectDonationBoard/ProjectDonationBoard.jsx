@@ -1,234 +1,265 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { Card, Typography, DatePicker, Empty, Pagination, Divider } from "antd";
+import React, { useEffect, useState } from "react";
+import { Card, Table, Typography, Select,Empty } from "antd";
 import { Flex } from "antd";
 import styled from "styled-components";
 import moment from "moment-timezone";
 import PropTypes from "prop-types";
-import DonationCard from "../../components/DonationCard/DonationCard"; // Assuming correct path
-
+import DonationCard from "../../components/DonationCard/DonationCard";
+import { Row, Col, Pagination } from "antd";
+import { useDispatch } from "react-redux";
 const { Title, Text } = Typography;
 
-// --- Styled Components ---
 const StyledWrapper = styled.div`
+  padding: 1rem;
   width: 100%;
-  .donation-card-wrapper {
+  .donation-card {
     width: 100%;
     background: #fff !important;
-    padding: 0; // Reset padding, handle inside
+    padding: 1rem;
     border-radius: 1rem;
-    // box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
     transition: all 0.3s ease;
 
     .ant-card-body {
       background: #fff !important;
-      padding: 0; // Remove default Card padding
     }
+
+    &:hover {
+      cursor: pointer;
+      transform: translateY(-0.3rem);
+      box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 10px 0px;
+    }
+  }
+
+  .flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .full-width-button {
+    width: 100%;
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    &:hover {
+      cursor: pointer;
+      transform: translateY(-0.3rem);
+      box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 10px 0px;
+    }
+  }
+
+  .bottom-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.9rem !important;
+
+    .ant-btn:hover {
+      background-color: #f0f0f0 !important;
+      color: black !important;
+      border-color: black !important;
+    }
+  }
+
+  .custom-table .ant-table {
+    font-size: 0.8rem;
+  }
+
+  .custom-table .ant-table-thead > tr > th {
+    font-size: 1rem;
+  }
+
+  .custom-table .ant-table-tbody > tr > td {
+    font-size: 0.9rem;
   }
 `;
 
-// NEW: Styled component for the date group background
-const DateGroupWrapper = styled.div`
-  background-color:rgb(230, 244, 255); // Ant Design's light blue (@blue-1)
-  padding: 1rem;
-  border-radius: 8px; // Optional: slightly rounded corners
-  margin-bottom: 1.5rem; // Space between date groups
-  &:last-child {
-    margin-bottom: 0; // No margin after the last item
-  }
-`;
-
-
-// --- Helper Function (Keep as is) ---
-const groupDonationsByDate = (donations) => {
-  // ... (keep the existing grouping logic)
-  if (!donations || donations.length === 0) {
-    return {};
-  }
-
-  const grouped = donations.reduce((acc, donation) => {
-    const dateKey = moment(donation.donationTime)
-      .tz("Asia/Ho_Chi_Minh")
-      .startOf("day")
-      .format("YYYY-MM-DD");
-
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(donation);
-    acc[dateKey].sort((a, b) => moment(b.donationTime).valueOf() - moment(a.donationTime).valueOf());
-    return acc;
-  }, {});
-
-  return grouped;
-};
-
+const columns = [
+  {
+    title: "Date",
+    dataIndex: "donationTime",
+    key: "donationTime",
+    render: (text) => (
+      <Text style={{ fontSize: "0.9rem" }}>
+        {moment(text).tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY hh:mm A")}
+      </Text>
+    ),
+    sorter: (a, b) => new Date(a.donationTime) - new Date(b.donationTime),
+    defaultSortOrder: "descend",
+  },
+  {
+    title: "Donator",
+    dataIndex: "user",
+    key: "fullName",
+    render: (user) => <p>{user.fullName}</p>,
+  },
+  {
+    title: "Amount",
+    dataIndex: "amount",
+    key: "amount",
+    render: (text) => (
+      <Text style={{ fontSize: "0.9rem" }} type="success">
+        {text?.toLocaleString() || 0} VND
+      </Text>
+    ),
+  },
+  {
+    title: "Message",
+    dataIndex: "message",
+    key: "message",
+    render: (text) => (
+      <Text style={{ fontSize: "0.9rem" }}>
+        {text || "No message"}
+      </Text>
+    ),
+  },
+];
 
 const ProjectDonationBoard = ({ donations }) => {
-  const [groupedDonations, setGroupedDonations] = useState({});
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [dataSource, setDataSource] = useState([]);
+  const [filterOption, setFilterOption] = useState("All");
   const [pageSize, setPageSize] = useState(5);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const totalDonationAmount = useMemo(() => {
-    return donations
-      .filter((d) => d.donationStatus === "COMPLETED")
-      .reduce((total, d) => total + d.amount, 0);
-  }, [donations]);
+  const handlePageChange = (page, pageSize) => {
+    setCurrentPage(page);
+    setPageSize(pageSize);
+  };
+
 
   useEffect(() => {
-    const grouped = groupDonationsByDate(donations);
-    setGroupedDonations(grouped);
-    setCurrentPage(1);
-  }, [donations]);
+    filterDonations();
+  }, [filterOption, donations]);
+ 
+  const filterDonations = () => {
+    let filtered;
+  
+    switch (filterOption) {
+      case "Recent donations":
+        filtered = donations
+          .filter((x) => moment(x.donationTime).isSame(moment(), "day"))
+          .sort((a, b) => moment(b.donationTime) - moment(a.donationTime));
+        break;
+  
+      case "Top donations":
+        filtered = donations
+          .filter((x) => x.donationStatus === "VERIFIED")
+          .sort((a, b) => b.amount - a.amount);
+        break;
+  
+      case "First donations":
+        filtered = donations
+          .filter((x) => x.donationStatus === "VERIFIED")
+          .sort((a, b) => moment(a.donationTime) - moment(b.donationTime));
+        break;
+  
+      case "All":
+      default:
+        filtered = [...donations].sort((a, b) => moment(b.donationTime).valueOf() - moment(a.donationTime).valueOf());
 
-  const sortedDates = useMemo(() => {
-    return Object.keys(groupedDonations).sort((a, b) => moment(b).valueOf() - moment(a).valueOf());
-  }, [groupedDonations]);
-
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-    setCurrentPage(1);
-  };
-
-  const handlePageChange = (page, newPageSize) => {
-    setCurrentPage(page);
-    if (newPageSize && newPageSize !== pageSize) {
-        setPageSize(newPageSize);
     }
+  
+    setDataSource(filtered);
   };
-
-  // --- Prepare Data for Display ---
-  const renderContent = () => {
-    if (selectedDate) {
-      // --- Displaying donations for a specific selected date ---
-      const dateKey = selectedDate.format("YYYY-MM-DD");
-      const donationsForSelectedDate = groupedDonations[dateKey] || [];
-
-      if (donationsForSelectedDate.length === 0) {
-        return <Empty description={`No donations found for ${selectedDate.format("DD/MM/YYYY")}`} />;
-      }
-
-      const paginatedDonations = donationsForSelectedDate.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-      );
-
-      // No background needed for single date view
-      return (
-        <>
-         <DateGroupWrapper key={dateKey}  style={{ height:"10rem",overflowY:"auto" }}>
-                <Title level={5} style={{ marginBottom: '0.5rem' }}>
-                  {moment(dateKey).format("DD MMMM YYYY")} ({groupedDonations[dateKey]?.length || 0} donations)
-                </Title>
-                 <Divider style={{marginTop:"0.5rem", marginBottom:"1rem", backgroundColor: "rgba(0, 0, 0, 0.1)"}}/> {/* Optional: slightly darker divider */}
-                <Flex vertical gap={16}>
-                  {groupedDonations[dateKey].map((donation) => (
-                    <DonationCard key={donation.id} donation={donation} />
-                  ))}
-                </Flex>
-              </DateGroupWrapper>
-          {donationsForSelectedDate.length > pageSize && (
-             <Pagination
-                style={{ marginTop: '1rem', textAlign: 'center' }}
-                current={currentPage}
-                pageSize={pageSize}
-                total={donationsForSelectedDate.length}
-                onChange={handlePageChange}
-                showSizeChanger
-                pageSizeOptions={['5', '10', '20', '50']}
-                showQuickJumper
-            />
-          )}
-        </>
-      );
-    } else {
-      // --- Displaying donations grouped by date (paginating through dates) ---
-      if (sortedDates.length === 0) {
-        return <Empty description="No donations available" />;
-      }
-
-       const paginatedDates = sortedDates.slice(
-         (currentPage - 1) * pageSize,
-         currentPage * pageSize
-       );
-
-      return (
-        <>
-          {/* Remove gap from Flex, handle spacing with DateGroupWrapper margin */}
-          <Flex vertical>
-            {paginatedDates.map((dateKey) => (
-              // Use the new styled component wrapper here
-              <DateGroupWrapper key={dateKey}>
-                <Title level={5} style={{ marginBottom: '0.5rem' }}>
-                  {moment(dateKey).format("DD MMMM YYYY")} ({groupedDonations[dateKey]?.length || 0} donations)
-                </Title>
-                 <Divider style={{marginTop:"0.5rem", marginBottom:"1rem", backgroundColor: "rgba(0, 0, 0, 0.1)"}}/> {/* Optional: slightly darker divider */}
-                <Flex vertical gap={16}>
-                  {groupedDonations[dateKey].map((donation) => (
-                    <DonationCard key={donation.id} donation={donation} />
-                  ))}
-                </Flex>
-              </DateGroupWrapper>
-            ))}
-          </Flex>
-           {sortedDates.length > pageSize && (
-               <Pagination
-                style={{ marginTop: '2rem', textAlign: 'center' }}
-                current={currentPage}
-                pageSize={pageSize}
-                total={sortedDates.length}
-                onChange={handlePageChange}
-                showSizeChanger
-                pageSizeOptions={['5', '10', '20', '50']}
-                showQuickJumper
-              />
-           )}
-        </>
-      );
-    }
+  const paginatedData = dataSource.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+  const handleFilterChange = (value) => {
+    setFilterOption(value);
   };
+  
+
+  const recentDonation = donations
+    .filter((x) => moment(x.donationTime).isSame(moment(), "day"))
+    .sort((a, b) => moment(b.donationTime) - moment(a.donationTime));
 
   return (
     <StyledWrapper>
-      {/* Use Card for overall structure, but control padding manually */}
-      <Card className="donation-card-wrapper" bordered={false}>
-         {/* Header Section - Add padding here */}
-        <div style={{ padding: '0' }}>
-            <Flex justify="space-between" align="center" style={{ marginBottom: "1rem" }}>
-            <Title level={5} >Donation Records</Title>
-              <Text style={{  fontWeight: 500 }}>
-                Total Completed:{" "}
-                <Text type="success" style={{  }}>
-                  {totalDonationAmount.toLocaleString()} VND
-                </Text>
-              </Text>
-            </Flex>
+      <Card className="donation-card">
+        <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+          <Title level={5} style={{ margin: 0 }}>
+            Donation Records
+          </Title>
+          <Text type="primary" style={{ fontSize: "1rem", fontWeight: 500 }}>
+            Total:{" "}
+            <Text type="success">
+              {donations
+                .filter((x) => x.donationStatus === "COMPLETED")
+                .reduce((total, d) => total + d.amount, 0)
+                .toLocaleString()}{" "}
+              VND
+            </Text>
+          </Text>
+        </Flex>
 
-            {/* Date Search Section */}
-            <Flex justify="flex-end" style={{ marginBottom: "1rem" }}> {/* Reduced margin */}
-              <DatePicker
-                onChange={handleDateChange}
-                value={selectedDate}
-                placeholder="Search by Date"
-                format="DD/MM/YYYY"
-                allowClear
-              />
-            </Flex>
-            <Divider style={{marginTop:0, marginBottom:"1.5rem"}}/>
-        </div>
+        <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: "0.9rem", fontWeight: 400, color: "gray" }}>
+            Newest:{" "}
+            {recentDonation.length > 0
+              ? moment(recentDonation[0].donationTime)
+                  .tz("Asia/Ho_Chi_Minh")
+                  .format("DD/MM/YYYY hh:mm A")
+              : "No recent donations today"}
+          </p>
+          <Select
+            value={filterOption}
+            onChange={handleFilterChange}
+            style={{ width: "10rem" }}
+          >
+            {["All", "Recent donations", "Top donations", "First donations"].map(
+              (type) => (
+                <Select.Option key={type} value={type}>
+                  {type}
+                </Select.Option>
+              )
+            )}
+          </Select>
+        </Flex>
 
-        {/* Donation List Section - Add padding here */}
-         <div style={{padding: "0", overflowY:"auto", height:"35rem"}}>
-            {renderContent()}
-         </div>
-
+        {dataSource.length > 0 ? (
+          // <Table
+          //   columns={columns}
+          //   size="middle"
+          //   scroll={{ y: 300 }}
+          //   dataSource={dataSource}
+          //   pagination={{
+          //       pageSize: pageSize,
+          //       pageSizeOptions: ['5', '10', '20', '50'],
+          //       onChange: (page, pageSize) => setPageSize(pageSize),
+          //       showSizeChanger: true,
+          //       showQuickJumper: true,
+          //   }}
+          //   rowKey="id"
+          //   className="custom-table"
+          // />
+          <div>
+      <Flex vertical gap={10} style={{marginBottom:"1rem", minHeight:"20rem"}}>
+        {paginatedData.map((donation) => (
+          <DonationCard donation={donation} />
+        ))}
+      </Flex>
+      <Pagination
+        current={currentPage}
+        pageSize={pageSize}
+        total={donations.length}
+        onChange={handlePageChange}
+        showSizeChanger
+        pageSizeOptions={['5', '10', '20', '50']}
+        showQuickJumper
+      />
+    </div>
+        ) : (
+          <Empty title="No donations available"></Empty>
+        )}
       </Card>
     </StyledWrapper>
   );
 };
 
 ProjectDonationBoard.propTypes = {
-  // ... (keep existing propTypes)
   donations: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,

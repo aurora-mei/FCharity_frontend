@@ -148,8 +148,8 @@ const Navbar = () => {
   const storedUser = localStorage.getItem("currentUser");
   const dispatch = useDispatch();
   const myProjects = useSelector((state) => state.project.myProjects);
-  const [ownedProject, setOwnedProject] = useState([]); // State to hold owned projects
-  const [joinedProject, setJoinedProject] = useState([]); // State to hold joined projects
+  const [ownedProject,setOwnedProject] = useState([]); // State to hold owned projects
+  const [joinedProject,setJoinedProject] = useState([]); // State to hold joined projects
   const [projectId, setProjectId] = useState(null); // State to hold project ID
   let currentUser = {};
   try {
@@ -162,7 +162,7 @@ const Navbar = () => {
   // *** Updated logout function - prefer navigation over full page reload ***
   const logout = () => {
     dispatch(logOut());
-    navigate("/auth/login");
+    navigate("/");
   };
 
   const { ownedOrganization, managedOrganizations } = useSelector(
@@ -186,20 +186,21 @@ const Navbar = () => {
       const joined = myProjects.filter(
         (data) => data.project.leader.id !== currentUser.id
       );
-
+  
       setOwnedProject(owned);
       setJoinedProject(joined);
-
+  
       const defaultProjectId =
         owned.length > 0
           ? owned[0].project.id
           : joined.length > 0
           ? joined[0].project.id
           : "";
-
+  
       setProjectId(defaultProjectId);
     }
   }, [myProjects]);
+  
 
   // *** This is NO LONGER needed if using Popover ***
   // const fundraiseMenuItems = [ ... ];
@@ -218,7 +219,7 @@ const Navbar = () => {
       key: "2",
       label: ownedOrganization ? (
         <Link rel="noopener noreferrer" to="/my-organization">
-          My Organizations
+          My Organization
         </Link>
       ) : (
         <Link rel="noopener noreferrer" to="/organizations/create">
@@ -229,11 +230,21 @@ const Navbar = () => {
     {
       key: "3",
       label:
+        managedOrganizations && managedOrganizations.length > 0 ? (
+          <Link rel="noopener noreferrer" to="/joined-organizations">
+            Joined Organizations
+          </Link>
+        ) : (
+          <Link rel="noopener noreferrer" to="/organizations">
+            Discover Organizations
+          </Link>
+        ),
+    },
+    {
+      key: "4",
+      label:
         myProjects && myProjects.length > 0 ? (
-          <Link
-            rel="noopener noreferrer"
-            to={`/manage-project/${projectId}/home`}
-          >
+         <Link rel="noopener noreferrer" to={`/manage-project/${projectId}/home`}>
             My Project
           </Link>
         ) : (
@@ -243,7 +254,7 @@ const Navbar = () => {
         ),
     },
     {
-      key: "4",
+      key: "5",
       // Use a span or div for onClick if not a real navigation link
       label: (
         <span onClick={logout} style={{ cursor: "pointer", display: "block" }}>
@@ -271,6 +282,7 @@ const Navbar = () => {
               className="btn-custom"
               type="text"
               icon={<SearchOutlined />}
+              onClick={() => navigate("/search")} // Example navigation
             >
               {t("search", "Search")}
             </Button>
@@ -285,7 +297,7 @@ const Navbar = () => {
               trigger="click"
               placement="bottomLeft"
               overlayClassName="fundraise-popover-panel" // Class for styling the panel
-              // arrow={false} // Optionally hide the arrow pointer
+            // arrow={false} // Optionally hide the arrow pointer
             >
               <Button className="btn-custom" type="text">
                 <Space>
@@ -332,21 +344,18 @@ const Navbar = () => {
               // Use the renamed user menu items
               <Flex align="center" gap="16px">
                 <NotificationBell />
-                <Dropdown
-                  menu={{ items: userMenuItems }}
-                  placement="bottomRight"
-                >
-                  {/* Added specific class for potential user button styling */}
-                  <Button className="btn-custom btn-user" type="text">
-                    <img
-                      src={currentUser?.avatar ?? avatar} // Use optional chaining
-                      alt="User avatar" // Better alt text
-                      className="user-avatar" // Add class for styling
-                    />
-                    {/* Wrap name in span for styling/hiding on small screens */}
-                    <span className="user-name">{currentUser?.fullName}</span>
-                  </Button>
-                </Dropdown>
+              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                {/* Added specific class for potential user button styling */}
+                <Button className="btn-custom btn-user" type="text">
+                  <img
+                    src={currentUser?.avatar ?? avatar} // Use optional chaining
+                    alt="User avatar" // Better alt text
+                    className="user-avatar" // Add class for styling
+                  />
+                  {/* Wrap name in span for styling/hiding on small screens */}
+                  <span className="user-name">{currentUser?.fullName}</span>
+                </Button>
+              </Dropdown>
               </Flex>
             ) : (
               <Button
@@ -372,15 +381,14 @@ const Navbar = () => {
                 <button
                   key={lng}
                   // Add classes for styling from pcss
-                  className={`language-button ${
-                    i18n.resolvedLanguage === lng ? "active" : ""
-                  }`}
+                  className={`language-button ${i18n.resolvedLanguage === lng ? "active" : ""
+                    }`}
                   // *** Use type="button" for non-submitting buttons ***
                   type="button"
                   onClick={() => {
                     i18n.changeLanguage(lng);
                   }}
-                  // Remove inline style if handled by CSS/PCSS
+                // Remove inline style if handled by CSS/PCSS
                 >
                   {lngs[lng].nativeName}
                 </button>

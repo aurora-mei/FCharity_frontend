@@ -1,64 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import {
-    Card, Button, Tag, Input, Typography, Flex, Form, Empty, Table, Upload, Skeleton,
-    Tooltip, Modal, Progress, message, Row, Col, Statistic
-} from 'antd';
-import {
-    DeleteOutlined, DownloadOutlined, EditOutlined, PlusOutlined, UploadOutlined,
-    DollarCircleOutlined,
-    BankOutlined,
-    WalletOutlined
-} from '@ant-design/icons';
+import { Card, Button, Tag, Input, Typography, Flex, Form, Empty, Table } from 'antd';
+import { DownloadOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import moment from 'moment';
 import { useParams } from 'react-router-dom';
+import { deleteSpendingItemThunk, fetchProjectById } from '../../redux/project/projectSlice';
+import { useEffect } from 'react';
 import {
-    deleteSpendingItemThunk, fetchProjectById, deleteSpendingPlanThunk, fetchWithdrawRequestByProject,updateConfirmWithdrawRequest,
-    fetchSpendingTemplateThunk, importSpendingPlanThunk, fetchSpendingDetailsByProject,
-    fetchDonationsOfProject, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan,
-    createSpendingPlanThunk, createSpendingItemThunk, updateSpendingPlanThunk,
-    updateSpendingItemThunk, fetchProjectWallet,
-    fetchExpenseTemplateThunk
+    fetchSpendingTemplateThunk, importSpendingPlanThunk,fetchSpendingDetailsByProject ,
+    fetchSpendingPlanOfProject, fetchSpendingItemOfPlan, createSpendingPlanThunk
+    , createSpendingItemThunk, updateSpendingPlanThunk, updateSpendingItemThunk
 } from '../../redux/project/projectSlice';
-import WithdrawRequestModal from '../../components/WithdrawRequestModal/WithdrawRequestModal';
-// Assuming these components exist and are correctly imported
-// import SpendingPlanModal from '../../components/SpendingPlanModal/SpendingPlanModal';
-// import SpendingItemModal from '../../components/SpendingItemModal/SpendingItemModal';
-import ProjectDonationContainer from '../ProjectDonationContainer/ProjectDonationContainer';
-import ProjectSpendingDetailContainer from '../ProjectSpendingDetailContainer/ProjectSpendingDetailContainer';
-import ProjectSpendingPlanContainer from '../ProjectSpendingPlanContainer/ProjectSpendingPlanContainer';
+import SpendingPlanModal from '../../components/SpendingPlanModal/SpendingPlanModal';
+import SpendingItemModal from '../../components/SpendingItemModal/SpendingItemModal';
+const { Title } = Typography;
 
-const { Title, Text } = Typography;
-
-// Styled components
-export const SpendingPlanFlex = styled(Flex)`
+const SpendingPlanFlex = styled(Flex)`
   width: 100%;
   flex-direction: column;
-  border-radius:0.5rem;
-//   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
-//   padding:2rem;
-  background: #fff; // This applies to the Flex container itself if used
+  border-radius:1rem;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
+  padding:2rem;
+    background: #fff;
 `;
 
-export const Header = styled.div`
+const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 16px;
 `;
 
-export const TitleSection = styled.div`
+const TitleSection = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
 `;
 
-export const ButtonGroup = styled.div`
+const ButtonGroup = styled.div`
   display: flex;
   gap: 8px;
 `;
 
-export const SpendingItemRow = styled.div`
+const SpendingItemRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -66,394 +50,308 @@ export const SpendingItemRow = styled.div`
   padding: 8px;
   border-radius: 4px;
 `;
-export const StyledButtonInvite = styled(Button)`
+const StyledButtonInvite = styled(Button)`
     background-color: #fff !important;
+    border: 1px solid green !important;
     padding: 1rem !important;
-    transition: all 0.3s ease;
-    color:black;
-    font-size: 0.7rem !important;
+      transition: all 0.3s ease;
+   
     &:hover{
         background-color: #fff !important;
         border: 1px solid green !important;
         padding: 1rem !important;
          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-       color:black!important;
-    }
-    .ant-btn{
-        span{
-            font-size: 0.7rem !important;
+       
         }
-    }
-`;
-export const StyledButtonSubmit = styled(Button)`
-    background-color: green !important;
-    padding: 1rem !important;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-    color:white;
-    &:hover{
-        background-color: green !important;
-        border: 1px solid green !important;
-        padding: 1rem !important;
-         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-       color:white!important;
-    }
+}
     .ant-btn{
         span{
             font-size: 1rem !important;
-        }
-    }
-`;
+            }
+        }    
+  
 
-// Corrected StyledCard to target the card body for background color
-const StyledCard = styled(Card)`
-    border-radius: 0.5rem;
-    // box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
-    width: 100%; /* Ensure card takes full width */
-    background-color: #fff; /* Set outer card background */
+}`
 
-    .ant-card-head {
-        /* Optional: Style header if needed */
-        background-color: #fff;
-         border-bottom: 1px solid #f0f0f0; /* Add a subtle separator */
-    }
-
-    .ant-card-body {
-       background-color: #fff !important; /* Ensure card body is white */
-       padding: 16px; /* Adjust padding as needed */
-       /* Remove default padding if you want content flush against edges */
-       /* padding: 0; */
-    }
-`;
-
-const StatisticCard = styled(Card)`
-    border-radius: 0.5rem;
-    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 3px 0px;
-    background-color: #fff !important;
-     border: 1px solid #f0f0f0;
-
-     .ant-card-body {
-       background-color: #fff !important;
-       padding: 16px !important;
-     }
-
-     /* Target the container holding the prefix and value */
-     .ant-statistic-content {
-        display: flex;         /* Use flexbox */
-        align-self: center;   /* Align items vertically centered */
-        gap: 8px;              /* Add space between icon and value */
-        /* You might need 'align-items: baseline;' if 'center' isn't quite right */
-        /* align-items: baseline; */
-     }
-
-     /* Optional: Ensure prefix (icon) itself is centered if needed */
-     .ant-statistic-content-prefix {
-        display: inline-flex;
-        align-items: center;
-     }
-
-      /* Optional: Adjust value styling if needed */
-      .ant-statistic-content-value {
-       /* line-height: 1; /* Sometimes helps with baseline alignment */
-     }
-`;
-
-
-
-
-
-// --- Main Component ---
 const ProjectFinancePlanContainer = () => {
-    const [form] = Form.useForm();
     const dispatch = useDispatch();
     const { projectId } = useParams();
-    const [isOpenWithdrawalModal, setIsOpenWithdrawalModal] = useState(false);
-    // --- Redux State ---
     const currentProject = useSelector((state) => state.project.currentProject);
     const spendingItems = useSelector((state) => state.project.spendingItems);
     const currentSpendingPlan = useSelector((state) => state.project.currentSpendingPlan);
+    const currentSpendingItem = useSelector((state) => state.project.currentSpendingItem);
+    const [selectedSpendingItem, setSelectedSpendingItem] = useState(null);
+    const [selectedSpendingPlan, setSelectedSpendingPlan] = useState(null);
+    const [downloadTemplate, setDownloadTemplate] = useState(false);
+    const [isOpenCreatePlanModal, setIsOpenCreatePlanModal] = useState(false);
+    const [isOpenUpdatePlanModal, setIsOpenUpdatePlanModal] = useState(false);
+    const [isOpenCreateItemModal, setIsOpenCreateItemModal] = useState(false);
+    const [isOpenUpdateItemModal, setIsOpenUpdateItemModal] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
     const currentUser = useSelector((state) => state.auth.currentUser);
-    const spendingDetails = useSelector((state) => state.project.spendingDetails);
-    const donations = useSelector((state) => state.project.donations);
-    const projectWallet = useSelector((state) => state.project.projectWallet);
-
-    // --- Local State ---
     const [isLeader, setIsLeader] = useState(false);
-    const [loading, setLoading] = useState(true); // Added loading state
-
-    // --- Data Fetching ---
+    const spendingDetails = useSelector((state) => state.project.spendingDetails);
+    const currentSpendingDetail = useSelector((state) => state.project.currentSpendingDetail);
+    const [form] = Form.useForm();
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            if (projectId) {
-                await Promise.all([
-                    dispatch(fetchProjectById(projectId)),
-                    dispatch(fetchDonationsOfProject(projectId)),
-                    dispatch(fetchSpendingDetailsByProject(projectId))
-                ]);
-            }
-            // Set loading to false after initial project/donation/details fetch
-            // Plan/Items fetch happens in subsequent effects
-            // This prevents showing "Loading..." for too long if plan takes time
-            setLoading(false);
-        };
-        fetchData();
-    }, [projectId, dispatch]);
-
-    useEffect(() => {
-        // Fetch spending plan associated with the project *after* project loads
-        if (currentProject?.project?.id) {
-            dispatch(fetchProjectWallet(currentProject.project.walletId));
+        dispatch(fetchProjectById(projectId));
+        if (currentProject && currentProject.project) {
+            console.log(currentProject.project.id);
             dispatch(fetchSpendingPlanOfProject(currentProject.project.id));
-            dispatch(fetchWithdrawRequestByProject(currentProject.project.id));
+            dispatch(fetchSpendingDetailsByProject(currentProject.project.id));
         }
-        // Determine leader status
-        setIsLeader(currentProject?.project?.leader?.id === currentUser?.id);
-
-    }, [currentProject, currentUser?.id, dispatch, projectWallet.id]); // Added currentUser.id dependency
-
+    }, [projectId, dispatch]);
     useEffect(() => {
-        // Fetch items for the specific plan *after* the plan loads
-        if (currentSpendingPlan?.id) {
-            // No need to set loading here
+        if (currentSpendingPlan && currentSpendingPlan.id) {
             dispatch(fetchSpendingItemOfPlan(currentSpendingPlan.id));
         }
     }, [currentSpendingPlan, dispatch]);
+    useEffect(() => {
+        console.log("curr", currentSpendingPlan)
+        if (currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id) {
+            console.log(currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id)
+            setIsLeader(true);
+        }
+        setTotalItems(spendingItems.length);
+        console.log("isLeader", currentSpendingPlan.approvalStatus !== "PREPARING");
+    }, [currentSpendingPlan, spendingItems,currentProject.project]);
 
-    // --- Calculations ---
-    const currentDonationAmount = donations
-        ?.filter((d) => d.donationStatus === "COMPLETED")
-        .reduce((total, d) => total + d.amount, 0) || 0;
-
-    const totalEstimatedCost = Array.isArray(spendingItems)
-        ? spendingItems.reduce((total, item) => total + (Number(item.estimatedCost) || 0), 0)
-        : 0;
-
-    const currentExpenseAmount = spendingDetails
-        ?.reduce((total, d) => total + d.amount, 0) || 0;
-
-    const remainingBalance = currentDonationAmount - currentExpenseAmount;
-
-    // --- Progress Bar Calculations ---
-    const donationPercentage = totalEstimatedCost > 0
-        ? Math.min(100, (currentDonationAmount / totalEstimatedCost) * 100)
-        : 0;
-    const donationProgressStatus = donationPercentage >= 100 ? 'success' : 'normal';
-
-    const expensePercentage = totalEstimatedCost > 0
-        ? Math.min(100, (currentExpenseAmount / totalEstimatedCost) * 100)
-        : 0;
-    const expenseProgressStatus = expensePercentage >= 100 ? 'success' : 'normal';
-
-    // --- Render Logic ---
-    const formatCurrency = (amount) => {
-        // Ensure amount is a number before formatting
-        const numericAmount = Number(amount) || 0;
-        return numericAmount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+    const handleAddSpendingPlan = (values) => {
+        console.log("values", values);
+        const newPlan = {
+            ...values,
+            projectId: currentProject.project.id,
+        };
+        dispatch(createSpendingPlanThunk(newPlan))
+    };
+    const handleAddSpendingItem = (values) => {
+        console.log("values", values);
+        const newItem = {
+            ...values,
+            spendingPlanId: currentSpendingPlan.id,
+        };
+        dispatch(createSpendingItemThunk(newItem))
+        setIsOpenCreateItemModal(false);
+    };
+    const handleUpdateSpendingPlan = (values) => {
+        console.log("values", values);
+        if (values) {
+            const updatedPlan = {
+                ...values,
+                projectId: currentProject.project.id,
+            };
+            dispatch(updateSpendingPlanThunk({ planId: updatedPlan.id, dto: updatedPlan }));
+        }
+        setIsOpenUpdatePlanModal(false);
+        // window.location.reload();
+    };
+    const handleUpdateSpendingItem = (values) => {
+        if (values) {
+            const updatedItem = {
+                ...values,
+                spendingPlanId: currentSpendingPlan.id,
+            };
+            console.log("updatedItem", updatedItem);
+            dispatch(updateSpendingItemThunk({ itemId: updatedItem.id, dto: updatedItem }));
+        }
+        form.resetFields();
+        setIsOpenUpdateItemModal(false);
     };
 
-    // Updated Loading Check
-    if (loading) {
-        return (
-            <Flex justify="center" align="center" style={{ minHeight: '600px' }}>
-                <Skeleton active paragraph={{ rows: 10 }} title={{ width: '30%' }} />
-            </Flex>
-        );
-    }
+    const handleDeleteSpendingItem = (item) => {
+        if (item) {
+            const itemId = item.id;
+            dispatch(deleteSpendingItemThunk(itemId));
+        }
+    };
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
-    // Check if project data is available after loading is false
-    if (!currentProject?.project) {
-        return (
-            <Flex justify="center" align="center" style={{ minHeight: '200px' }}>
-                <Empty description="Could not load project data." />
-            </Flex>
-        );
-    }
-    const handleConfirmWithdraw = (requestId) => {
-        dispatch(updateConfirmWithdrawRequest(requestId))
-            .then(() => dispatch(fetchProjectWallet(currentProject.project.walletId)));
-        setIsOpenWithdrawalModal(false);
-    }
-    return (
-        <Flex vertical gap="2rem" style={{ padding: "0" }}>
 
-            {/* --- 1. Summary Section --- */}
-            <StyledCard> {/* Use StyledCard here */}
-                <Flex justify="space-between" align="center" wrap="wrap" gap="1rem">
-                    {/* Financial Summary Cards */}
-                    <Row gutter={[16, 16]} style={{ flexGrow: 1 }}>
-                        <Col xs={24} sm={12} md={6}> {/* Adjusted grid for better spacing */}
-                            {/* Use StatisticCard for individual stats */}
-                            <StatisticCard bordered={false}>
-                                <Statistic
-                                    title="Donations Received"
-                                    value={formatCurrency(currentDonationAmount)}
-                                    precision={0} // Ensure whole numbers if preferred
-                                    valueStyle={{ color: '#3f8600' }}
-                                    prefix={<DollarCircleOutlined />}
-                                />
-                            </StatisticCard>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}> {/* Adjusted grid */}
-                            <StatisticCard bordered={false}>
-                                <Statistic
-                                    title="Expenses Paid"
-                                    value={formatCurrency(currentExpenseAmount)}
-                                    precision={0}
-                                    valueStyle={{ color: '#cf1322' }}
-                                    prefix={<BankOutlined />}
-                                />
-                            </StatisticCard>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}> {/* Adjusted grid */}
-                            <StatisticCard bordered={false}>
-                                <Statistic
-                                    title="Remaining Funds"
-                                    value={formatCurrency(remainingBalance)}
-                                    precision={0}
-                                    valueStyle={{ color: '#1890ff' }}
-                                    prefix={<WalletOutlined />}
-                                />
-                            </StatisticCard>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}> {/* Adjusted grid */}
-                            <StatisticCard bordered={false}>
-                                <Statistic
-                                    title="Balance"
-                                    value={formatCurrency(projectWallet.balance)}
-                                    precision={0}
-                                    valueStyle={{ color: '#1890ff' }}
-                                    prefix={<WalletOutlined />}
-                                />
-                            </StatisticCard>
-                        </Col>
-                    </Row>
-                    {/* Withdrawal Button */}
-                    {isLeader && currentProject.project.projectStatus === "ACTIVE" && (
-                        <Button
-                            type="primary"
-                            icon={<BankOutlined />}
-                            onClick={() => setIsOpenWithdrawalModal(true)}
-                            style={{ backgroundColor: 'green', borderColor: 'green', marginLeft: 'auto' }} // Ensure button aligns well
-                        >
-                            Request Withdrawal
-                        </Button>
-                    )}
-                    <WithdrawRequestModal form={form} isOpenWithdrawalModal={isOpenWithdrawalModal} setIsOpenWithdrawalModal={setIsOpenWithdrawalModal} handleConfirm={handleConfirmWithdraw} />
+    const handleSubmit = () => {
+        const updatedPlan = {
+            ...currentSpendingPlan,
+            approvalStatus: "SUBMITED",
+            estimatedTotalCost: spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0),
+            projectId: currentProject.project.id,
+        };
+        dispatch(updateSpendingPlanThunk({ planId: updatedPlan.id, dto: updatedPlan }));
+        setIsOpenUpdatePlanModal(false);
+        setIsSubmitted(true);
+        // window.location.reload();
 
-                </Flex>
-            </StyledCard>
-
-            {/* --- 2. Spending Plan Section --- */}
-            {/* Assuming ProjectSpendingPlanContainer renders its own Card/StyledCard */}
-            <StyledCard title={<Title level={4} style={{ margin: 0 }}>Spending Plan</Title>}>
-                <StyledCard>
-                    <ProjectSpendingPlanContainer
-                        isLeader={isLeader}
-                        currentProject={currentProject}
+    };
+    const columns = [
+        {
+            title: "Item Name",
+            dataIndex: "itemName",
+            key: "itemName",
+        },
+        {
+            title: "Estimated Cost",
+            dataIndex: "estimatedCost",
+            key: "estimatedCost",
+        },
+        {
+            title: "Note",
+            dataIndex: "note",
+            key: "note",
+        },
+        isLeader && currentSpendingPlan.approvalStatus === "PREPARING" && {
+            title: "Actions",
+            key: "actions",
+            render: (_, record) => (
+                <>
+                    <Button
+                        size="small"
+                        style={{ marginRight: 8 }}
+                        onClick={() => {
+                            console.log("record", record);
+                            setSelectedSpendingItem(record);
+                            console.log("selectedSpendingItem", selectedSpendingItem);
+                            setIsOpenUpdateItemModal(true);
+                        }}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        size="small"
+                        danger
+                        onClick={() => handleDeleteSpendingItem(record)}
+                    >
+                        Delete
+                    </Button>
+                    <SpendingItemModal
+                        form={form}
+                        project={currentProject}
+                        isOpenModal={isOpenUpdateItemModal}
+                        setIsOpenModal={setIsOpenUpdateItemModal}
+                        spendingItem={selectedSpendingItem}
+                        handleSubmit={handleUpdateSpendingItem}
+                        title="Update"
                     />
-                </StyledCard>
-            </StyledCard>
+                </>
+            ),
+        },
+    ];
 
-            {/* --- 3. Donation Section --- */}
-            {/* Conditionally render based on plan existence OR if donations exist */}
-            {(currentSpendingPlan || donations?.length > 0) && (
-                <StyledCard title={<Title level={4} style={{ margin: 0 }}>Donations</Title>}>
-                    {totalEstimatedCost > 0 ? (
-                        <Flex vertical gap="1rem">
-                            {/* Progress bar section */}
-                            <StyledCard > {/* Removed extra styling, StyledCard handles background */}
-                                <Title level={5} >Funding Progress vs. Estimated Cost</Title>
-                                <Tooltip title={`${donationPercentage.toFixed(1)}% Funded (${currentDonationAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}>
-                                    <Progress
-                                        percent={donationPercentage}
-                                        status={donationProgressStatus}
-                                        strokeColor={donationProgressStatus === 'success' ? '#52c41a' : undefined}
-                                        format={(percent) => `${percent?.toFixed(1)}% (${currentDonationAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}
+    return (
+        <div style={{padding:'2rem'}}>
+            {currentProject && currentProject.project && (
+                (!currentSpendingPlan.id) ? (
+                    <>
+                        <SpendingPlanFlex>
+                            {isLeader &&
+                                (
+                                    <>
+                                        <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreatePlanModal(true)} />
+                                        <Button title="Click here to download creating spending plan template" onClick={() => {
+                                            dispatch(fetchSpendingTemplateThunk(currentProject.project.id));
+                                            setDownloadTemplate(true);
+                                        }}>Download template</Button>
+                                        {downloadTemplate && (
+                                            <Form>
+                                                <Form.Item>
+                                                    <Input
+                                                        type="file"
+                                                        accept=".xlsx"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            dispatch(importSpendingPlanThunk({ file, projectId: currentProject.project.id }));
+                                                        }}
+                                                    />
+                                                </Form.Item>
+                                                <Form.Item>
+                                                    <Button type="primary" htmlType="submit">
+                                                        Upload
+                                                    </Button>
+                                                </Form.Item>
+                                            </Form>
+                                        )}
+                                    </>
+                                )}
+                        </SpendingPlanFlex>
+                        <SpendingPlanModal form={form} project={currentProject} isOpenModal={isOpenCreatePlanModal} setIsOpenModal={setIsOpenCreatePlanModal} handleSubmit={handleAddSpendingPlan} title="Create" />
+                    </>
+                ) : (
+                    <SpendingPlanFlex>
+                        <Header>
+                            <TitleSection>
+                                <Title level={4}>{(currentSpendingPlan && currentSpendingPlan.planName) ? `${currentSpendingPlan.planName}` : ""}</Title>
+                                {isLeader || currentSpendingPlan.approvalStatus === "PREPARING" &&
+                                    <StyledButtonInvite icon={<EditOutlined
+                                        onClick={() => setIsOpenUpdatePlanModal(true)}
+                                        style={{ cursor: 'pointer', fontSize: "1rem" }} />}></StyledButtonInvite>}
+                            </TitleSection>
+                            <SpendingPlanModal form={form} project={currentProject} isOpenModal={isOpenUpdatePlanModal} setIsOpenModal={setIsOpenUpdatePlanModal} spendingPlan={currentSpendingPlan} handleSubmit={handleUpdateSpendingPlan} title="Update" />
+
+                            {currentSpendingPlan.approvalStatus !== "PREPARING" ? (
+                                <Tag color="orange">{currentSpendingPlan.approvalStatus}</Tag>
+                            ) : isLeader ? (
+                                <div>
+                                    <ButtonGroup>
+                                        <b style={{ alignSelf: "center" }}>
+                                            Total: {spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0).toLocaleString()} VND
+                                        </b>
+                                        <StyledButtonInvite icon={<PlusOutlined />} onClick={() => setIsOpenCreateItemModal(true)} />
+                                        <StyledButtonInvite icon={<DownloadOutlined />} title="Click here to download current spending plan details" />
+                                    </ButtonGroup>
+
+                                    <SpendingItemModal
+                                        form={form}
+                                        project={currentProject}
+                                        isOpenModal={isOpenCreateItemModal}
+                                        setIsOpenModal={setIsOpenCreateItemModal}
+                                        handleSubmit={handleAddSpendingItem}
+                                        title="Create"
                                     />
-                                </Tooltip>
-                            </StyledCard>
-                            {/* Donation List */}
-                            <ProjectDonationContainer />
-                        </Flex>
-                    ) : (
-                        donations?.length > 0 ? (
-                            <Flex vertical gap="1rem">
-                                <StyledCard>
-                                    <Title level={5}>Total Donations Received: {currentDonationAmount.toLocaleString()} VND</Title>
-                                    {/* Display only if plan exists but cost is 0 */}
-                                    {currentSpendingPlan && <Text style={{ display: 'block', color: 'orange', margin: '8px 0' }}>
-                                        (Spending plan items not found or have zero estimated cost. Progress relative to estimate cannot be shown.)
-                                    </Text>}
-                                </StyledCard>
-                                <ProjectDonationContainer />
-                            </Flex>
-                        ) : (
-                            /* This case should ideally not be hit if outer condition is correct,
-                               but kept for safety. Shows if plan exists but no donations & no cost */
-                            <Empty description="No donations received yet." />
-                        )
-                    )}
-                </StyledCard>
-            )}
+                                </div>
+                            ) : null}
 
-
-            {/* --- 4. Expense Section --- */}
-            {/* Conditionally render based on plan existence OR if expenses exist */}
-            {((currentProject && currentProject.project.projectStatus === "ACTIVE") || spendingDetails?.length > 0) && (
-                <StyledCard title={<Title level={4} style={{ margin: 0 }}>Expenses</Title>}>
-                    {totalEstimatedCost > 0 ? (
-                        <Flex vertical gap="1rem">
-                            {/* Progress bar section */}
-                            <StyledCard >
-                                <Title level={5}>Expense Progress vs. Estimated Cost</Title>
-                                <Tooltip title={`${expensePercentage.toFixed(1)}% Expensed (${currentExpenseAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}>
-                                    <Progress
-                                        percent={expensePercentage}
-                                        status={expenseProgressStatus} // 'success' might mean fully expensed based on estimate
-                                        strokeColor={expenseProgressStatus === 'success' ? '#52c41a' : undefined}
-                                        format={(percent) => `${percent?.toFixed(1)}% (${currentExpenseAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}
-                                    />
-                                </Tooltip>
-                            </StyledCard>
-                            {/* Expense List */}
-                            <ProjectSpendingDetailContainer
-                                isLeader={isLeader}
-                                spendingDetails={spendingDetails}
+                        </Header>
+                        {spendingItems && spendingItems.length > 0 ? (
+                           <>
+                            <Table
+                                rowKey={(record) => record.id}
+                                columns={columns.filter(Boolean)}
+                                dataSource={spendingItems}
+                                s pagination={{
+                                    current: currentPage,
+                                    pageSize: pageSize,
+                                    total: totalItems,
+                                    showSizeChanger: true,
+                                    pageSizeOptions: ["5", "10", "20", "50"],
+                                    onChange: (page, size) => {
+                                        setCurrentPage(page);
+                                        setPageSize(size);
+                                    },
+                                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+                                }}
                             />
-                        </Flex>
-                    ) : (
-                        spendingDetails?.length > 0 ? (
-                            <Flex vertical gap="1rem">
-                                <StyledCard>
-                                    <Title level={5}>Total Expenses Paid: {currentExpenseAmount.toLocaleString()} VND</Title>
-                                    {/* Display only if plan exists but cost is 0 */}
-                                    {currentSpendingPlan && <Text style={{ display: 'block', color: 'orange', margin: '8px 0' }}>
-                                        (Spending plan items not found or have zero estimated cost. Progress relative to estimate cannot be shown.)
-                                    </Text>}
-                                </StyledCard>
-                                <ProjectSpendingDetailContainer
-                                    isLeader={isLeader}
-                                    spendingDetails={spendingDetails}
-                                />
-                            </Flex>
-                        ) : (
-                            /* This case should ideally not be hit if outer condition is correct,
-                               but kept for safety. Shows if plan exists but no expenses & no cost */
-                            <Empty description="No expenses recorded yet." />
+                      {currentSpendingPlan.approvalStatus ==="PREPARING" &&   <StyledButtonInvite type="primary" onClick={handleSubmit} style={{alignSelf:"flex-end"}}>Submit</StyledButtonInvite>}
+                           </>
                         )
-                    )}
-                </StyledCard>
+                            : (
+                                <Empty title="No spending items found" description="Please add a spending item." style={{ marginTop: '20px' }} />
+                            )}
+                            {spendingDetails && spendingDetails.length > 0 && (
+                                <SpendingPlanFlex>
+                                    <Title level={4}>Spending Plan Details</Title>
+                                    {spendingDetails.map((detail) => (
+                                        <SpendingItemRow key={detail.id}>
+                                            <span>{detail.itemName}</span>
+                                            <span>{detail.estimatedCost}</span>
+                                            <span>{detail.note}</span>
+                                        </SpendingItemRow>
+                                    ))}
+                                    </SpendingPlanFlex>
+                            )
+                        }
+                    </SpendingPlanFlex>
+                )
             )}
-
-            {/* Final Empty state if nothing exists */}
-            {!loading && !currentSpendingPlan && !donations?.length && !spendingDetails?.length && (
-                <StyledCard>
-                    <Empty description="No spending plan, donations, or expenses found for this project yet." />
-                </StyledCard>
-            )}
-
-        </Flex >
+        </div>
     );
 };
 

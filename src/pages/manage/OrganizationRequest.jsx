@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import apiService from "../../services/api";
 import {
   PieChart,
@@ -9,17 +9,15 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { useSelector } from "react-redux";
-import { Empty } from "antd";
+
+import ManagerLayout from "../../components/Layout/ManagerLayout";
+import { FaLink } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const OrganizationRequest = () => {
   const { organizationId } = useParams();
   const [activeTab, setActiveTab] = useState("pending");
   const [requests, setRequests] = useState([]);
-
-  const currentOrganization = useSelector(
-    (state) => state.organization.currentOrganization
-  );
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -49,19 +47,18 @@ const OrganizationRequest = () => {
   };
 
   const filteredRequests = requests.filter((req) => req.status === activeTab);
-
   const requestStatusData = [
     {
       name: "Pending",
-      value: requests.filter((r) => r.status === "pending")?.length || 0,
+      value: requests.filter((r) => r.status === "pending").length,
     },
     {
       name: "Approved",
-      value: requests.filter((r) => r.status === "approved")?.length || 0,
+      value: requests.filter((r) => r.status === "approved").length,
     },
     {
       name: "Rejected",
-      value: requests.filter((r) => r.status === "rejected")?.length || 0,
+      value: requests.filter((r) => r.status === "rejected").length,
     },
   ];
   const COLORS = ["#f1c40f", "#2ecc71", "#e74c3c"];
@@ -165,8 +162,24 @@ const OrganizationRequest = () => {
 
   return (
     <div>
-      {currentOrganization && (
-        <div className="min-h-screen mx-auto bg-gray-50 p-4">
+      <div className="pl-2">
+        <div className="inline-flex gap-2 items-baseline">
+          <FaLink />
+          <Link to={"/"} className="hover:underline">
+            Home
+          </Link>
+        </div>
+        <span> / </span>
+        <Link to={"/manage-organization"} className="hover:underline">
+          my-organization
+        </Link>
+        <span> / </span>
+        <Link to={"/manage-organization/requests"} className="hover:underline">
+          requests
+        </Link>
+      </div>
+      <div className="min-h-screen bg-gray-100 p-6 m-10">
+        <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-semibold text-gray-800 mb-6">
             Request Management
           </h1>
@@ -187,26 +200,11 @@ const OrganizationRequest = () => {
             ))}
           </nav>
 
-          <div className="bg-white rounded-sm shadow-md px-6 py-3 h-[600px] overflow-y-scroll">
+          <div className="bg-white rounded-lg shadow-md p-6">
             {renderContent()}
           </div>
         </div>
-      )}
-      {!currentOrganization && (
-        <div className="p-6">
-          <div className="flex justify-end items-center">
-            <Link
-              to="/organizations"
-              className="bg-blue-500 px-3 py-2 rounded-md text-white hover:bg-blue-600 hover:cursor-pointer"
-            >
-              Discover organizations
-            </Link>
-          </div>
-          <div className="flex justify-center items-center min-h-[500px]">
-            <Empty description="You are not a manager of any organization" />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

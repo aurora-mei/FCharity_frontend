@@ -14,10 +14,3 @@
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
-
-.ck-editor__editable {
-  @apply min-h-[300px] p-4 bg-white border rounded;
-}
-.ck-toolbar {
-  @apply bg-gray-100 border rounded-t;
-}

@@ -6,7 +6,7 @@ import LoadingModal from "../../components/LoadingModal";
 import {
   Carousel,
   Typography,
-  Alert,Skeleton,
+  Alert,
   Tag,
   Button,
   Breadcrumb,
@@ -78,13 +78,8 @@ const ProjectRequestContainer = () => {
     }
   }, [dispatch, ownedOrganization]); // Chỉ gọi khi organizationId có giá trị
 
-  if (loading) {
-    return (
-        <Flex justify="center" align="center" style={{ minHeight: '600px' }}>
-            <Skeleton active paragraph={{ rows: 10 }} title={{ width: '30%' }} />
-        </Flex>
-    );
-}
+  if (loading) return <LoadingModal />;
+  if (loading) return <LoadingModal />;
 
   if (error) {
     return (
@@ -137,7 +132,7 @@ const ProjectRequestContainer = () => {
     <Flex
       vertical
       gap={10}
-      style={{ padding: "0", margin: "0" }}
+      style={{ padding: "1rem", margin: "0" }}
     >
       <Flex gap={10} vertical >
         <Flex vertical gap={10} className="request-detail" style={{padding:"2rem"}}>
@@ -213,7 +208,7 @@ const ProjectRequestContainer = () => {
           {/* Badge bảo vệ quyên góp */}
 
           {/* Nội dung gây quỹ */}
-          <Text type="primary"><strong>Support Type: </strong>{helpRequest.supportType}</Text>
+          {/* <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "Read more" }}>{request.content}</Paragraph> */}
           {expanded ? (
             <Paragraph>{`${helpRequest.content}`} </Paragraph>
           ) : (

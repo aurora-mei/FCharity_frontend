@@ -239,8 +239,11 @@ const CreateProjectScreen = () => {
     dispatch(getManagedOrganizationByCeo()); // tự động lấy id người dùng phía backend
     if (newProject && newProject.project)
       dispatch(fetchAllProjectMembersThunk(newProject.project.id));
+
+    console.log("Project Members:", myProjectMembers);
+    console.log("Organization Members:", currentOrganizationMembers);
     if (isFirstMount && currentOrganizationMembers?.length > 0) {
-      setAvailableMembers(currentOrganizationMembers.filter((x)=>(x.memberRole==="MEMBER") && (newProject.project && newProject.project.leader.id !== x.user.id)));
+      setAvailableMembers(currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER" && newProject.project.leader.id !== x.user.id));
       setIsFirstMount(false); 
     }
   }, [dispatch, newProject]);
@@ -259,9 +262,135 @@ const CreateProjectScreen = () => {
       >
         <Col span={24}>
          {
-          ownedOrganization && ownedOrganization.organizationId && !newProject.project  &&
+          ownedOrganization && ownedOrganization.organizationId && !newProject.project  ? 
           (<ProjectForm requestId={requestId} myOrganization={ownedOrganization} />)
-       } 
+         :(
+          newProject.project && 
+            (
+            <Flex vertical gap={20} justify="flex-start">
+              <StyledCard title="Project Information">
+                <Flex>
+                  <Flex style={{ marginRight: "1rem" }}>
+                    <img
+                      src={newProject.attachments[0].imageUrl}
+                      style={{
+                        width: "3rem",
+                        height: "3rem",
+                        borderRadius: "2rem",
+                      }}
+                    />
+                    <Flex vertical gap={5} style={{ marginLeft: "1rem" }}>
+                      <p>
+                        <strong>Project Name:</strong>{" "}
+                        {newProject.project.projectName}
+                      </p>
+                      <p>
+                        <strong>Project Start Date:</strong>{" "}
+                        {moment(newProject.project.startDate).format(
+                          "DD/MM/YYYY"
+                        )}
+                      </p>
+                    </Flex>
+                  </Flex>
+                  <Flex vertical gap={5}>
+                    <p>
+                      <strong>Project Description:</strong>{" "}
+                      {newProject.project.projectDescription}
+                    </p>
+                    <p>
+                      <strong>Project Status:</strong>{" "}
+                      {newProject.project.projectStatus}
+                    </p>
+                  </Flex>
+                </Flex>
+              </StyledCard>
+              <StyledContainer>
+                <div className="table-wrapper">
+                  {myProjectMembers && myProjectMembers.length > 0 && (
+                    <>
+                      <Flex
+                        gap={10}
+                        justify="space-between"
+                        style={{ marginBottom: "0.5rem" }}
+                      >
+                        <Title level={5}>
+                          {newProject.project.projectName} Members
+                        </Title>
+                        {selectedProjectMembers.length > 0 && (
+                          <StyledButton onClick={handleRemoveMembers}>
+                            Remove from project
+                          </StyledButton>
+                        )}
+                      </Flex>
+                      {myProjectMembers && myProjectMembers.length > 0 ? (
+                        <Table
+                          dataSource={myProjectMembers}
+                          columns={projectColumns}
+                          pagination={{
+                            pageSize: 10, // Number of rows per page
+                            showSizeChanger: true, // Allow the user to change the page size
+                            pageSizeOptions: ["5", "10", "20", "50"], // Options for page size
+                            showQuickJumper: true, // Allow the user to jump to a specific page
+                          }}
+                        />
+                      ) : (
+                        <Empty>No members in this project.</Empty>
+                      )}
+                    </>
+                  )}
+                </div>
+              </StyledContainer>
+              <StyledContainer>
+                <div className="table-wrapper">
+                  {currentOrganizationMembers && currentOrganizationMembers.length > 0 && (
+                    <>
+                      <Flex
+                        gap={10}
+                        justify="space-between"
+                        style={{ marginBottom: "0.5rem" }}
+                      >
+                        <Title level={5}>{ownedOrganization.organizationName.toUpperCase()} Members</Title>
+                        {selectedOrgMembers.length > 0 && (
+                          <>
+                          <Select onChange={(value) => setMemberRole(value)} style={{ width: '20rem', marginRight: '1rem' }} placeholder="Select role">
+                              <Select.Option value="ACCOUNTANT">Accountant</Select.Option>
+                              <Select.Option value="MEMBER">Member</Select.Option>
+                              </Select>
+                              <StyledButton onClick={handleAddMembers}>
+                                  Add to project
+                              </StyledButton>
+                              </>
+                        )}
+                      </Flex>
+                      {availableMembers && availableMembers.length > 0 ? (
+                        <Table
+                          dataSource={availableMembers}
+                          columns={orgColumns}
+                          pagination={{
+                            pageSize: 10, // Number of rows per page
+                            showSizeChanger: true, // Allow the user to change the page size
+                            pageSizeOptions: ["5", "10", "20", "50"], // Options for page size
+                            showQuickJumper: true, // Allow the user to jump to a specific page
+                          }}
+                        />
+                      ) : (
+                        <Empty>No members available.</Empty>
+                      )}
+                    </>
+                  )}
+                </div>
+              </StyledContainer>
+              <StyledButton
+                onClick={() => {
+                  navigate("/my-organization/projects");
+                }}
+              >
+                Navigate to {ownedOrganization.organizationName.toUpperCase()} 
+              </StyledButton>
+            </Flex>
+         
+         )
+         )} 
         </Col>
       
       </Row>

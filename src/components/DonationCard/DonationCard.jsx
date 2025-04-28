@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Typography, Row, Col, Pagination,Flex, Avatar } from "antd";
+import { Card, Typography, Row, Col, Pagination,Flex } from "antd";
 import styled from "styled-components";
 import moment from "moment";
 import PropTypes from "prop-types";
@@ -40,9 +40,6 @@ padding: 0.8rem !important;
     font-weight: bold;
     margin-top: 0.5rem;
   }
-    &:hover {
-     box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
-}
 `;
 
 const { Text } = Typography;
@@ -53,8 +50,11 @@ const DonationCard = ({ donation }) => {
         <Row gutter={[16, 16]} style={{ width: "100%" }}>
             <Col span={9}>
             <Flex justify="space-between" align="center" style={{ width: "100%" }}>
-                <Avatar src={donation.user.avatar || "https://via.placeholder.com/50"}
-                    className="profile-image"/>
+                <img
+                    alt="Profile picture"
+                    src={donation.user.avatar || "https://via.placeholder.com/50"}
+                    className="profile-image"
+                />
                 <div className="profile-info">
                     <Text strong style={{ fontSize: "1rem" }}>
                         {donation.user.fullName}

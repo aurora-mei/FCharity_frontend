@@ -1,15 +1,18 @@
 import { ConsoleSqlOutlined } from "@ant-design/icons";
 import axios from "axios";
+import { API_URL } from "../../constants/env-config";
 
 export const API = axios.create({
-  baseURL: `http://localhost:8080/`,
+  // baseURL: `http://localhost:8080/`,
+  baseURL: `${API_URL}`,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 export const APIPrivate = axios.create({
-  baseURL: `http://localhost:8080/`,
+  // baseURL: `http://localhost:8080/`,
+  baseURL: `${API_URL}`,
   headers: {
     "Content-Type": "application/json",
   },
@@ -36,7 +39,7 @@ APIPrivate.interceptors.response.use(
     async (error) => {
         console.log("Error response: ", error.response);
         if ((
-             (error.response.status === 400 &&  error.response.data.message.includes("Token expired"))
+          (error.response.status === 400 &&  error.response.data.message.includes("Token expired"))
         )
             && error.config && !error.config.url.includes("cloudinary") ) {
             const refreshToken = localStorage.getItem("refreshToken");

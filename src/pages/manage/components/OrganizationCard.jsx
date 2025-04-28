@@ -14,11 +14,8 @@ const OrganizationCard = ({ org, handleJoinOrganization }) => {
             loading="lazy" // Lazy loading
           />
           <div className="absolute inset-0 flex items-center justify-center">
-            <h3 className="text-white text-lg font-bold bg-gray-700 px-3 opacity-70 ">
-              {org.organizationDescription &&
-              org?.organizationDescription?.length > 28
-                ? `${org.organizationDescription.substring(0, 28)}...`
-                : org.organizationDescription || "No description"}
+            <h3 className="text-white text-lg font-bold">
+              {org.organizationDescription || "No description"}
             </h3>
           </div>
         </div>
@@ -31,11 +28,9 @@ const OrganizationCard = ({ org, handleJoinOrganization }) => {
                 style={{ padding: 0, margin: 0 }}
                 to={`/organizations/${org.organizationId}`}
               >
-                <span className="hover:underline text-gray-800">
-                  {org.organizationName}
-                </span>
+                <span className="hover:underline">{org.organizationName}</span>
               </Link>
-              {org.status == "APPROVED" && (
+              {org.organizationStatus !== "PENDING" && (
                 <span className="text-blue-500">
                   <svg
                     viewBox="0 0 12 13"

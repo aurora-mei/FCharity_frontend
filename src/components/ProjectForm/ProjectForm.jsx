@@ -47,7 +47,7 @@ const FormStyled = styled.div`
   }
 `;
 
-const ProjectForm = ({ requestId, myOrganization }) => {
+const ProjectForm = ({ requestId, ownedOrganization }) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -64,29 +64,35 @@ const ProjectForm = ({ requestId, myOrganization }) => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [uploadedVideos, setUploadedVideos] = useState([]);
   const [createdSuccess, setCreatedSuccess] = useState(false);
-  const currentProject = useSelector((state) => state.project.currentProject);
   const [uploading, setUploading] = useState(false);
   useEffect(() => {
     dispatch(fetchRequestById(requestId));
     dispatch(fetchCategories());
     dispatch(fetchTags());
-    console.log("myOrganization", myOrganization);
-    if (myOrganization.organizationId) {
-      dispatch(getAllMembersInOrganization(myOrganization.organizationId));
+    console.log("owned organization", ownedOrganization);
+    if (ownedOrganization?.organizationId) {
+      dispatch(getAllMembersInOrganization(ownedOrganization.organizationId));
     }
-  }, [dispatch, myOrganization.organizationId]);
+    if (form.getFieldValue("email") === undefined) {
+      initFormData();
+    }
+  }, [dispatch, ownedOrganization]);
 
-  const setLeaderContact = async (user) => {
+  const initFormData = async () => {
+    console.log("myOrganizationmember", currentOrganizationMembers);
     // Lấy user từ localStorage
-    if (user) {
+    const storedUser = localStorage.getItem("currentUser");
+    if (storedUser) {
       try {
-        console.log("user", user);
+        const parsedUser = JSON.parse(storedUser);
+
+        // Gán email, phone, location (detail) vào form
         form.setFieldsValue({
-          email: user.email || "",
-          phone: user.phoneNumber || "",
+          email: parsedUser.email || "",
+          phone: parsedUser.phoneNumber || "",
         });
       } catch (error) {
-        console.error("Error parsing user:", error);
+        console.error("Error parsing currentUser:", error);
       }
     }
     setInitialLoading(false); // Kết thúc giai đoạn load dữ liệu ban đầu
@@ -212,15 +218,7 @@ const ProjectForm = ({ requestId, myOrganization }) => {
   const onFinish = async (values) => {
        // Tạo object gửi lên API
        const projectData = {
-         projectName: values.projectName,
-         leaderId: values.leaderId,
-         email: values.email,
-          phoneNumber: values.phoneNumber,
-          projectDescription: values.projectDescription,
-         plannedStartTime: values.plannedStartTime.format(),
-          plannedEndTime: values.plannedEndTime.format(),
-          location: values.location,
-          categoryId: values.categoryId,
+         ...values,
          requestId:requestId,
          organizationId: myOrganization.organizationId,
          tagIds: values.tagIds,
@@ -230,12 +228,8 @@ const ProjectForm = ({ requestId, myOrganization }) => {
    
        console.log("Final Project Data:", projectData);
        try {
-        const createdProject = await dispatch(createProjectThunk(projectData)).unwrap();
-
-        const newProjectId = createdProject.id; // <- Lấy id từ response
-    
-        setCreatedSuccess(true);
-        navigate(`/projects/create/${requestId}/${newProjectId}`); // Chuyển hướng đến trang chi tiết dự án
+         await dispatch(createProjectThunk(projectData)).unwrap();
+         setCreatedSuccess(true);
          message.success("Create project successfully!");
        } catch (error) {
          console.error("Error creating Project:", error);
@@ -291,7 +285,7 @@ const ProjectForm = ({ requestId, myOrganization }) => {
 
               <Form.Item
                 label="Phone Number"
-                name="phoneNumber"
+                name="phone"
                 rules={[
                   { required: true, message: "Phone Number is required" },
                 ]}
@@ -333,9 +327,9 @@ const ProjectForm = ({ requestId, myOrganization }) => {
                 name="leaderId"
                 rules={[{ required: true, message: "Leader is required" }]}
               >
-                <Select placeholder="Select a leader" disabled={createdSuccess}  onChange={(value, option) => setLeaderContact(option.user)}>
-                  {currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER"  && x.user.userRole === "User").map((member) => (
-                    <Option key={member.id} value={member.user.id} user={member.user}>
+                <Select placeholder="Select a leader" disabled={createdSuccess}>
+                  {currentOrganizationMembers.filter((x)=>x.memberRole==="MEMBER").map((member) => (
+                    <Option key={member.id} value={member.user.id}>
                       {member.user.fullName}
                     </Option>
                   ))}
@@ -385,7 +379,13 @@ const ProjectForm = ({ requestId, myOrganization }) => {
               <Form.Item
                 label="Location"
                 name="location"
-                rules={[{ required: true, message: "Address is required" }]}
+                rules={[
+                  {
+                    // required: true,
+                    required: false,
+                    message: "Address is required",
+                  },
+                ]}
               >
                 <Input readOnly />
               </Form.Item>
@@ -457,7 +457,7 @@ const ProjectForm = ({ requestId, myOrganization }) => {
 };
 ProjectForm.propTypes = {
   requestId: PropTypes.string.isRequired,
-  myOrganization: PropTypes.shape({
+  ownedOrganization: PropTypes.shape({
     organizationId: PropTypes.string,
   }).isRequired,
 };

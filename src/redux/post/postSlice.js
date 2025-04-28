@@ -1,18 +1,16 @@
     import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
     import postApi from './postApi';
+
     const initialState = {
         loading: false,
         posts: [],
         currentPost :{},
         error: null,
         recentPosts: [],
-        myPosts: [],
-        topVoted: [],
+        myPosts: []
+
     };
-    export const fetchTopVotedPosts = createAsyncThunk("posts/top-voted", async (limit = 2) => {
-        return await postApi.fetchTopVotedPosts(limit);
-    });
-    
+
     export const fetchPosts = createAsyncThunk("posts/fetch", async () => {
         return await postApi.fetchPosts();
     });
@@ -40,15 +38,15 @@
     export const deletePosts = createAsyncThunk(
         'posts/deletePost',
         async (postId, { rejectWithValue }) => {
-            try {
-                await postApi.deletePost(postId);
-                return postId;
-            } catch (error) {
-                // Return the actual error message from the API
-                return rejectWithValue(error.message || "Failed to delete post");
-            }
+          try {
+            await api.delete(`/posts/${postId}`);
+            return postId; // Trả về ID của post đã xóa
+          } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Xóa bài viết thất bại" });
+          }
         }
-    );
+      );
+  
     export const votePostThunk = createAsyncThunk(
         "posts/vote",
         async ({ postId, userId, vote }, { rejectWithValue }) => {
@@ -59,47 +57,11 @@
                 return rejectWithValue(error.message || "Vote failed");
             }
         }
-        
     );
-   
     export const fetchMyPosts = createAsyncThunk("posts/fetchMyPosts", async (userId) => {
         return await postApi.fetchMyPosts(userId);
     });
-    export const reportPostThunk = createAsyncThunk(
-        "posts/report",
-        async ({ postId, reporterId, reason }, { rejectWithValue }) => {
-          try {
-            return await postApi.reportPost(postId, reporterId, reason);
-          } catch (error) {
-            return rejectWithValue(error.message);
-          }
-        }
-      );
-      export const hidePostThunk = createAsyncThunk(
-        "posts/hide",
-        async ({ postId, userId }, { rejectWithValue }) => {
-          try {
-            return await postApi.hidePost(postId, userId);
-          } catch (error) {
-            return rejectWithValue(error.message);
-          }
-        }
-      );
-      
-// postSlice.js
-export const unhidePostThunk = createAsyncThunk(
-    'post/unhidePost',
-    async ({ postId, userId }, { rejectWithValue }) => {
-      try {
-        const response = await api.put(`/posts/${postId}/unhide`, { 
-          status: 'APPROVED' // Thêm trường status
-        });
-        return response.data;
-      } catch (err) {
-        return rejectWithValue(err.response.data);
-      }
-    }
-  );
+    
     const postSlice = createSlice({
         name: 'Post',
         initialState,
@@ -157,54 +119,43 @@ export const unhidePostThunk = createAsyncThunk(
                 })
                 .addCase(updatePosts.pending, (state) => {
                     state.loading = true;
-                    state.error = null;
                 })
                 .addCase(updatePosts.fulfilled, (state, action) => {
                     state.loading = false;
-                    const updatedPost = action.payload;
-                    
-                    // Cập nhật posts list
-                    state.posts = state.posts.map(post => 
-                        post.post.id === updatedPost.post.id ? updatedPost : post
-                    );
-                    
-                    // Cập nhật myPosts nếu có
-                    state.myPosts = state.myPosts.map(post => 
-                        post.post.id === updatedPost.post.id ? updatedPost : post
-                    );
-                    
-                    // Cập nhật current post
-                    state.currentPost = updatedPost;
+                    const index = state.posts.findIndex(Post => Post.Post.id === action.payload.Post.id);
+                    if (index !== -1) {
+                        state.posts[index] = action.payload;
+                    }
+                    state.currentPost = action.payload;
                 })
                 .addCase(updatePosts.rejected, (state, action) => {
                     state.loading = false;
-                    state.error = action.error.message;
+                    state.error = action.error;
                 })
                 .addCase(deletePosts.pending, (state) => {
                     state.loading = true;
-                  })
-                  .addCase(deletePosts.fulfilled, (state, action) => {
-                    state.posts = state.posts.filter(p => p.post.id !== action.payload);
-                    state.myPosts = state.myPosts.filter(p => p.post.id !== action.payload);
+                })
+                .addCase(deletePosts.fulfilled, (state, action) => {
+                    state.posts = state.posts.filter(post => post.post.id !== action.payload);
                     state.loading = false;
                   })
                   .addCase(deletePosts.rejected, (state, action) => {
+                    state.error = action.payload.message;
                     state.loading = false;
-                    state.error = action.payload;
-                    console.error("Delete error:", action.payload);
-                })
-                  .addCase(votePostThunk.fulfilled, (state, action) => {
+                  })
+                .addCase(votePostThunk.fulfilled, (state, action) => {
+                    console.log("vote res: ",action.payload)
                     const { postId, vote, totalVote } = action.payload;
                     const found = state.posts.find(p => p.post.id === postId);
                     if (found) {
                         found.post.vote = totalVote;
                     }
+                    console.log("hhh",postId )
                 
                     if (state.currentPost?.post?.id === postId) {
                         state.currentPost.post.vote = totalVote;
                     }
                 })
-                
                 .addCase(votePostThunk.rejected, (state, action) => {
                     state.error = action.payload;
                 })
@@ -218,49 +169,7 @@ export const unhidePostThunk = createAsyncThunk(
                 .addCase(fetchMyPosts.rejected, (state, action) => {
                     state.loading = false;
                     state.error = action.error;
-                })
-                .addCase(fetchTopVotedPosts.pending, (state) => {
-                    state.loading = true;
-                    state.error = null;
-                })
-                .addCase(fetchTopVotedPosts.fulfilled, (state, action) => {
-                    state.loading = false;
-                    state.topVoted = action.payload;
-                })
-                .addCase(fetchTopVotedPosts.rejected, (state, action) => {
-                    state.loading = false;
-                    state.error = action.payload;
-                }).addCase(reportPostThunk.pending, (state) => {
-                    state.loading = true;
-                    state.error = null;
-                  })
-                  .addCase(reportPostThunk.fulfilled, (state) => {
-                    state.loading = false;
-                  })
-                  .addCase(reportPostThunk.rejected, (state, action) => {
-                    state.loading = false;
-                    state.error = action.payload;
-                  })
-                  .addCase(hidePostThunk.fulfilled, (state, action) => {
-                    const updatedPost = action.payload;
-                    state.posts = state.posts.map(post => 
-                      post.post.id === updatedPost.post.id ? updatedPost : post
-                    );
-                    state.myPosts = state.myPosts.map(post => 
-                      post.post.id === updatedPost.post.id ? updatedPost : post
-                    );
-                  })
-                  .addCase(unhidePostThunk.fulfilled, (state, action) => {
-                    const updatedPost = action.payload;
-                    state.posts = state.posts.map(post => 
-                      post.post.id === updatedPost.post.id ? updatedPost : post
-                    );
-                    state.myPosts = state.myPosts.map(post => 
-                      post.post.id === updatedPost.post.id ? updatedPost : post
-                    );
-                  });
-                  
-                
+                });
         },
     });
 

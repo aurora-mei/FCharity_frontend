@@ -1,6 +1,5 @@
 import { APIPrivate } from '../../config/API/api';
 import { message } from 'antd';
-import { API_URL } from "../../constants/env-config";
 const fetchRequests = async () => {
     try {
         const response = await APIPrivate.get('requests');
@@ -23,7 +22,6 @@ const fetchActiveRequests = async () => {
 
 const createRequest = async (requestData) => {
     try {
-        console.log("api", API_URL);
         const response = await APIPrivate.post('requests/create', requestData);
         console.log("Request created:", response.data);
         return response.data;

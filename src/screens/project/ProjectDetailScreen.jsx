@@ -29,8 +29,6 @@ import {
   LeftCircleOutlined,
   HomeOutlined,
   FlagOutlined,
-  ShareAltOutlined, // Added ShareAltOutlined
-  DollarOutlined,   // Added DollarOutlined
 } from "@ant-design/icons";
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
 import { getOrganizationById } from "../../redux/organization/organizationSlice";
@@ -38,7 +36,13 @@ import { getPaymentLinkThunk } from "../../redux/helper/helperSlice";
 import { fetchProjectRequests, fetchActiveProjectMembers } from "../../redux/project/projectSlice";
 import { Link } from "react-router-dom";
 import DonateProjectModal from "../../components/DonateProjectModal/DonateProjectModal";
-// Removed unused icons like RiseOutlined, StarOutlined, UnorderedListOutlined
+import {
+  ShareAltOutlined,
+  DollarOutlined,
+  RiseOutlined,
+  StarOutlined,
+  UnorderedListOutlined,
+} from "@ant-design/icons";
 import {
   fetchProjectById,
   createDonationThunk,
@@ -47,11 +51,10 @@ import {
 import styled from "styled-components";
 import LoadingModal from "../../components/LoadingModal";
 
-import moment from "moment-timezone"; // Ensure moment-timezone is installed and imported
+import moment from "moment-timezone";
 import { fetchRequestById } from "../../redux/request/requestSlice";
 const { Title, Paragraph, Text } = Typography;
 
-// --- Styled Components remain the same ---
 const StyledScreen = styled.div`
   .request-detail-page {
     padding: 1rem 1rem;
@@ -61,7 +64,6 @@ const StyledScreen = styled.div`
     border-radius: 1rem;
     /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
     margin-bottom: 24px;
-    padding: 1rem; /* Added padding here */
   }
   .request-title {
     text-align: left;
@@ -194,7 +196,6 @@ const StyledWrapper = styled.div`
     transition: all 0.3s ease; /* Smooth transition for hover effect */
     .ant-card-body {
       background: #fff !important;
-      padding: 1rem !important; // Ensure padding inside card body
     }
     &:hover {
       cursor: pointer;
@@ -262,7 +263,6 @@ const StyledSection = {
   Container: styled.div`
     background-color: #fff;
     color: #333;
-    padding-top: 1rem; // Add padding if needed after removing Divider
   `,
 
   ProfileSection: styled.div`
@@ -316,7 +316,6 @@ const StyledSection = {
     }
   `,
 };
-// --- StyledOverlappingAvatars remains the same ---
 const StyledOverlappingAvatars = styled.div`
   position: relative;
   margin: 1rem 0;
@@ -333,7 +332,6 @@ const StyledOverlappingAvatars = styled.div`
   }
 `;
 
-// --- columns definition remains the same ---
 const columns = [
   {
     title: "Date",
@@ -352,7 +350,7 @@ const columns = [
     dataIndex: "user",
     key: "fullName",
     render: (user) => {
-      return <p>{user?.fullName || "Anonymous"}</p>;
+      return <p>{user.fullName}</p>; // Hiển thị fullName của user
     },
   },
   {
@@ -362,7 +360,7 @@ const columns = [
     render: (text) => (
       <Text style={{ fontSize: "0.7rem" }} type="success">
         {text?.toLocaleString() || 0} VND
-      </Text>
+      </Text> // Hiển thị số tiền theo định dạng VND
     ),
   },
   {
@@ -370,17 +368,16 @@ const columns = [
     dataIndex: "message",
     key: "message",
     render: (text) => (
-      <Text style={{ fontSize: "0.7rem" }}>{text || "No message"}</Text>
+      <Text style={{ fontSize: "0.7rem" }}>{text || "No message"}</Text> // Hiển thị thông điệp quyên góp hoặc "No message" nếu không có
     ),
   },
 ];
-
 
 const ProjectDetailScreen = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { projectId } = useParams();
-  const [form] = Form.useForm();
+  const [form] = Form.useForm();  // Khởi tạo form instance
   const checkoutURL = useSelector((state) => state.helper.checkoutURL);
   const currentProject = useSelector((state) => state.project.currentProject);
   const donations = useSelector((state) => state.project.donations);
@@ -393,8 +390,6 @@ const ProjectDetailScreen = () => {
   const loading = useSelector((state) => state.project.loading);
   const [expanded, setExpanded] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const [countdownDisplay, setCountdownDisplay] = useState(""); // State for countdown display
-
 
   const storedUser = localStorage.getItem("currentUser");
   let currentUser = {};
@@ -408,94 +403,27 @@ const ProjectDetailScreen = () => {
     dispatch(fetchProjectById(projectId));
     dispatch(fetchDonationsOfProject(projectId));
 
-  }, [dispatch, projectId]);
-
-  const project = currentProject?.project;
-  const projectTags = currentProject?.projectTags;
+  }, [dispatch, projectId, donations.length]);
+  const { project, projectTags } = currentProject;
 
   useEffect(() => {
     if (checkoutURL) {
       window.location.href = checkoutURL;
     }
-    if (project) {
-      dispatch(getOrganizationById(project.organizationId));
+    if (currentProject.project) {
+      dispatch(getOrganizationById(currentProject.project.organizationId));
       dispatch(fetchProjectRequests(project.id));
       dispatch(fetchActiveProjectMembers(project.id));
     }
-  }, [dispatch, project, checkoutURL]);
-
+  }, [dispatch, currentProject.project, donations, checkoutURL, projectId]);
   useEffect(() => {
     if (project && project.requestId) {
       dispatch(fetchRequestById(project.requestId));
     }
-  }, [dispatch, project]);
-
-  // Countdown Timer Logic (Remains the same)
-  useEffect(() => {
-    if (!project || !project.plannedStartTime || !project.plannedEndTime) {
-      setCountdownDisplay("Loading project times...");
-      return;
-    }
-
-    const plannedStartTime = moment(project.plannedStartTime);
-    const plannedEndTime = moment(project.plannedEndTime);
-    let intervalId = null;
-
-    const calculateAndSetDisplay = () => {
-        const now = moment();
-
-        if (now.isBefore(plannedStartTime)) {
-            const duration = moment.duration(plannedStartTime.diff(now));
-            if (duration.asMilliseconds() <= 0) {
-                setCountdownDisplay("Starting soon...");
-            } else {
-                const days = Math.floor(duration.asDays());
-                const hours = duration.hours();
-                const minutes = duration.minutes();
-                const seconds = duration.seconds();
-                setCountdownDisplay(
-                    <Text strong style={{ color: 'orange', fontSize: '1rem' }}> {/* Adjusted font size */}
-                        Starts in: {`${days > 0 ? `${days}d ` : ""}${hours}h ${minutes}m ${seconds}s`}
-                    </Text>
-                );
-            }
-        } else if (now.isBefore(plannedEndTime)) {
-            const duration = moment.duration(plannedEndTime.diff(now));
-             if (duration.asMilliseconds() <= 0) {
-                setCountdownDisplay("Ending soon...");
-             } else {
-                const days = Math.floor(duration.asDays());
-                const hours = duration.hours();
-                const minutes = duration.minutes();
-                const seconds = duration.seconds();
-                setCountdownDisplay(
-                    <Text strong style={{ color: 'red', fontSize: '1rem' }}> {/* Adjusted font size */}
-                       Ends in: {`${days > 0 ? `${days}d ` : ""}${hours}h ${minutes}m ${seconds}s`}
-                    </Text>
-                );
-             }
-        } else {
-            setCountdownDisplay(<Text strong style={{ color: 'grey', fontSize: '1rem' }}>Project has started.</Text>); // Changed color
-            if (intervalId) {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-        }
-    };
-
-    calculateAndSetDisplay();
-
-    if (moment().isBefore(plannedEndTime) && !intervalId) {
-         intervalId = setInterval(calculateAndSetDisplay, 1000);
-    }
-
-    return () => {
-        if (intervalId) {
-            clearInterval(intervalId);
-        }
-    };
-}, [project]);
-
+    
+  }, [dispatch, project]); // CHỈ khi project thay đổi mới gọi
+  console.log("curr req", currentRequest);
+  // Lọc ảnh/video (nếu backend trả về attachments)
   const imageUrls =
     currentProject.attachments?.filter((url) =>
       url.imageUrl.match(/\.(jpeg|jpg|png|gif)$/i)
@@ -506,61 +434,55 @@ const ProjectDetailScreen = () => {
     ) || [];
   const carouselSettings = {
     arrows: true,
-    infinite: imageUrls.length > 1 || videoUrls.length > 1,
+    infinite: true,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
   };
-
-  if (!project) {
+  if (!currentProject.project) {
     return <LoadingModal />
   }
   const items = [
     {
       href: '/',
       title: (
-        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem"}} />
+        <HomeOutlined style={{ fontWeight: "bold", fontSize: "1.3rem"}} /> // Increase icon size
       ),
     },
     {
       title: (
-        <p style={{ fontSize: "1rem"}}>Project {project.projectName}</p>
+        <p style={{ fontSize: "1rem"}}>Project {project.projectName}</p> // Increase text size
       ),
     },
   ];
   const handleDonate = async (values) => {
-    if (!currentUser || !currentUser.id) {
-        message.error("User not logged in. Please log in to donate.");
-        navigate('/auth/login');
-        return;
-    }
+    console.log(values);
+    console.log("currentUser", currentUser.id);
     dispatch(
       getPaymentLinkThunk({
-        itemContent: `${currentUser.email}'s deposit for ${project.projectName}`,
+        itemContent: `${currentUser.email}'s deposit`,
         userId: currentUser.id,
         objectId: project.id,
         amount: values.amount,
-        paymentContent: values.message??"Donation for project",
+        paymentContent: values.message,
         objectType: "PROJECT",
-        returnUrl: window.location.href, 
+        returnUrl: `projects/${project.id}`,
       })
     );
     setIsOpenModal(false);
     form.resetFields();
   }
 
-  const completedDonations = donations?.filter((x) => x.donationStatus === "COMPLETED") || [];
-
-
   return (
+    // <div>   </div>
     <StyledScreen>
-      <Row gutter={16} justify="center" style={{ margin: "0 auto", padding: "0 1rem" }}> {/* Added padding to Row */}
-        {/* Left Column */}
-        <Col xs={24} md={14} lg={13}> {/* Responsive column */}
-          <Breadcrumb items={items} style={{ marginLeft: "1rem", marginBottom: '1rem' }} /> {/* Added margin bottom */}
+      <Row gutter={8} justify="center" style={{ margin: "0 auto" }}>
+        <Col span={13}>
+          <Breadcrumb items={items} style={{ marginLeft: "1rem" }} />
+          {/* <LeftCircleOutlined  onClick={()=>navigate(-1)} style={{ fontWeight: "bold", fontSize: "1.5rem" }}/> */}
           <Flex gap={0} vertical className="request-detail-page">
-            <Flex vertical gap={0} className="request-detail"> {/* request-detail already has padding */}
-            <Tag color="blue" style={{ fontSize: 12, width: "fit-content", marginBottom: '0.5rem' }}> {/* Added margin bottom */}
+            <Flex vertical gap={0} className="request-detail">
+            <Tag color="blue" style={{ fontSize: 12, width: "fit-content" }}>
                   <b>{project.projectStatus}</b>
                 </Tag>
               <Title level={3} className="request-title">
@@ -587,55 +509,52 @@ const ProjectDetailScreen = () => {
                         <video src={url.imageUrl} controls />
                       </div>
                     ))}
+
                   </Carousel>
                 </div>
               )}
 
-              {/* ----- Leader Info Section ----- */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: '1rem' }}> {/* Added margin bottom */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 <Flex gap={10}>
-                  <Avatar src={project.leader?.avatar} icon={<UserOutlined />} size={48} /> {/* Increased size */}
-                  <Flex vertical gap={5}> {/* Reduced gap */}
-                    <span> <strong>{project.leader?.fullName || 'N/A'}</strong> lead this project</span>
-                    <Flex vertical gap={3} style={{ fontSize: '0.9rem', color: '#555' }}> {/* Smaller text, grey color */}
-                      <span> <i>Planned start: </i> { moment(project.plannedStartTime).format("DD/MM/YY hh:mm A")} </span>
-                      <span> <i>Planned end: </i> {moment(project.plannedEndTime).format("DD/MM/YY hh:mm A")}</span>
-                      {/* ----- Countdown REMOVED from here ----- */}
-                      <span> <i>Location: </i> {project.location || 'Not specified'}</span>
+                  <Avatar src={project.leader.avatar} style={{ fontSize: 24 }} />
+                  <Flex vertical gap={10}>
+                    <span> <strong>{project.leader.fullName}</strong> lead this project</span>
+                    <Flex vertical gap={5} >
+                    <span> <i>Planned start at: </i> { moment(project.plannedStartTime).format("DD/MM/YYYY hh:mm A")} </span>
+                    <span> <i>Planned end at: </i> {moment(project.plannedEndTime).format("DD/MM/YYYY hh:mm A")}</span>
+                    <span> <i>Location: </i> {project.location}</span>
                     </Flex>
                   </Flex>
                 </Flex>
+
               </div>
-              {/* ----- End Leader Info Section ----- */}
 
-
+          
               <Divider />
               <Title level={5} style={{ marginBottom: "1rem" }}>
                   For Request
                 </Title>
-              {currentRequest && currentRequest.helpRequest ? (
-                <Card style={{ marginBottom: '1rem' }}> {/* Added margin bottom */}
+              {currentRequest && currentRequest.helpRequest && (
+                <Card>
                   <Flex gap={10}>
                   <img src={  currentRequest?.attachments &&  currentRequest?.attachments.length > 0 ?
-                 currentRequest?.attachments?.find((url) =>
+                 currentRequest?.attachments?.filter((url) =>
                     url.match(/\.(jpeg|jpg|png|gif)$/i)
-                  ) : "https://via.placeholder.com/80"}
-                  alt="request" style={{ width: "5rem", height: "5rem", borderRadius: 10, objectFit: 'cover' }} />
+                  )[0] : ""} alt="request" style={{ width: "5rem", height: "5rem", borderRadius: 10 }} />
                     <Flex vertical>
                     <Text type="primary"><Link to={`/requests/${project.requestId}`}>{currentRequest.helpRequest.title}</Link></Text>
                     <span><strong>Created at: </strong>{moment(currentRequest.helpRequest.creationDate).format("DD/MM/YYYY hh:mm A")}</span>
-                    <span><strong>By requester: </strong>{currentRequest.helpRequest.user?.fullName || 'N/A'}</span>
+                    <span><strong>By requester: </strong>{currentRequest.helpRequest.user.fullName}</span>
                     </Flex>
                   </Flex>
                 </Card>
-              ) : (
-                 <Text type="secondary" style={{ display: 'block', marginBottom: '1rem' }}>No associated help request found or still loading.</Text>
               )}
 
-              {/* <Divider /> No need for two dividers here */}
-
+              {/* <Button onClick={() => navigate(`/requests/${project.requestId}`)}>View help request</Button> */}
+              <Divider />
+           
               {projectTags?.length > 0 && (
-                <Paragraph className="request-tags" style={{ marginBottom: '1rem' }}> {/* Added margin bottom */}
+                <Paragraph className="request-tags">
                   {projectTags.map((taggable) => (
                     <Badge
                       key={taggable.tag.id}
@@ -661,78 +580,93 @@ const ProjectDetailScreen = () => {
                   ))}
                 </Paragraph>
               )}
-              {/* Project Description */}
-              {project.projectDescription && (
-                  <div style={{ marginBottom: '1rem' }}> {/* Added margin bottom */}
-                    <Paragraph style={{marginTop:"0.5rem"}}> {/* Reduced margin top */}
-                      {expanded
-                        ? project.projectDescription
-                        : `${project.projectDescription.substring(0, 800)}${project.projectDescription.length > 800 ? "..." : ""}`
-                      }
-                    </Paragraph>
-                    {project.projectDescription.length > 800 && (
-                      <a
-                        style={{ fontSize: "0.9rem", color: "gray", cursor: 'pointer' }}
-                        onClick={() => setExpanded(!expanded)}
-                      >
-                        {expanded ? "Read Less" : "Read More"}
-                      </a>
-                    )}
-                 </div>
+              {expanded ? (
+                <Paragraph style={{marginTop:"1rem"}}>
+                  Help Maninder Kaur & Son Williamjeet Singh (6 years) after
+                  Gurvinder’s Tragic Passing. Dear friends, family, and
+                  kind-hearted supporters, With a shattered heart, I share the
+                  unbearable news of my beloved husband, Gurvinder Singh
+                  lovingly called "Sodhi", who tragically passed away in a road
+                  train accident near Wongan Hills on March 30, 2025 leaving
+                  behind our son Williamjeet Singh, me and his elder parents. He
+                  was only 34 years old—taken from us far too soon. Gurvinder
+                  was the most kind, soft-spoken, and respectful soul—always
+                  smiling and spreading positivity. He was not just my husband
+                  but my best friend and the most loving father to our
+                  6-year-old son, Williamjeet Singh and he was the only child of
+                  his parents. Our world has been turned upside down in an
+                  instant, and I am struggling to come to terms with this
+                  heartbreaking loss. As I now face life without him, I humbly
+                  ask for your support to help me provide stability for our son.
+                  This fundraiser will help cover funeral expenses, immediate
+                  living costs, and ensure Williamjeet’s future is secure during
+                  this difficult transition. Your kindness, prayers, and
+                  generosity mean the world to us. No donation is too small, and
+                  if you’re unable to contribute, please share this fundraiser
+                  with others. Thank you for your love and support in this
+                  devastating time. With gratitude, Maninder Kaur & Williamjeet
+                  Singh
+                  {`${project.projectDescription} `}{" "}
+                </Paragraph>
+              ) : (
+                <Paragraph style={{marginTop:"1rem"}}>{`${project.projectDescription.substring(
+                  0,
+                  800
+                )}...`}</Paragraph>
               )}
+              <a
+                style={{ fontSize: "0.9rem", color: "gray" }}
+                onClick={() => setExpanded(!expanded)}
+              >
+                {expanded ? "Read Less" : "Read More"}
+              </a>
 
-
-              {/* Bottom Action Buttons moved below description */}
               <div
-                style={{ display: "flex", gap: 10, marginTop: 'auto' }} // Pushes buttons down if content is short
+                style={{ display: "flex", gap: 10, marginTop: 20 }}
                 className="bottom-actions"
               >
+
                 {project.projectStatus === "DONATING" && (
                   <Button
-                    type="primary"
+                    type="default"
                     block
-                    icon={<DollarOutlined />}
                     style={{ flex: 1 }}
                     onClick={() => {
-                      if (!currentUser || !currentUser.id) {
-                        message.info("Please log in to donate.");
+                      if (!currentUser) {
                         navigate("/auth/login");
                         return;
                       }
                       setIsOpenModal(true);
                     }}
                   >
-                    <b>Donate Now</b>
+                    <b>Donate</b>
                   </Button>
-                )}
-                <Button type="default" block style={{ flex: 1 }} icon={<ShareAltOutlined />}>
+                )
+                }
+                <Button type="default" block style={{ flex: 1 }}>
                   <b>Share</b>
                 </Button>
               </div>
-
-             <Divider /> {/* Divider before Org/Member section */}
-
-             {/* Organization and Member Section */}
+              <Divider />
               <StyledSection.Container>
-                <Title level={5} style={{ margin: '0 0 1rem 0' }}> {/* Added bottom margin */}
+                <Title level={5} style={{ margin: 0 }}>
                   Organization
                 </Title>
-                <StyledSection.ProfileSection style={{ marginTop: 0 }}> {/* Removed top margin */}
+                <StyledSection.ProfileSection>
                   <StyledSection.Avatar
-                    src={currentOrganization?.logoUrl || "https://via.placeholder.com/40"}
-                    alt="Organization Logo"
+                    src="https://storage.googleapis.com/a1aa/image/z6OcGa7T3LpfeWigBmZXBhb2bZBIrDWrIHhlo_5ZXoo.jpg"
+                    alt="Profile"
                   />
                   <StyledSection.Info>
-                    {currentOrganization ? (
+                    {currentOrganization &&
+                      currentOrganization.organizationName && (
                         <div>
                           <p>{currentOrganization.organizationName}</p>
                           <p>Organization</p>
-                          <p>{currentOrganization.address || 'Address not provided'}</p>
+                          <p>{currentOrganization.address}</p>
                         </div>
-                      ) : (
-                         <Skeleton active paragraph={{rows: 1}} title={false} /> // Placeholder
                       )}
-                    <StyledSection.ContactButton disabled={!currentOrganization}>
+                    <StyledSection.ContactButton>
                       Contact
                     </StyledSection.ContactButton>
                   </StyledSection.Info>
@@ -740,28 +674,25 @@ const ProjectDetailScreen = () => {
 
                 <Divider />
                 <strong>Members</strong>
-                <Flex style={{marginTop: '0.5rem', marginBottom: '1rem'}}> {/* Added margins */}
-                  {projectMembers && projectMembers.length > 0 ? (
-                      <Avatar.Group maxCount={5} maxStyle={{ color: '#f56a00', backgroundColor: '#fde3cf' }}>
-                          {projectMembers.map((member) => (
-                              <Avatar
-                                  key={member.id}
-                                  src={member.user?.avatar || undefined}
-                                  icon={!member.user?.avatar ? <UserOutlined /> : null}
-                                  size={40}
-                                  title={member.user?.fullName || 'Member'}
-                              />
-                          ))}
-                      </Avatar.Group>
-                  ) : (
-                      <Text type="secondary">No members assigned yet.</Text>
-                  )}
+                <Flex>
+                  <Avatar.Group>
+                    {projectMembers.map((member) => (
+                      <Avatar
+                        key={member.id}
+                        src={
+                          member.user.avatar || "https://via.placeholder.com/50"
+                        }
+                        size={40}
+                        icon={<UserOutlined />}
+                      />
+                    ))}
+                  </Avatar.Group>
                 </Flex>
                 <Divider />
 
                 <StyledSection.Meta>
-                  Created {moment(project.createdAt).fromNow()}
-                   · <Link to="#">{project.categoryName || 'Uncategorized'}</Link>
+                  Created {moment().diff(moment(project.createdAt), "days")} d
+                  ago · <Link to="#">{project.categoryName}</Link>
                 </StyledSection.Meta>
 
                 <Divider />
@@ -774,29 +705,15 @@ const ProjectDetailScreen = () => {
             </Flex>
           </Flex>
         </Col>
-
-        {/* Right Column */}
-        <Col xs={24} md={10} lg={8} style={{ marginTop: "4.5rem" }}> {/* Adjusted top margin, responsive */}
-
-            {/* ----- Countdown Display MOVED HERE ----- */}
-            {project && (
-                <Card style={{ marginBottom: '1rem', textAlign: 'center', border: '1px solid #eee', boxShadow: 'rgba(0, 0, 0, 0.1) 0px 2px 4px 0px' }}>
-                    {/* Use Card for better visual grouping */}
-                     {countdownDisplay}
-                </Card>
-            )}
-            {/* ----- End Countdown Display ----- */}
-
-
-            <ProjectStatisticCard
-                project={project}
-                projectMembers={projectMembers || []}
-                projectRequests={projectRequests || []}
-                donations={completedDonations}
-                isOpenModal={isOpenModal}
-                setIsOpenModal={setIsOpenModal}
-                // No need to pass countdownDisplay here anymore
-            />
+        <Col span={8} style={{ marginTop: "2rem" }}>
+          <ProjectStatisticCard
+            project={project}
+            projectMembers={projectMembers}
+            projectRequests={projectRequests}
+            donations={donations}
+            isOpenModal={isOpenModal}
+            setIsOpenModal={setIsOpenModal}
+          />
 
           <StyledWrapper>
             <Card className="donation-card">
@@ -821,6 +738,27 @@ const ProjectDetailScreen = () => {
                                 pagination={false} loading={loading}
                                 style={{ fontSize: "0.4rem" }}
                             /> */}
+              {donations.length > 0 ? (
+                <Table
+                  columns={columns}
+                  size="small"
+                  scroll={{ y: 300 }}
+                  dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
+                  rowKey="id"
+                  className="custom-table"
+                />
+              ) : (
+                <div>No donations available</div>
+              )}
+
+            </Card>
+          </StyledWrapper>
+          <StyledWrapper>
+            <Card className="donation-card">
+              <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+                <Title level={5} style={{ margin: 0 }}>Expense Records</Title>
+                <Link to={`/projects/${projectId}/details`} style={{ marginLeft: 10 }}>See all</Link>
+              </Flex>
               {donations.length > 0 ? (
                 <Table
                   columns={columns}
