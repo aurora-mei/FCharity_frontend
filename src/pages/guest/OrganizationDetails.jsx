@@ -86,6 +86,12 @@ const OrganizationDetails = () => {
     (state) => state.organization.organizationArticles
   );
 
+  const [sortedArticles, setSortedArticles] = useState([]);
+
+  useEffect(() => {
+    setSortedArticles(organizationArticles);
+  }, [organizationArticles]);
+
   const joinRequests = useSelector((state) => state.organization.joinRequests);
   const invitations = useSelector((state) => state.organization.invitations);
 
@@ -102,6 +108,36 @@ const OrganizationDetails = () => {
       dispatch(createJoinRequest(joinRequestData));
     } catch (error) {
       console.error("Failed to create join request:", error);
+    }
+  };
+
+  const handleSort = (e) => {
+    let tmpArticles = [...organizationArticles];
+
+    switch (e.target.value) {
+      case "latest":
+        setSortedArticles(
+          tmpArticles.sort((a, b) => {
+            const dateA = new Date(a.updatedAt);
+            const dateB = new Date(b.updatedAt);
+            return dateB - dateA;
+          })
+        );
+        break;
+      case "oldest":
+        setSortedArticles(
+          tmpArticles.sort((a, b) => {
+            const dateA = new Date(a.updatedAt);
+            const dateB = new Date(b.updatedAt);
+            return dateA - dateB;
+          })
+        );
+        break;
+      case "most-viewed":
+        setSortedArticles(tmpArticles.sort((a, b) => b.views - a.views));
+        break;
+      default:
+        setSortedArticles(organizationArticles);
     }
   };
 
@@ -469,15 +505,31 @@ const OrganizationDetails = () => {
           </div>
         </div>
         <div className="my-18 max-w-[1250px] mx-auto">
-          <p
-            style={{ margin: 0, marginBottom: "20px" }}
-            className="text-2xl font-semibold"
-          >
-            Các cài báo nổi bật
-          </p>
-          <div className="flex flex-wrap max-w-[1250px] ml-10 gap-6">
+          <div className="flex justify-between items-center mb-7">
+            <p
+              style={{ margin: 0, marginBottom: "20px" }}
+              className="text-2xl font-semibold"
+            >
+              Các cài báo nổi bật
+            </p>
+            <div className="flex gap-2 items-center">
+              <span>Sort by: </span>
+              <select
+                onChange={handleSort}
+                className="px-4 py-2 border border-gray-300 rounded-sm focus:outline-none"
+              >
+                <option value="all" selected>
+                  All
+                </option>
+                <option value="latest">Latest</option>
+                <option value="oldest">Oldest</option>
+                <option value="most-viewed">Most viewed</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-wrap max-w-[1250px] ml-10 gap-6  max-h-[700px] overflow-y-auto">
             {organizationArticles.length > 0 &&
-              organizationArticles.map((article) => (
+              sortedArticles.map((article) => (
                 <ArticleCard key={article.articleId} article={article} />
               ))}
           </div>

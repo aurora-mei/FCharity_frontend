@@ -4,6 +4,13 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import helperApi from "../../../redux/helper/helperApi";
 import { useDispatch, useSelector } from "react-redux";
 import { updateArticle } from "../../../redux/organization/organizationSlice";
+import {
+  showSuccess,
+  showError,
+  showWarning,
+  showInfo,
+} from "../../../utils/showMessage";
+
 class CustomUploadAdapter {
   constructor(loader) {
     this.loader = loader;
@@ -51,10 +58,14 @@ function DisableImageSrcset(editor) {
 const ArticleEditor = ({ article, setIsEditingArticle }) => {
   const [title, setTitle] = useState(article.title);
   const [content, setContent] = useState(article.content);
+  const currentOrganization = useSelector(
+    (state) => state.organization.currentOrganization
+  );
 
   const dispatch = useDispatch();
 
   const handleSubmit = async () => {
+    showInfo("Updating article...");
     try {
       const cleanContent = content.replace(/srcset="[^"]*"/g, "");
 
@@ -66,10 +77,12 @@ const ArticleEditor = ({ article, setIsEditingArticle }) => {
         })
       ).unwrap();
 
-      alert("Bài viết được tạo!");
+      showSuccess("Article updated!");
       setTitle("");
       setContent("");
+      setIsEditingArticle(false);
     } catch (error) {
+      showError("Failed to update article!");
       console.error("Lỗi khi tạo bài viết:", error);
     }
   };

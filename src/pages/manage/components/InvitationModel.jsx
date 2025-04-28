@@ -147,7 +147,10 @@ const InvitationModel = ({ setIsModelOpen }) => {
                           }
                           alt="Candidate avatar"
                           className="w-full h-full object-cover"
-                          onerror={`this.onerror=null; this.src=${"https://avatar.iran.liara.run/public"};`}
+                          onError={(e) =>
+                            (e.target.src =
+                              "https://avatar.iran.liara.run/public")
+                          }
                         />
                       </div>
                       <div className="flex flex-col gap-1 justify-center grow-1">

@@ -49,6 +49,8 @@ const OrganizationArticleView = () => {
     (state) => state.organization.organizationArticles
   );
 
+  const [sortedArticles, setSortedArticles] = useState([]);
+
   useEffect(() => {
     window.scrollTo({
       top: 0,
@@ -65,6 +67,10 @@ const OrganizationArticleView = () => {
   }, [organizationId]);
 
   useEffect(() => {
+    setSortedArticles(organizationArticles);
+  }, [organizationArticles]);
+
+  useEffect(() => {
     if (articleId) {
       dispatch(getArticleById(articleId));
     }
@@ -72,6 +78,36 @@ const OrganizationArticleView = () => {
 
   const handleViewOrganization = () => {
     navigate(`/organizations/${organizationId}`);
+  };
+
+  const handleSort = (e) => {
+    let tmpArticles = [...organizationArticles];
+
+    switch (e.target.value) {
+      case "latest":
+        setSortedArticles(
+          tmpArticles.sort((a, b) => {
+            const dateA = new Date(a.updatedAt);
+            const dateB = new Date(b.updatedAt);
+            return dateB - dateA;
+          })
+        );
+        break;
+      case "oldest":
+        setSortedArticles(
+          tmpArticles.sort((a, b) => {
+            const dateA = new Date(a.updatedAt);
+            const dateB = new Date(b.updatedAt);
+            return dateA - dateB;
+          })
+        );
+        break;
+      case "most-viewed":
+        setSortedArticles(tmpArticles.sort((a, b) => b.views - a.views));
+        break;
+      default:
+        setSortedArticles(organizationArticles);
+    }
   };
 
   return (
@@ -171,15 +207,31 @@ const OrganizationArticleView = () => {
         </div>
 
         <div className="my-18 max-w-[1250px] mx-auto">
-          <p
-            style={{ margin: 0, marginBottom: "20px" }}
-            className="text-2xl font-semibold"
-          >
-            Các cài báo nổi bật
-          </p>
-          <div className="flex flex-wrap max-w-[1250px] ml-10 gap-6">
+          <div className="flex justify-between items-center mb-7">
+            <p
+              style={{ margin: 0, marginBottom: "20px" }}
+              className="text-2xl font-semibold"
+            >
+              Các cài báo nổi bật
+            </p>
+            <div className="flex gap-2 items-center">
+              <span>Sort by: </span>
+              <select
+                onChange={handleSort}
+                className="px-4 py-2 border border-gray-300 rounded-sm focus:outline-none"
+              >
+                <option value="all" selected>
+                  All
+                </option>
+                <option value="latest">Latest</option>
+                <option value="oldest">Oldest</option>
+                <option value="most-viewed">Most viewed</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-wrap max-w-[1250px] ml-10 gap-6 max-h-[700px] overflow-y-auto">
             {organizationArticles.length > 0 &&
-              organizationArticles.map((article) => (
+              sortedArticles.map((article) => (
                 <ArticleCard key={article.articleId} article={article} />
               ))}
           </div>
@@ -191,29 +243,29 @@ const OrganizationArticleView = () => {
             <div>
               <h3 className="text-xl font-bold mb-4">Về Chúng Tôi</h3>
               <p className="text-gray-300 mb-4">
-                {currentOrganization.organizationDescription}
+                {currentOrganization?.organizationDescription}
               </p>
               <div className="flex space-x-4">
                 <Link
-                  to={`/organizations/${currentOrganization.organizationId}`}
+                  to={`/organizations/${currentOrganization?.organizationId}`}
                   className="text-gray-300 hover:text-white transition"
                 >
                   <FaFacebook size={20} />
                 </Link>
                 <Link
-                  to={`/organizations/${currentOrganization.organizationId}`}
+                  to={`/organizations/${currentOrganization?.organizationId}`}
                   className="text-gray-300 hover:text-white transition"
                 >
                   <FaTwitter size={20} />
                 </Link>
                 <Link
-                  to={`/organizations/${currentOrganization.organizationId}`}
+                  to={`/organizations/${currentOrganization?.organizationId}`}
                   className="text-gray-300 hover:text-white transition"
                 >
                   <FaLinkedin size={20} />
                 </Link>
                 <Link
-                  to={`/organizations/${currentOrganization.organizationId}`}
+                  to={`/organizations/${currentOrganization?.organizationId}`}
                   className="text-gray-300 hover:text-white transition"
                 >
                   <FaInstagram size={20} />
@@ -227,7 +279,7 @@ const OrganizationArticleView = () => {
               <ul className="space-y-2">
                 <li>
                   <Link
-                    to={`/organizations/${currentOrganization.organizationId}`}
+                    to={`/organizations/${currentOrganization?.organizationId}`}
                     className="text-gray-300 hover:text-white transition"
                   >
                     Trang Chủ
@@ -235,7 +287,7 @@ const OrganizationArticleView = () => {
                 </li>
                 <li>
                   <Link
-                    to={`/organizations/${currentOrganization.organizationId}/projects`}
+                    to={`/organizations/${currentOrganization?.organizationId}/projects`}
                     className="text-gray-300 hover:text-white transition"
                   >
                     Dự Án
@@ -243,7 +295,7 @@ const OrganizationArticleView = () => {
                 </li>
                 <li>
                   <Link
-                    to={`/organizations/${currentOrganization.organizationId}/articles`}
+                    to={`/organizations/${currentOrganization?.organizationId}/articles`}
                     className="text-gray-300 hover:text-white transition"
                   >
                     Tin Tức
@@ -251,7 +303,7 @@ const OrganizationArticleView = () => {
                 </li>
                 <li>
                   <Link
-                    to={`/organizations/${currentOrganization.organizationId}/events`}
+                    to={`/organizations/${currentOrganization?.organizationId}/events`}
                     className="text-gray-300 hover:text-white transition"
                   >
                     Sự Kiện
@@ -259,7 +311,7 @@ const OrganizationArticleView = () => {
                 </li>
                 <li>
                   <Link
-                    to={`/organizations/${currentOrganization.organizationId}/donations`}
+                    to={`/organizations/${currentOrganization?.organizationId}/donations`}
                     className="text-gray-300 hover:text-white transition"
                   >
                     Quyên Góp
@@ -280,7 +332,7 @@ const OrganizationArticleView = () => {
                       href="tel:+84123456789"
                       className="hover:text-white transition"
                     >
-                      {currentOrganization.phoneNumber}
+                      {currentOrganization?.phoneNumber}
                     </a>
                   </div>
                 </li>
@@ -292,7 +344,7 @@ const OrganizationArticleView = () => {
                       href="mailto:contact@organization.org"
                       className="hover:text-white transition"
                     >
-                      {currentOrganization.email}
+                      {currentOrganization?.email}
                     </a>
                   </div>
                 </li>
@@ -300,7 +352,7 @@ const OrganizationArticleView = () => {
                   <FaMapMarkerAlt className="mt-1 mr-3 text-gray-300" />
                   <div>
                     <p className="text-gray-300">Address</p>
-                    <p>{currentOrganization.address}</p>
+                    <p>{currentOrganization?.address}</p>
                   </div>
                 </li>
               </ul>
