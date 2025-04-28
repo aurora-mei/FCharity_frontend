@@ -553,10 +553,9 @@ const MyRequestScreen = () => {
           dataSource={filteredRequests}
           renderItem={(request) => (
             <List.Item key={request.helpRequest.id}>
-
+               <RequestCard requestData={request} />
               {transferRequests && transferRequests.get(request.helpRequest.id) && (
-                <Flex vertical gap={10}>
-                  <RequestCard requestData={request} />
+                <Flex vertical gap={10}>            
                   <Button onClick={() => {
                     setTransferRequestModalOpen(true);
                     console.log("TransferRequest", transferRequests.get(request.helpRequest.id));
@@ -901,7 +900,6 @@ const MyRequestScreen = () => {
 
               {confirmRequests && confirmRequests.get(request.helpRequest.id) && (
                 <Flex vertical gap={10}>
-                  <RequestCard requestData={request} />
                   <Button onClick={() => {
                     setConfirmRequestModalOpen(true);
                     console.log("confirm req", confirmRequests.get(request.helpRequest.id));
