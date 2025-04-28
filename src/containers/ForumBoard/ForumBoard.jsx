@@ -8,10 +8,10 @@ import { RightOutlined } from '@ant-design/icons';
 
 const ForumBoard = () => {
     const dispatch = useDispatch();
-    const { 
+    const {
         topVoted,
-        loading, 
-        error 
+        loading,
+        error
     } = useSelector(state => state.post || {});
 
     useEffect(() => {
@@ -37,17 +37,17 @@ const ForumBoard = () => {
                         </div>
                     </Col>
                     <Col span={16}>
-  <div className="forum-content-container">
-    <img src="./src/assets/communicate.jpg" alt="" className="img-forum" />
-    <div className="post-card-row">
-      {topVoted.slice(0, 3).map(post => (
-        <div key={post.post.id} className="post-card-wrapper">
-          <PostForumBoard postResponse={post} size="small" />
-        </div>
-      ))}
-    </div>
-  </div>
-</Col>
+                        <div className="forum-content-container">
+                            <img src="./src/assets/communicate.jpg" alt="" className="img-forum" />
+                            <div className="post-card-row">
+                                {topVoted.slice(0, 3).map(post => (
+                                    <div key={post.post.id} className="post-card-wrapper">
+                                        <PostForumBoard postResponse={post} size="small" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </Col>
 
                 </Row>
             )}

@@ -556,7 +556,7 @@ const MyRequestScreen = () => {
                <RequestCard requestData={request} />
               {transferRequests && transferRequests.get(request.helpRequest.id) && (
                 <Flex vertical gap={10}>            
-                  <Button onClick={() => {
+                  <Button style={{marginTop:"1rem"}} onClick={() => {
                     setTransferRequestModalOpen(true);
                     console.log("TransferRequest", transferRequests.get(request.helpRequest.id));
                     dispatch(setCurrentTransferRequest(transferRequests.get(request.helpRequest.id)));
@@ -900,7 +900,7 @@ const MyRequestScreen = () => {
 
               {confirmRequests && confirmRequests.get(request.helpRequest.id) && (
                 <Flex vertical gap={10}>
-                  <Button onClick={() => {
+                  <Button style={{marginTop:'1rem'}} onClick={() => {
                     setConfirmRequestModalOpen(true);
                     console.log("confirm req", confirmRequests.get(request.helpRequest.id));
                     dispatch(setCurrentConfirmRequest(confirmRequests.get(request.helpRequest.id)));

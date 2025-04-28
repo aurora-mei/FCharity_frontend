@@ -267,7 +267,7 @@ const RequestDetailScreen = () => {
                         );
                       } else {
                         navigate(
-                          `/my-organization/projects/create/${requestData.helpRequest.id}`
+                          `/projects/create/${requestData.helpRequest.id}`
                         );
                       }
                     } else {
