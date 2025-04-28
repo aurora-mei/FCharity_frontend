@@ -17,43 +17,42 @@ const ForumPage = () => {
     const tag = searchParams.get("tag");
 
     const [viewMode, setViewMode] = useState("compact");
-    const [sortBy, setSortBy] = useState("Best");
+    const [sortBy, setSortBy] = useState("New"); // Mặc định sắp xếp mới nhất trước
 
     useEffect(() => {
         dispatch(fetchPosts());
     }, [dispatch]);
 
-    // Hàm xử lý sắp xếp
-    const handleSortChange = (sortOption) => {
-        let sortedPosts = [...posts];
+    // Lọc bài viết theo tag
+    const filteredPosts = React.useMemo(() => {
+        return tag
+            ? posts.filter(p => 
+                p.taggables?.some(t => t.tag.tagName.toLowerCase() === tag.toLowerCase())
+              )
+            : posts;
+    }, [posts, tag]);
+
+    // Sắp xếp bài viết
+    const sortedAndFilteredPosts = React.useMemo(() => {
+        const postsToSort = [...filteredPosts];
         
-        switch(sortOption) {
+        switch(sortBy) {
             case "New":
-                sortedPosts.sort((a, b) => new Date(b.post.createdAt) - new Date(a.post.createdAt));
-                break;
+                return postsToSort.sort((a, b) => 
+                    new Date(b.post.createdAt) - new Date(a.post.createdAt)
+                );
             case "Oldest":
-                sortedPosts.sort((a, b) => new Date(a.post.createdAt) - new Date(b.post.createdAt));
-                break;
+                return postsToSort.sort((a, b) => 
+                    new Date(a.post.createdAt) - new Date(b.post.createdAt)
+                );
             case "Best":
-                sortedPosts.sort((a, b) => b.post.vote - a.post.vote);
-                break;
+                return postsToSort.sort((a, b) => 
+                    (b.post.vote || 0) - (a.post.vote || 0)
+                );
             default:
-                break;
+                return postsToSort;
         }
-        
-        return sortedPosts;
-    };
-
-    // Lọc và sắp xếp bài viết
-    const filteredPosts = tag
-        ? posts.filter(p => 
-            p.taggables?.some(t => t.tag.tagName.toLowerCase() === tag.toLowerCase())
-          )
-        : posts;
-
-    const sortedAndFilteredPosts = handleSortChange(sortBy).filter(post => 
-        filteredPosts.some(p => p.post.id === post.post.id)
-    );
+    }, [filteredPosts, sortBy]);
 
     return (
         <Layout style={{ minHeight: "100vh", display: "flex", flexDirection: "row", gap: "20px", padding: "20px" }}>
@@ -65,7 +64,6 @@ const ForumPage = () => {
                     setSortBy={setSortBy} 
                     viewMode={viewMode} 
                     setViewMode={setViewMode}
-                    onSortChange={setSortBy} // Truyền hàm xử lý sort
                 />
                 <PostList posts={sortedAndFilteredPosts} viewMode={viewMode} />
             </Content>

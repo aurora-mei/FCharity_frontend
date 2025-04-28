@@ -380,24 +380,54 @@ const handleDeletePost = async (e) => {
 
   const handleVote = async (commentId, isUpvote) => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    if (!currentUser?.id) return message.error("Vui lòng đăng nhập để vote");
-
+    if (!currentUser?.id) {
+      message.error("Vui lòng đăng nhập trước khi vote");
+      return;
+    }
+  
     const currentVote = currentVotes[commentId];
-    let newVoteValue = isUpvote ? (currentVote === 1 ? 0 : 1) : (currentVote === -1 ? 0 : -1);
-
+    let newVoteValue = 0;
+  
+    if (currentVote === 1) {
+      newVoteValue = isUpvote ? 0 : -1;
+    } else if (currentVote === -1) {
+      newVoteValue = isUpvote ? 1 : 0;
+    } else {
+      newVoteValue = isUpvote ? 1 : -1;
+    }
+  
+    // ✅ Bảo vệ dữ liệu gửi đi
+    if (![1, 0, -1].includes(newVoteValue)) {
+      console.warn("Vote không hợp lệ", { commentId, vote: newVoteValue });
+      return;
+    }
+  
     try {
-      setCurrentVotes((prev) => ({ ...prev, [commentId]: newVoteValue }));
+      setCurrentVotes(prev => ({
+        ...prev,
+        [commentId]: newVoteValue
+      }));
+  
       await dispatch(voteComment({ 
-        commentId, 
-        userId: currentUser.id, 
-        vote: newVoteValue 
+        commentId,
+        userId: currentUser.id,
+        vote: newVoteValue
       })).unwrap();
+  
     } catch (error) {
-      setCurrentVotes((prev) => ({ ...prev, [commentId]: currentVote }));
-      message.error(typeof error.message === "string" ? error.message : "Vote thất bại");
+      setCurrentVotes(prev => ({
+        ...prev,
+        [commentId]: currentVote
+      }));
+  
+      const safeMessage = typeof error.message === 'string' ? error.message : "Vote thất bại";
+      if (safeMessage.includes("User not found") || safeMessage.includes("Comment not found")) {
+        message.error("Thông tin không hợp lệ. Vui lòng thử lại.");
+      } else {
+        message.error(safeMessage);
+      }
     }
   };
-
   if (!currentPost?.post) return <Card variant="outlined">Đang tải bài viết...</Card>;
 
   const { title, createdAt, vote, content, user = {} } = currentPost.post;

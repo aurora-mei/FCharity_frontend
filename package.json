@@ -89,7 +89,7 @@
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.2",
@@ -98,7 +98,7 @@
     "ethers": "^6.13.5",
     "globals": "^15.14.0",
     "hardhat": "^2.22.18",
-    "vite": "^6.0.5"
+    "vite": "^6.3.3"
   },
   "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
 }
