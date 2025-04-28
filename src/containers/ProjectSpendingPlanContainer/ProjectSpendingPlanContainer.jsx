@@ -238,7 +238,7 @@ const ProjectSpendingPlanContainer = ({currentProject, isLeader}) => {
                                 <b>{currentSpendingPlan.approvalStatus} at {currentSpendingPlan.approvalStatus === "PREPARING" ? moment(currentSpendingPlan.createdDate).format("DD/MM/YYYY hh:mm A") : moment(currentSpendingPlan.updatedDate).format("DD/MM/YYYY hh:mm A")}</b>
                             </Tag>
                             <b>Total: {spendingItems.reduce((total, item) => total + (item.estimatedCost || 0), 0).toLocaleString()} VND</b>
-                            <b>Extra fund: {currentSpendingPlan.maxExtraCostPercentage}%</b>
+                            <b>Extra fund: {currentSpendingPlan.maxExtraCostPercentage ?? 0}%</b>
 
                         </div>
                     </Header>

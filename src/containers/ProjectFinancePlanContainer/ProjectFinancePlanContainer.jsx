@@ -14,11 +14,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import { useParams } from 'react-router-dom';
 import {
-    deleteSpendingItemThunk, fetchProjectById, deleteSpendingPlanThunk,
+    deleteSpendingItemThunk, fetchProjectById, deleteSpendingPlanThunk, fetchWithdrawRequestByProject,updateConfirmWithdrawRequest,
     fetchSpendingTemplateThunk, importSpendingPlanThunk, fetchSpendingDetailsByProject,
     fetchDonationsOfProject, fetchSpendingPlanOfProject, fetchSpendingItemOfPlan,
     createSpendingPlanThunk, createSpendingItemThunk, updateSpendingPlanThunk,
-    updateSpendingItemThunk ,fetchProjectWallet,
+    updateSpendingItemThunk, fetchProjectWallet,
     fetchExpenseTemplateThunk
 } from '../../redux/project/projectSlice';
 import WithdrawRequestModal from '../../components/WithdrawRequestModal/WithdrawRequestModal';
@@ -37,7 +37,7 @@ export const SpendingPlanFlex = styled(Flex)`
   flex-direction: column;
   border-radius:0.5rem;
 //   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px 0px;
-  padding:2rem;
+//   padding:2rem;
   background: #fff; // This applies to the Flex container itself if used
 `;
 
@@ -205,11 +205,12 @@ const ProjectFinancePlanContainer = () => {
         if (currentProject?.project?.id) {
             dispatch(fetchProjectWallet(currentProject.project.walletId));
             dispatch(fetchSpendingPlanOfProject(currentProject.project.id));
+            dispatch(fetchWithdrawRequestByProject(currentProject.project.id));
         }
         // Determine leader status
         setIsLeader(currentProject?.project?.leader?.id === currentUser?.id);
 
-    }, [currentProject, currentUser?.id, dispatch]); // Added currentUser.id dependency
+    }, [currentProject, currentUser?.id, dispatch, projectWallet.id]); // Added currentUser.id dependency
 
     useEffect(() => {
         // Fetch items for the specific plan *after* the plan loads
@@ -268,10 +269,13 @@ const ProjectFinancePlanContainer = () => {
             </Flex>
         );
     }
-
-
+    const handleConfirmWithdraw = (requestId) => {
+        dispatch(updateConfirmWithdrawRequest(requestId))
+            .then(() => dispatch(fetchProjectWallet(currentProject.project.walletId)));
+        setIsOpenWithdrawalModal(false);
+    }
     return (
-        <Flex vertical gap="2rem" style={{ padding: "1rem" }}>
+        <Flex vertical gap="2rem" style={{ padding: "0" }}>
 
             {/* --- 1. Summary Section --- */}
             <StyledCard> {/* Use StyledCard here */}
@@ -329,23 +333,27 @@ const ProjectFinancePlanContainer = () => {
                         <Button
                             type="primary"
                             icon={<BankOutlined />}
-                            onClick={()=>setIsOpenWithdrawalModal(true)}
+                            onClick={() => setIsOpenWithdrawalModal(true)}
                             style={{ backgroundColor: 'green', borderColor: 'green', marginLeft: 'auto' }} // Ensure button aligns well
                         >
                             Request Withdrawal
                         </Button>
                     )}
-                    <WithdrawRequestModal form={form} isOpenWithdrawalModal={isOpenWithdrawalModal} setIsOpenWithdrawalModal={setIsOpenWithdrawalModal} />
+                    <WithdrawRequestModal form={form} isOpenWithdrawalModal={isOpenWithdrawalModal} setIsOpenWithdrawalModal={setIsOpenWithdrawalModal} handleConfirm={handleConfirmWithdraw} />
 
                 </Flex>
             </StyledCard>
 
             {/* --- 2. Spending Plan Section --- */}
             {/* Assuming ProjectSpendingPlanContainer renders its own Card/StyledCard */}
-            <ProjectSpendingPlanContainer
-                isLeader={isLeader}
-                currentProject={currentProject}
-            />
+            <StyledCard title={<Title level={4} style={{ margin: 0 }}>Spending Plan</Title>}>
+                <StyledCard>
+                    <ProjectSpendingPlanContainer
+                        isLeader={isLeader}
+                        currentProject={currentProject}
+                    />
+                </StyledCard>
+            </StyledCard>
 
             {/* --- 3. Donation Section --- */}
             {/* Conditionally render based on plan existence OR if donations exist */}
@@ -354,14 +362,14 @@ const ProjectFinancePlanContainer = () => {
                     {totalEstimatedCost > 0 ? (
                         <Flex vertical gap="1rem">
                             {/* Progress bar section */}
-                            <StyledCard> {/* Removed extra styling, StyledCard handles background */}
-                                <Text strong>Funding Progress vs. Estimated Cost</Text>
-                                <Tooltip title={`${donationPercentage.toFixed(1)}% Funded (${formatCurrency(currentDonationAmount)} / ${formatCurrency(totalEstimatedCost)})`}>
+                            <StyledCard > {/* Removed extra styling, StyledCard handles background */}
+                                <Title level={5} >Funding Progress vs. Estimated Cost</Title>
+                                <Tooltip title={`${donationPercentage.toFixed(1)}% Funded (${currentDonationAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}>
                                     <Progress
                                         percent={donationPercentage}
                                         status={donationProgressStatus}
                                         strokeColor={donationProgressStatus === 'success' ? '#52c41a' : undefined}
-                                        format={(percent) => `${percent?.toFixed(1)}% (${formatCurrency(currentDonationAmount)} / ${formatCurrency(totalEstimatedCost)})`}
+                                        format={(percent) => `${percent?.toFixed(1)}% (${currentDonationAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}
                                     />
                                 </Tooltip>
                             </StyledCard>
@@ -372,7 +380,7 @@ const ProjectFinancePlanContainer = () => {
                         donations?.length > 0 ? (
                             <Flex vertical gap="1rem">
                                 <StyledCard>
-                                    <Text strong>Total Donations Received: {formatCurrency(currentDonationAmount)}</Text>
+                                    <Title level={5}>Total Donations Received: {currentDonationAmount.toLocaleString()} VND</Title>
                                     {/* Display only if plan exists but cost is 0 */}
                                     {currentSpendingPlan && <Text style={{ display: 'block', color: 'orange', margin: '8px 0' }}>
                                         (Spending plan items not found or have zero estimated cost. Progress relative to estimate cannot be shown.)
@@ -392,19 +400,19 @@ const ProjectFinancePlanContainer = () => {
 
             {/* --- 4. Expense Section --- */}
             {/* Conditionally render based on plan existence OR if expenses exist */}
-            {(currentSpendingPlan || spendingDetails?.length > 0) && (
+            {((currentProject && currentProject.project.projectStatus === "ACTIVE") || spendingDetails?.length > 0) && (
                 <StyledCard title={<Title level={4} style={{ margin: 0 }}>Expenses</Title>}>
                     {totalEstimatedCost > 0 ? (
                         <Flex vertical gap="1rem">
                             {/* Progress bar section */}
-                            <StyledCard>
-                                <Text strong>Expense Progress vs. Estimated Cost</Text>
-                                <Tooltip title={`${expensePercentage.toFixed(1)}% Expensed (${formatCurrency(currentExpenseAmount)} / ${formatCurrency(totalEstimatedCost)})`}>
+                            <StyledCard >
+                                <Title level={5}>Expense Progress vs. Estimated Cost</Title>
+                                <Tooltip title={`${expensePercentage.toFixed(1)}% Expensed (${currentExpenseAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}>
                                     <Progress
                                         percent={expensePercentage}
                                         status={expenseProgressStatus} // 'success' might mean fully expensed based on estimate
                                         strokeColor={expenseProgressStatus === 'success' ? '#52c41a' : undefined}
-                                        format={(percent) => `${percent?.toFixed(1)}% (${formatCurrency(currentExpenseAmount)} / ${formatCurrency(totalEstimatedCost)})`}
+                                        format={(percent) => `${percent?.toFixed(1)}% (${currentExpenseAmount.toLocaleString()} / ${totalEstimatedCost.toLocaleString()} VND)`}
                                     />
                                 </Tooltip>
                             </StyledCard>
@@ -418,7 +426,7 @@ const ProjectFinancePlanContainer = () => {
                         spendingDetails?.length > 0 ? (
                             <Flex vertical gap="1rem">
                                 <StyledCard>
-                                    <Text strong>Total Expenses Paid: {formatCurrency(currentExpenseAmount)}</Text>
+                                    <Title level={5}>Total Expenses Paid: {currentExpenseAmount.toLocaleString()} VND</Title>
                                     {/* Display only if plan exists but cost is 0 */}
                                     {currentSpendingPlan && <Text style={{ display: 'block', color: 'orange', margin: '8px 0' }}>
                                         (Spending plan items not found or have zero estimated cost. Progress relative to estimate cannot be shown.)

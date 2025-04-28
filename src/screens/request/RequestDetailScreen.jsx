@@ -79,7 +79,6 @@ const RequestDetailScreen = () => {
   }, [dispatch, ownedOrganization]); // Chỉ gọi khi organizationId có giá trị
 
   if (loading) return <LoadingModal />;
-  if (loading) return <LoadingModal />;
 
   if (error) {
     return (
@@ -164,6 +163,29 @@ const RequestDetailScreen = () => {
               <span className="category-badge">
                 {helpRequest.category.categoryName}
               </span>
+              {helpRequest.status === "REJECTED" && helpRequest.reason && (
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 10, 
+                    width: '60%', 
+                    textAlign: 'center',
+                }}>
+                  <Alert
+                    type="error"
+                    message={<span style={{ color: 'white' }}>Request Rejected Reason</span>}
+                    description={<span style={{ color: 'white' }}>{helpRequest.reason}</span>}
+                    style={{
+                      marginBottom: 16,
+                      backgroundColor: 'rgba(255, 0, 0, 0.5)', 
+                      borderRadius: 10,
+                      fontSize : '20px' 
+                    }}  
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -245,7 +267,7 @@ const RequestDetailScreen = () => {
                         );
                       } else {
                         navigate(
-                          `/projects/create/${requestData.helpRequest.id}`
+                          `/my-organization/projects/create/${requestData.helpRequest.id}`
                         );
                       }
                     } else {

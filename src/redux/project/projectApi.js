@@ -10,10 +10,20 @@ const fetchProjects = async () => {
         console.log("posts: " + response.data);
         return response.data;
     } catch (err) {
-        console.error("Error fetching posts:", err);
+        console.error("Error fetching projects:", err);
         throw err.response.data;
     }
 };
+const fetchProjectsNeedDonate = async()=>{
+    try {
+        const response = await APIPrivate.get('projects/need-donate');
+        console.log("posts: " + response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching project need donate:", err);
+        throw err.response.data;
+    }
+}
 const createProject = async (ProjectData) => {
     try {
         const response = await APIPrivate.post('projects/create', ProjectData);
@@ -715,10 +725,12 @@ const sendConfirmReceiveRequest = async (projectId) => {
         throw err.response.data;
     }
 }
-const confirmReceiveRequest = async (id) => {
+const confirmReceiveRequest = async ({ id, me }) => {
 
     try {
-        const response = await APIPrivate.put(`projects/confirmation-requests/${id}/confirm`);
+        const response = await APIPrivate.put(`projects/confirmation-requests/${id}/confirm`, {
+            message: me
+        });
         console.log("Confirm receive request:", response.data);
         message.success("Confirm receive request successfully!");
         return response.data;
@@ -764,7 +776,7 @@ const rejectReceiveRequest = async ({ id, me }) => {
 }
 const projectApi = {
     sendConfirmReceiveRequest, confirmReceiveRequest, getConfirmReceiveRequestByProject, getConfirmReceiveRequestByRequest,rejectReceiveRequest,
-    fetchProjects, createProject, fetchProjectById, fetchMyProjects, updateProject, fetchProjectsByOrg,
+    fetchProjects,fetchProjectsNeedDonate, createProject, fetchProjectById, fetchMyProjects, updateProject, fetchProjectsByOrg,
     getUserNotInProject, addProjectMember, fetchAllProjectMembers, fetchActiveProjectMembers, moveOutProjectMember, removeProjectMember, inviteProjectMember,
     getAllProjectRequest, sendJoinRequest, cancelProjectRequest, approveJoinRequest, rejectJoinRequest,
     approveLeaveRequest, rejectLeaveRequest,

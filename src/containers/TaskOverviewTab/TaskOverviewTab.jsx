@@ -1,18 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-    Typography, Row, Col, Empty, Divider, Input, DatePicker, Space, Button, Tooltip, Modal
+    Typography, Row, Col, Empty, Divider, Input, DatePicker, Space, Button, Tooltip, Modal,Flex,message 
 } from 'antd';
 import PhaseCard from '../../components/Phase/PhaseCard'; // Ensure this path is correct
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined,PlusOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from "react-redux";
+import {createPhase,updatePhase,getAllPhasesByProjectId } from '../../redux/project/timelineSlice'; // Ensure this path is correct
 import {
     sendConfirmReceiveRequestThunk,
     getConfirmReceiveRequestByProjectThunk,
     setCurrentConfirmRequest // Assume you have this action to open the detail modal
 } from '../../redux/project/projectSlice'; // Ensure this path is correct
 import { useParams } from 'react-router-dom';
+import PhaseModal from '../../components/Phase/PhaseModal'; // Ensure this path is correct
 
 // Extend dayjs with the isBetween plugin
 dayjs.extend(isBetween);
@@ -24,9 +26,13 @@ const { RangePicker } = DatePicker;
 const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
     const { projectId } = useParams(); // Get projectId from URL params
     const dispatch = useDispatch();
-
+    const [isPhaseModalOpen, setIsPhaseModalOpen] = useState(false);
+    const [editingPhaseData, setEditingPhaseData] = useState(null);
+    const [isSubmittingPhase, setIsSubmittingPhase] = useState(false);
+    
     // --- Redux State ---
     // Get the current confirm request state for this project from the Redux store
+        const currentPhase = useSelector((state) => state.timeline.currentPhase);
     const currentConfirmRequest = useSelector(state => state.project.currentConfirmRequest); // Assuming storage by projectId
     const currentProject = useSelector(state => state.project.currentProject); // Assuming you have this in your Redux store
     // --- Local State ---
@@ -36,12 +42,9 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
     const currentUser = useSelector(state => state.auth.currentUser); // Assuming you have this in your Redux store
     // --- Fetch Data Effect ---
     useEffect(() => {
-        // Only fetch if projectId exists
-        if (projectId) {
-            dispatch(getConfirmReceiveRequestByProjectThunk(projectId));
-        }
-        // Dependency array ensures the effect runs when dispatch or projectId changes
+        dispatch(getConfirmReceiveRequestByProjectThunk(projectId));
     }, [dispatch, projectId]);
+
 
     // --- Memoized Calculations ---
 
@@ -105,7 +108,7 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
     const canNotSendConfirmReceive = useMemo(() => {
         const validPhases = Array.isArray(phases) ? phases : [];
         // Returns true if at least one phase has status "ACTIVE"
-        return validPhases.some(phase => phase?.phase?.status === "ACTIVE");
+        return validPhases.some(phase => phase?.phase?.status === "ACTIVE")||validPhases.length === 0;
         // Depends only on the original phases array
     }, [phases]);
 
@@ -134,7 +137,6 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
                         .unwrap() // Use unwrap to catch potential errors
                         .then(() => {
                             console.log("Confirm request sent successfully.");
-                            // Optional: Re-fetch or update local state if needed
                         })
                         .catch(err => {
                             console.error("Failed to send confirm request:", err);
@@ -158,14 +160,39 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
             setIsViewConfirmModalVisible(true);
         }
     };
+    
+    const handleOpenCreatePhaseModal = () => {
+        setIsPhaseModalOpen(true);
+    };
+    const handlePhaseFormSubmit = async (values) => {
+        setIsSubmittingPhase(true);
+        const phaseData = { ...values, projectId }; // Ensure projectId is included
+        console.log("Submitting Phase Data:", phaseData);
+        try {
+            if (phaseData.id) {
+                await dispatch(updatePhase(phaseData)).unwrap();
+            } else {
+                await dispatch(createPhase(phaseData)).then(
+                    dispatch(getAllPhasesByProjectId(projectId))
+                )
+            }
+            setIsPhaseModalOpen(false);
+            dispatch(getAllPhasesByProjectId(projectId)); // Re-fetch phases
+        } catch (error) {
+            console.error("Failed to save phase:", error);
+            message.error(error?.message || 'Failed to save phase.');
+        } finally {
+            setIsSubmittingPhase(false);
+        }
+    };
 
     // --- Render Logic ---
 
     // Case where no phases are defined initially
-    if (!Array.isArray(phases) || phases.length === 0) {
-        return <Empty description="No phases have been defined for this project yet." style={{ marginTop: '2rem' }} />;
-    }
-
+    // if (!Array.isArray(phases) || phases.length === 0) {
+    //     return <Empty description="No phases have been defined for this project yet." style={{ marginTop: '2rem' }} />;
+    // }
+    console.log("currentConfirmRequest",currentConfirmRequest)
     return (
         <div style={{ padding: '1rem' }}>
             <Title level={4} style={{ marginBottom: '1rem' }}>Project Phases</Title>
@@ -186,7 +213,7 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
                 {/* Filter Section */}
                 <Space wrap>
                     <Input
-                    style={{padding:0}}
+                    style={{padding:0,height:"2.3rem"}}
                         placeholder="Search by phase name..."
                         value={filterPhaseName}
                         onChange={handlePhaseNameFilterChange}
@@ -197,13 +224,13 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
                         onChange={handlePhaseDateFilterChange}
                         format="DD/MM/YYYY"
                         placeholder={['Start Date', 'End Date']}
-                        style={{ minWidth: '240px',padding:"0.6rem" }} // Set minimum width
+                        style={{ minWidth: '240px',padding:"0.6rem",height:"2.3rem" }} // Set minimum width
                     />
                 </Space>
 
-                {currentProject && currentProject.project.leader.id === currentUser.id &&(
+                {currentProject && currentProject.project && currentProject.project.leader.id === currentUser.id &&(
                     <Space>
-                    {currentConfirmRequest ? (
+                    {currentConfirmRequest && currentConfirmRequest.id ? (
                         <Button
                             onClick={handleViewConfirmRequest}
                             type="primary" // Or other style as desired
@@ -215,7 +242,7 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
                         <Tooltip
                             title={
                                 canNotSendConfirmReceive
-                                    ? "Please complete all phases before sending the confirmation request."
+                                    ? "Please complete all phases or has at least 1 phase before sending the confirmation request."
                                     : "Send completion confirmation request to the requester."
                             }
                             placement="top"
@@ -234,7 +261,7 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
                                         lineHeight: '2.5', // Adjust line-height for aesthetics
                                         pointerEvents: canNotSendConfirmReceive ? 'none' : 'auto' // Important for Tooltip to work correctly
                                     }}
-                                    type="primary" // Keep type primary for basic effect
+                                    type="primary" 
                                 >
                                     Send Confirmation to Requester
                                 </Button>
@@ -264,12 +291,29 @@ const TaskOverviewTab = ({ phases = [], tasks = [] }) => {
                 (filterPhaseName || filterPhaseDateRange) ? (
                     <Empty description="No phases found matching the current filters." style={{ marginTop: '2rem' }} />
                 ) : (
-                    // This case is unlikely if the initial check passed, but included for robustness
-                    <Empty description="No phases found for the project." style={{ marginTop: '2rem' }}/>
+                    <Flex justify="center" align="center" style={{ flexDirection: 'column', minHeight: '300px' }}>
+                    <Text>No active or upcoming phase found for the overview tab.</Text>
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={handleOpenCreatePhaseModal}
+                        style={{ marginTop: '1rem' }}
+                    >
+                        Create First Phase
+                    </Button>
+                </Flex>
                 )
             )}
 
             {/* Modal to view Confirm Request details */}
+            <PhaseModal
+                isOpen={isPhaseModalOpen} // Keep isOpen for PhaseModal if it uses that prop
+                setIsOpen={setIsPhaseModalOpen}
+                initialData={null}
+                onFinish={handlePhaseFormSubmit}
+                isLoading={isSubmittingPhase}
+                projectId={projectId}
+            />
             <Modal
                 title="Confirmation Request Details"
                 open={isViewConfirmModalVisible}

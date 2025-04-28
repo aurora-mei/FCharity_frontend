@@ -342,7 +342,7 @@ const ProjectSpendingDetailContainer = ({
             );
 
             return (
-                <DateGroupWrapper key={dateKey} style={{ height:"10rem",overflowY:"auto" }}>
+                <DateGroupWrapper key={dateKey} >
                     <Title level={5} style={{ marginBottom: '0.5rem', paddingLeft: '0.5rem' }}>
                         Expenses on {dayjs(dateKey).format("DD MMMM YYYY")} ({expensesForSelectedDate.length} total)
                     </Title>
@@ -383,7 +383,6 @@ const ProjectSpendingDetailContainer = ({
                 (currentPage - 1) * pageSize,
                 currentPage * pageSize
             );
-
             return (
                 <>
                     <Flex vertical>
@@ -539,7 +538,7 @@ const ProjectSpendingDetailContainer = ({
                 </div>
 
                 {/* Spending List Section */}
-                <div style={{ padding: "0 1rem 1rem 1rem" }}>
+                <div style={{ padding: "0 1rem 1rem 1rem",overflowY:"auto", height:"35rem" }}>
                     {renderContent()}
                 </div>
 

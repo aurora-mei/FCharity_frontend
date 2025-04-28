@@ -114,6 +114,14 @@ const AppRoutes = () => {
                 element={<ProjectMoreDetailScreen />}
               />
             </Route>
+            <Route
+              path="projects/create/:requestId"
+              element={<CreateProjectScreen />}
+            />
+            <Route
+              path="projects/create/:requestId/:projectId"
+              element={<AddProjectMemberScreen />}
+            />
             <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
               <Route path="home" element={<ProjectHomeContainer />} />
               <Route path="members" element={<ProjectMemberContainer />} />
@@ -135,14 +143,7 @@ const AppRoutes = () => {
                 <Route path="finance" element={<OrganizationFinance />} />
               </Route>
             </Route>
-            <Route
-              path="projects/create/:requestId"
-              element={<CreateProjectScreen />}
-            />
-            <Route
-              path="projects/create/:requestId/:projectId"
-              element={<AddProjectMemberScreen />}
-            />
+           
             <Route path="organizations">
               <Route index element={<OrganizationsView />} />
               <Route path="create" element={<CreateOrganization />} />

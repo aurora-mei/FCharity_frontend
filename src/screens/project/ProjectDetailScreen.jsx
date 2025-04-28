@@ -475,7 +475,7 @@ const ProjectDetailScreen = () => {
                 );
              }
         } else {
-            setCountdownDisplay(<Text strong style={{ color: 'grey', fontSize: '1rem' }}>Project has ended.</Text>); // Changed color
+            setCountdownDisplay(<Text strong style={{ color: 'grey', fontSize: '1rem' }}>Project has started.</Text>); // Changed color
             if (intervalId) {
                 clearInterval(intervalId);
                 intervalId = null;
@@ -542,8 +542,7 @@ const ProjectDetailScreen = () => {
         amount: values.amount,
         paymentContent: values.message??"Donation for project",
         objectType: "PROJECT",
-        // Make sure returnUrl points to the correct page after payment
-        returnUrl: window.location.href, // Return to the current project page
+        returnUrl: window.location.href, 
       })
     );
     setIsOpenModal(false);
@@ -799,47 +798,44 @@ const ProjectDetailScreen = () => {
                 // No need to pass countdownDisplay here anymore
             />
 
-            {/* Donation Records Card */}
-            <StyledWrapper style={{padding: '1rem 0'}}> {/* Adjusted padding */}
-                <Card className="donation-card">
-                    <Flex
-                        justify="space-between"
-                        align="center"
-                        style={{ marginBottom: 16 }}
-                    >
-                        <Title level={5} style={{ margin: 0 }}>
-                            Donation Records
-                        </Title>
-                        <Text type="secondary">{completedDonations.length} donations</Text>
-                    </Flex>
-                    {loading === 'pending' && donations.length === 0 ? (
-                         <Skeleton active paragraph={{ rows: 3 }} />
-                    ) : completedDonations.length > 0 ? (
-                        <Table
-                            columns={columns}
-                            size="small"
-                            scroll={{ y: 300 }}
-                            dataSource={completedDonations}
-                            rowKey="id"
-                            className="custom-table"
-                            pagination={false}
-                        />
-                    ) : (
-                        <div>No completed donations yet.</div>
-                    )}
-                </Card>
-            </StyledWrapper>
+          <StyledWrapper>
+            <Card className="donation-card">
+              <Flex
+                justify="space-between"
+                align="center"
+                style={{ marginBottom: 16 }}
+              >
+                <Title level={5} style={{ margin: 0 }}>
+                  Donation Records
+                </Title>
+                <Link
+                  to={`/projects/${projectId}/details`}
+                  style={{ marginLeft: 10 }}
+                >
+                  See all
+                </Link>
+              </Flex>
+              {/* <Table columns={columns} datasource={donations} rowKey="id"
+                                size="small"
+                                scroll={{ y: 300 }}
+                                pagination={false} loading={loading}
+                                style={{ fontSize: "0.4rem" }}
+                            /> */}
+              {donations.length > 0 ? (
+                <Table
+                  columns={columns}
+                  size="small"
+                  scroll={{ y: 300 }}
+                  dataSource={donations.filter((x) => x.donationStatus === "COMPLETED")}
+                  rowKey="id"
+                  className="custom-table"
+                />
+              ) : (
+                <div>No donations available</div>
+              )}
 
-            {/* Expense Records Card */}
-            <StyledWrapper style={{padding: '1rem 0'}}> {/* Adjusted padding */}
-                <Card className="donation-card">
-                    <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-                        <Title level={5} style={{ margin: 0 }}>Expense Records</Title>
-                        <Text type="secondary">Coming soon</Text>
-                    </Flex>
-                    <div>No expense records available yet.</div>
-                </Card>
-            </StyledWrapper>
+            </Card>
+          </StyledWrapper>
         </Col>
       </Row>
       <DonateProjectModal form={form} isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} project={project} handleDonate={handleDonate} />

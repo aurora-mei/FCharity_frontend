@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'; // Added useMemo, useState
-import { Card, Row, Col, Typography, Carousel, Flex, Tag, Empty, Spin,Skeleton, Statistic, Progress } from 'antd'; // Added Statistic, Progress, Spin
+import { Card, Row, Col, Typography, Carousel, Flex, Tag, Empty, Spin, Skeleton, Statistic, Alert, Progress } from 'antd'; // Added Statistic, Progress, Spin
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
@@ -57,6 +57,50 @@ const formatCurrency = (amount) => {
 };
 
 
+const getAlertByProjectStatus = (status) => {
+    switch (status) {
+        case "PLANNING":
+            return (
+                <Alert
+                    message="Spending Plan Required"
+                    description="Please create a spending plan and submit it to the CEO for approval."
+                    type="info"
+                    showIcon
+                />
+            );
+        case "DONATING":
+            return (
+                <Alert
+                    message="Spending Plan Approved"
+                    description="Your spending plan has been approved. The project will start receiving donations before entering the ACTIVE phase."
+                    type="success"
+                    showIcon
+                />
+            );
+        case "ACTIVE":
+            return (
+                <Alert
+                    message="Project Active"
+                    description="Please handle fund withdrawal requests, update the spending list, create project phases, update tasks, and report phase results. If you want to move to FINISHED, create a confirm request to the requester."
+                    type="warning"
+                    showIcon
+                />
+            );
+        case "FINISHED":
+            return (
+                <Alert
+                    message="Project Finished"
+                    description="The requester has confirmed receipt of support. Your project is now completed."
+                    type="success"
+                    showIcon
+                />
+            );
+        default:
+            return null;
+    }
+};
+
+
 const ProjectHomeContainer = () => {
     const { projectId } = useParams();
     const navigate = useNavigate();
@@ -71,8 +115,11 @@ const ProjectHomeContainer = () => {
     const spendingDetails = useSelector((state) => state.project.spendingDetails);
     const phases = useSelector((state) => state.timeline.phases); // Assuming timeline slice structure
     const tasks = useSelector((state) => state.timeline.tasks);     // Assuming timeline slice structure
+    const [hasShownNotification, setHasShownNotification] = useState(false);
 
-    // --- Fetch Data ---
+    // --- Fetch Data ---    
+    const { project, attachments = [] } = currentProjectData;
+
     useEffect(() => {
         if (!projectId) return;
         setLoading(true);
@@ -97,6 +144,12 @@ const ProjectHomeContainer = () => {
 
     }, [projectId, dispatch]);
 
+    useEffect(() => {
+        if (project?.projectStatus && !hasShownNotification) {
+            setHasShownNotification(true);
+        }
+    }, [project?.projectStatus, hasShownNotification]);
+    
     // --- Calculate Statistics using useMemo ---
     const statistics = useMemo(() => {
         if (!currentProjectData?.project) return null;
@@ -142,7 +195,7 @@ const ProjectHomeContainer = () => {
 
     // --- Render Logic ---
     if (loading) {
-        return <Flex justify="center" align="center" style={{ height: '600px' }}><Skeleton active paragraph={{row:10}}/></Flex>;
+        return <Flex justify="center" align="center" style={{ height: '600px' }}><Skeleton active paragraph={{ row: 10 }} /></Flex>;
     }
 
     if (error) {
@@ -153,7 +206,7 @@ const ProjectHomeContainer = () => {
         return <Empty description="Project data not found." />;
     }
 
-    const { project, attachments = [] } = currentProjectData;
+
 
     return (
         <StyledScreen>
@@ -175,21 +228,27 @@ const ProjectHomeContainer = () => {
                 </Card>
             )}
 
+            {/* Guideline */}
+            {project?.projectStatus && (
+                <Card>
+                    {getAlertByProjectStatus(project.projectStatus)}
+                </Card>
+            )}
             {/* --- Welcome Card --- */}
             <Card>
                 <Flex justify='space-between' align='flex-start' wrap="wrap">
                     <Title level={3} style={{ marginBottom: '0.5rem' }}>Welcome to {project.projectName}</Title>
                     {/* Link to Organization Page - Adjust path if needed */}
                     <Link to={`/organizations/${project.organization?.id || '#'}`}>
-                         <Tag color="blue" style={{ cursor: 'pointer' }}>
-                             Managed by: {project.organizationName?.toUpperCase() || 'N/A'}
-                         </Tag>
-                     </Link>
+                        <Tag color="blue" style={{ cursor: 'pointer' }}>
+                            Managed by: {project.organizationName?.toUpperCase() || 'N/A'}
+                        </Tag>
+                    </Link>
                 </Flex>
                 <Paragraph type="secondary" style={{ marginBottom: '1rem' }}>
                     {project.projectDescription?.substring(0, 150)}{project.projectDescription?.length > 150 ? '...' : ''}
                 </Paragraph>
-                 <Text>Click <Link to={`/projects/${project.id}`}>here</Link> to navigate to the project details.</Text>
+                <Text>Click <Link to={`/projects/${project.id}`}>here</Link> to navigate to the project details.</Text>
             </Card>
 
             {/* --- Statistics Section --- */}
@@ -217,29 +276,29 @@ const ProjectHomeContainer = () => {
                             </StatCard>
                         </Col>
 
-                         {/* Column 4: Project Timeline */}
-                         <Col xs={24} sm={12} md={8} lg={6}>
-                             <StatCard bordered={false} title="Project Timeline">
-                                 <Flex vertical gap="small">
-                                     <Text strong>Planned:</Text>
-                                     <Text>
-                                         {statistics.plannedStartTime ? dayjs(statistics.plannedStartTime).format('DD/MM/YYYY') : 'N/A'}
-                                         {' - '}
-                                         {statistics.plannedEndTime ? dayjs(statistics.plannedEndTime).format('DD/MM/YYYY') : 'N/A'}
-                                     </Text>
-                                     <Text strong style={{ marginTop: '8px' }}>Actual:</Text>
-                                     <Text>
-                                         {statistics.actualStartTime ? dayjs(statistics.actualStartTime).format('DD/MM/YYYY') : 'Not Started'}
-                                         {' - '}
-                                         {statistics.actualEndTime ? dayjs(statistics.actualEndTime).format('DD/MM/YYYY') : (statistics.actualStartTime ? 'Ongoing' : 'N/A')}
-                                     </Text>
-                                 </Flex>
-                             </StatCard>
-                         </Col>
+                        {/* Column 4: Project Timeline */}
+                        <Col xs={24} sm={12} md={8} lg={6}>
+                            <StatCard bordered={false} title="Project Timeline">
+                                <Flex vertical gap="small">
+                                    <Text strong>Planned:</Text>
+                                    <Text>
+                                        {statistics.plannedStartTime ? dayjs(statistics.plannedStartTime).format('DD/MM/YYYY') : 'N/A'}
+                                        {' - '}
+                                        {statistics.plannedEndTime ? dayjs(statistics.plannedEndTime).format('DD/MM/YYYY') : 'N/A'}
+                                    </Text>
+                                    <Text strong style={{ marginTop: '8px' }}>Actual:</Text>
+                                    <Text>
+                                        {statistics.actualStartTime ? dayjs(statistics.actualStartTime).format('DD/MM/YYYY') : 'Not Started'}
+                                        {' - '}
+                                        {statistics.actualEndTime ? dayjs(statistics.actualEndTime).format('DD/MM/YYYY') : (statistics.actualStartTime ? 'Ongoing' : 'N/A')}
+                                    </Text>
+                                </Flex>
+                            </StatCard>
+                        </Col>
 
                         {/* Column 5: Phases */}
-                         <Col xs={24} sm={12} md={8} lg={6}>
-                             <StatCard bordered={false} title="Phases Progress">
+                        <Col xs={24} sm={12} md={8} lg={6}>
+                            <StatCard bordered={false} title="Phases Progress">
                                 {statistics.totalPhases > 0 ? (
                                     <Flex align="center" gap="small">
                                         <Progress
@@ -252,27 +311,27 @@ const ProjectHomeContainer = () => {
                                 ) : (
                                     <Text type="secondary">No phases defined</Text>
                                 )}
-                             </StatCard>
-                         </Col>
+                            </StatCard>
+                        </Col>
 
 
                         {/* Column 6: Tasks */}
                         <Col xs={24} sm={12} md={8} lg={6}>
-                             <StatCard bordered={false} title="Tasks Progress">
+                            <StatCard bordered={false} title="Tasks Progress">
                                 {statistics.totalTasks > 0 ? (
-                                     <Flex align="center" gap="small">
-                                         <Progress
-                                             type="circle"
-                                             percent={Math.round((statistics.completedTasks / statistics.totalTasks) * 100)}
-                                             size={60}
-                                             status={statistics.completedTasks === statistics.totalTasks ? 'success' : 'normal'}
-                                         />
-                                          <Text>{statistics.completedTasks} / {statistics.totalTasks} Completed</Text>
-                                     </Flex>
+                                    <Flex align="center" gap="small">
+                                        <Progress
+                                            type="circle"
+                                            percent={Math.round((statistics.completedTasks / statistics.totalTasks) * 100)}
+                                            size={60}
+                                            status={statistics.completedTasks === statistics.totalTasks ? 'success' : 'normal'}
+                                        />
+                                        <Text>{statistics.completedTasks} / {statistics.totalTasks} Completed</Text>
+                                    </Flex>
                                 ) : (
                                     <Text type="secondary">No tasks defined</Text>
                                 )}
-                             </StatCard>
+                            </StatCard>
                         </Col>
 
                     </Row>

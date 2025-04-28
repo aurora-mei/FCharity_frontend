@@ -48,6 +48,7 @@ import ProjectDonationBoard from "../../containers/ProjectDonationBoard/ProjectD
 import moment from "moment-timezone";
 import ProjectStatisticCard from "../../containers/ProjectStatisticCard/ProjectStatisticCard";
 import TaskOverviewTab from "../../containers/TaskOverviewTab/TaskOverviewTab";
+import {getAllPhasesByProjectId ,getTasksOfProject } from "../../redux/project/timelineSlice";
 const { Title, Paragraph, Text } = Typography;
 
 const StyledScreen = styled.div`
@@ -271,6 +272,7 @@ const ProjectMoreDetailScreen = () => {
 
   useEffect(() => {
     setLoading(true);
+    // setError(null);
     // Gọi API hoặc dispatch action để lấy dữ liệu
     Promise.all([
       dispatch(fetchProjectById(projectId)),

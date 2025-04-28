@@ -151,6 +151,10 @@ const TaskCalendarTab = ({ tasks = [], statuses = [] }) => {
     }, []);
 
     const handleOpenAddTaskModal = (slotInfo) => {
+        if (!currentPhase?.phase?.id) {
+            message.error("Cannot add task: No current phase selected.");
+            return;
+        }
         setNewTaskStart(slotInfo.start);
         setNewTaskEnd(slotInfo.end);
         setIsTaskModalOpen(true);
@@ -180,7 +184,6 @@ const TaskCalendarTab = ({ tasks = [], statuses = [] }) => {
     };
 
     const statusOptionsForModal = statuses.map(s => ({ value: s.id, label: s.statusName }));
-
     return (
         <div>
             <Title level={4} style={{ marginBottom: '1rem' }}>Project Calendar</Title>
@@ -230,6 +233,7 @@ const TaskCalendarTab = ({ tasks = [], statuses = [] }) => {
                 statusOptions={statusOptionsForModal}
                 loading={isSubmittingTask}
                 userOptions={projectMembers.filter(x => !x.leaveDate)}
+                parentTaskOptions={tasks.filter(task => !task.parentTask)}
             />
         </div>
     );
