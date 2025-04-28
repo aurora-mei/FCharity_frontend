@@ -106,10 +106,17 @@ const OrganizationRankingsOverview = () => {
               </div>
               <div className="flex items-center gap-6 px-8 py-6 col-span-3">
                 <img
-                  src={organization.backgroundUrl}
+                  src={
+                    organization.backgroundUrl ||
+                    "https://avatar.iran.liara.run/public"
+                  }
                   alt="avatar"
                   className="w-10 h-10 rounded-full scale-125"
+                  onError={(e) =>
+                    (e.target.src = "https://avatar.iran.liara.run/public")
+                  }
                 />
+
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <Link
