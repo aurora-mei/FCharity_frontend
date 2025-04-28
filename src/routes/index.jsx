@@ -47,12 +47,12 @@ import ProjectFinancePlanContainer from "../containers/ProjectFinancePlanContain
 import ProjectRequestContainer from "../containers/ProjectRequestContainer/ProjectRequestContainer.jsx";
 import ProjectTaskPlanContainer from "../containers/ProjectTaskPlanContainer/ProjectTaskPlanContainer.jsx";
 
-
 import OrganizationDetails from "../pages/guest/OrganizationDetails.jsx";
 import OrganizationRankings from "../pages/manage/components/OrganizationRankings.jsx";
 import OrganizationSchedule from "../pages/manage/OrganizationSchedule.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AddProjectMemberScreen from "../screens/project/AddProjectMemberScreen.jsx";
+import ProjectMyTaskContainer from "../containers/ProjectMyTaskContainer/ProjectMyTaskContainer.jsx";
 
 const queryClient = new QueryClient();
 import OrganizationArticle from "../pages/manage/OrganizationArticle.jsx";
@@ -70,10 +70,7 @@ const AppRoutes = () => {
           <Route path="/auth">
             <Route path="login" element={<LoginScreen />} />
             <Route path="signup" element={<SignupScreen />} />
-            <Route
-              path="otp-verification"
-              element={<OtpVerificationScreen />}
-            />
+            <Route path="otp-verification" element={<OtpVerificationScreen />} />
             <Route path="otp-reset-password" element={<ResetPwdScreen />} />
           </Route>
           <Route path="/" element={<GeneralLayout />}>
@@ -107,10 +104,7 @@ const AppRoutes = () => {
                   element={<ManageProfileScreen />}
                 />
                 <Route path="change-profile" element={<ChangeProfileModal />} />
-                <Route
-                  path="change-password"
-                  element={<ChangePasswordModal />}
-                />
+                <Route path="change-password" element={<ChangePasswordModal />} />
               </Route>
             </Route>
             <Route path="projects">
@@ -120,15 +114,21 @@ const AppRoutes = () => {
                 element={<ProjectMoreDetailScreen />}
               />
             </Route>
-              <Route
-              path="manage-project/:projectId"
-              element={<ProjectDashboard />}
-            >
+            <Route
+              path="projects/create/:requestId"
+              element={<CreateProjectScreen />}
+            />
+            <Route
+              path="projects/create/:requestId/:projectId"
+              element={<AddProjectMemberScreen />}
+            />
+            <Route path="manage-project/:projectId" element={<ProjectDashboard />}>
               <Route path="home" element={<ProjectHomeContainer />} />
               <Route path="members" element={<ProjectMemberContainer />} />
               <Route path="finance" element={<ProjectFinancePlanContainer />} />
-                <Route path="request/:id" element={<ProjectRequestContainer />} />
-              <Route path="tasks" element={<ProjectTaskPlanContainer/>} />
+              <Route path="request/:id" element={<ProjectRequestContainer />} />
+              <Route path="tasks" element={<ProjectTaskPlanContainer />} />
+              <Route path="mytasks" element={<ProjectMyTaskContainer />} />
             </Route>
             <Route path="/" element={<OrganizationLayout />}>
               <Route path="my-organization">
@@ -136,22 +136,14 @@ const AppRoutes = () => {
                 <Route path="dashboard" element={<OrganizationDashboard />} />
                 <Route path="members" element={<OrganizationMember />} />
                 <Route path="projects" element={<OrganizationProject />} />
-                <Route
-                  path="projects/create/:requestId"
-                  element={<CreateProjectScreen />}
-                />
 
-                  <Route
-              path="projects/create/:requestId/:projectId"
-              element={<AddProjectMemberScreen />}
-            />
-            <Route path="requests" element={<OrganizationRequest />} />
+                <Route path="requests" element={<OrganizationRequest />} />
                 <Route path="schedule" element={<OrganizationSchedule />} />
                 <Route path="articles" element={<OrganizationArticle />} />
                 <Route path="finance" element={<OrganizationFinance />} />
               </Route>
             </Route>
-
+           
             <Route path="organizations">
               <Route index element={<OrganizationsView />} />
               <Route path="create" element={<CreateOrganization />} />

@@ -137,7 +137,7 @@ const ProjectRequestContainer = () => {
     <Flex
       vertical
       gap={10}
-      style={{ padding: "1rem", margin: "0" }}
+      style={{ padding: "0", margin: "0" }}
     >
       <Flex gap={10} vertical >
         <Flex vertical gap={10} className="request-detail" style={{padding:"2rem"}}>

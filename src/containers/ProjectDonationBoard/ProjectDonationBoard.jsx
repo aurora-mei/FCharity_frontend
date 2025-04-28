@@ -16,7 +16,7 @@ const StyledWrapper = styled.div`
     background: #fff !important;
     padding: 0; // Reset padding, handle inside
     border-radius: 1rem;
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
+    // box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
     transition: all 0.3s ease;
 
     .ant-card-body {
@@ -116,7 +116,7 @@ const ProjectDonationBoard = ({ donations }) => {
       // No background needed for single date view
       return (
         <>
-         <DateGroupWrapper key={dateKey}>
+         <DateGroupWrapper key={dateKey}  style={{ height:"10rem",overflowY:"auto" }}>
                 <Title level={5} style={{ marginBottom: '0.5rem' }}>
                   {moment(dateKey).format("DD MMMM YYYY")} ({groupedDonations[dateKey]?.length || 0} donations)
                 </Title>
@@ -193,19 +193,19 @@ const ProjectDonationBoard = ({ donations }) => {
       {/* Use Card for overall structure, but control padding manually */}
       <Card className="donation-card-wrapper" bordered={false}>
          {/* Header Section - Add padding here */}
-        <div style={{ padding: '1rem 1rem 0 1rem' }}>
-            <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-            <Text strong style={{ fontSize: "1.1rem" }}>Donation Records</Text>
-              <Text style={{ fontSize: "1rem", fontWeight: 500 }}>
+        <div style={{ padding: '0' }}>
+            <Flex justify="space-between" align="center" style={{ marginBottom: "1rem" }}>
+            <Title level={5} >Donation Records</Title>
+              <Text style={{  fontWeight: 500 }}>
                 Total Completed:{" "}
-                <Text type="success" style={{ fontSize: "1.1rem" }}>
+                <Text type="success" style={{  }}>
                   {totalDonationAmount.toLocaleString()} VND
                 </Text>
               </Text>
             </Flex>
 
             {/* Date Search Section */}
-            <Flex justify="flex-end" style={{ marginBottom: 16 }}> {/* Reduced margin */}
+            <Flex justify="flex-end" style={{ marginBottom: "1rem" }}> {/* Reduced margin */}
               <DatePicker
                 onChange={handleDateChange}
                 value={selectedDate}
@@ -218,7 +218,7 @@ const ProjectDonationBoard = ({ donations }) => {
         </div>
 
         {/* Donation List Section - Add padding here */}
-         <div style={{padding: "0 1rem 1rem 1rem"}}>
+         <div style={{padding: "0", overflowY:"auto", height:"35rem"}}>
             {renderContent()}
          </div>
 

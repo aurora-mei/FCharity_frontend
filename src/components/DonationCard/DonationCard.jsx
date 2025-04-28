@@ -40,6 +40,9 @@ padding: 0.8rem !important;
     font-weight: bold;
     margin-top: 0.5rem;
   }
+    &:hover {
+     box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+}
 `;
 
 const { Text } = Typography;

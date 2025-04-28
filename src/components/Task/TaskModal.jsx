@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, DatePicker, Select, Button, Spin, Row, Col } from 'antd';
 import moment from 'moment'; // Or import dayjs from 'dayjs';
-
+import dayjs from 'dayjs'; // For date manipulation
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -14,6 +14,7 @@ const TaskModal = ({
     onCancel, // <-- Use standard onCancel prop name
     userOptions = [],
     statusOptions = [],
+    parentTaskOptions = [],
     initStatus,
 }) => {
     const [form] = Form.useForm();
@@ -21,6 +22,7 @@ const TaskModal = ({
     const isEditMode = mode === 'edit';
     const modalTitle = isEditMode ? 'Edit Task' : 'Create New Task';
     const okText = isEditMode ? 'Update Task' : 'Create Task';
+    console.log("initialData", initialData);
 
     useEffect(() => {
         // Use 'open' (or 'visible') in the condition
@@ -28,17 +30,20 @@ const TaskModal = ({
             if (isEditMode && initialData) {
                 form.setFieldsValue({
                     ...initialData,
-                    startTime: initialData.startTime ? moment(initialData.startTime) : null,
-                    endTime: initialData.endTime ? moment(initialData.endTime) : null,
+                    startTime: initialData.startTime ? dayjs(initialData.startTime) : null,
+                    endTime: initialData.endTime ? dayjs(initialData.endTime) : null,
                     // Set status from initialData if editing, otherwise use initStatus
                     taskPlanStatusId: initialData.taskPlanStatusId?.toString() || initStatus?.id || null,
                     userId: initialData.userId?.toString() || null,
-                    // Removed phaseId and parentTaskId as they are not in the simplified form props
-                    // phaseId: initialData.phaseId?.toString() || null,
-                    // parentTaskId: initialData.parentTaskId?.toString() || null,
                 });
             } else {
                 form.resetFields();
+                if(initialData && initialData.startTime ){
+                    form.setFieldsValue({
+                        startTime: initialData.startTime ? dayjs(initialData.startTime) : null,
+                        endTime: initialData.endTime ? dayjs(initialData.endTime) : null,
+                    });
+                }
                 form.setFieldsValue({
                     // Set initial status when creating
                     taskPlanStatusId: initStatus?.id || null, // Use optional chaining
@@ -70,7 +75,7 @@ const TaskModal = ({
         }
     };
 
-    // Ensure userOptions have the correct structure: { id: '...', user: { fullName: '...' } }
+console.log("member", userOptions)
     const renderUserOptions = () => {
         if (!Array.isArray(userOptions)) return null; // Add check for safety
         return userOptions.map(opt => {
@@ -86,6 +91,22 @@ const TaskModal = ({
              );
         });
     };
+    const renderParentTaskOptions = ()=>{
+        console.log("parentTaskOptions",parentTaskOptions)
+        if (!Array.isArray(parentTaskOptions)) return null; // Add check for safety
+        return parentTaskOptions.map(opt => {
+             // Check if structure is as expected
+             if (!opt || !opt.id) {
+                 console.warn("Skipping invalid user option:", opt);
+                 return null;
+             }
+            return (
+                 <Option key={opt.id} value={opt.id}>
+                     {opt.taskName}
+                 </Option>
+             );
+        });
+    }
 console.log("status op", statusOptions);
     // Ensure statusOptions have the correct structure: { value: '...', label: '...' }
      const renderStatusOptions = () => {
@@ -166,7 +187,6 @@ console.log("status op", statusOptions);
                     <Form.Item
                         name="userId"
                         label="Assignee"
-                        rules={[{ required: true, message: 'Please select an assignee' }]}
                     >
                         <Select placeholder="Select user" allowClear showSearch filterOption={(input, option) =>
                             (option?.children ?? '').toLowerCase().includes(input.toLowerCase()) // Safer filtering
@@ -189,7 +209,16 @@ console.log("status op", statusOptions);
                             {renderStatusOptions()}
                         </Select>
                     </Form.Item>
-
+                    <Form.Item
+                        name="parentTaskId"
+                        label="Parent task"
+                    >
+                        <Select placeholder="Select parent task" allowClear showSearch filterOption={(input, option) =>
+                            (option?.children ?? '').toLowerCase().includes(input.toLowerCase()) // Safer filtering
+                        }>
+                            {renderParentTaskOptions()}
+                        </Select>
+                    </Form.Item>
                 </Form>
             </Spin>
         </Modal>

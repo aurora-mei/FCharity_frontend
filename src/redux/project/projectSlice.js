@@ -19,10 +19,29 @@ const initialState = {
   projectRequests: [],
   currentWithdrawRequest: {},
   projectWallet: {},
+  currentConfirmRequest: {},
   error: null,
 };
 export const fetchProjectsThunk = createAsyncThunk(
   "project/fetch",
+  async () => {
+    return await projectApi.fetchProjects();
+  }
+);
+// /need-donate
+export const fetchProjectsNeedDonateThunk = createAsyncThunk("project/fetch-need-donate",
+  async () => {
+    return await projectApi.fetchProjectsNeedDonate();
+  }
+)
+export const fetchActiveProjectsThunk = createAsyncThunk(
+  "project/fetch-active",
+  async () => {
+    return await projectApi.fetchProjects();
+  }
+);
+export const fetchFinishedProjectsThunk = createAsyncThunk(
+  "project/fetch-finished",
   async () => {
     return await projectApi.fetchProjects();
   }
@@ -322,12 +341,34 @@ export const fetchProjectWallet = createAsyncThunk(
   "project/get-wallet",
   async (walletId) => {
     return await projectApi.getProjectWallet(walletId);
-  }
-);
+  });
+
+
+
+//confirm request
+export const sendConfirmReceiveRequestThunk = createAsyncThunk("project/send-confirm-receive", async (projectId) => {
+  return await projectApi.sendConfirmReceiveRequest(projectId);
+});
+export const confirmReceiveRequestThunk = createAsyncThunk("project/confirm-receive", async ({ id, me }) => {
+  return await projectApi.confirmReceiveRequest({ id, me });
+});
+export const getConfirmReceiveRequestByProjectThunk = createAsyncThunk("project/get-confirm-receive-by-project", async (projectId) => {
+  return await projectApi.getConfirmReceiveRequestByProject(projectId);
+});
+export const getConfirmReceiveRequestByRequestThunk = createAsyncThunk("project/get-confirm-receive-by-request", async (requestId) => {
+  return await projectApi.getConfirmReceiveRequestByRequest(requestId);
+});
+export const rejectReceiveRequestThunk = createAsyncThunk("project/reject-receive-by-project", async ({ id, me }) => {
+  return await projectApi.rejectReceiveRequest({ id, me });
+});
+
 const projectSlice = createSlice({
-  name: "Project",
+  name: 'Project',
   initialState,
   reducers: {
+    setCurrentConfirmRequest(state, action) {
+      state.currentConfirmRequest = action.payload;
+    },
     setOrgProjects: (state, action) => {
       state.projects = action.payload;
     },
@@ -367,6 +408,39 @@ const projectSlice = createSlice({
         state.loading = false;
         state.error = action.error;
       })
+      .addCase(fetchProjectsNeedDonateThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchProjectsNeedDonateThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.projects = action.payload;
+      })
+      .addCase(fetchProjectsNeedDonateThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
+      .addCase(fetchActiveProjectsThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchActiveProjectsThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.projects = action.payload.filter(pData => pData.project.projectStatus === "ACTIVE");
+      })
+      .addCase(fetchActiveProjectsThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
+      .addCase(fetchFinishedProjectsThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchFinishedProjectsThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.projects = action.payload.filter(pData => pData.project.projectStatus === "FINISHED");
+      })
+      .addCase(fetchFinishedProjectsThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
       .addCase(fetchProjectById.pending, (state) => {
         state.loading = true;
       })
@@ -400,7 +474,7 @@ const projectSlice = createSlice({
         state.loading = false;
         state.error = action.error;
       })
-      //members
+      //members 
       .addCase(fetchUserNotInProjectThunk.pending, (state) => {
         state.loading = true;
       })
@@ -450,14 +524,12 @@ const projectSlice = createSlice({
       })
       .addCase(moveOutProjectMemberThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.allProjectMembers.findIndex(
-          (req) => req.id === action.payload.id
-        );
+        const index = state.allProjectMembers.findIndex(req => req.id === action.payload.id);
         if (index !== -1) {
           // Cập nhật request ở index tìm được bằng dữ liệu mới từ action.payload
           state.allProjectMembers[index] = {
             ...state.allProjectMembers[index],
-            ...action.payload,
+            ...action.payload
           };
         }
       })
@@ -470,12 +542,8 @@ const projectSlice = createSlice({
       })
       .addCase(removeProjectMemberThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.allProjectMembers = state.allProjectMembers.filter(
-          (item) => item.id !== action.payload.id
-        );
-        state.projectMembers = state.projectMembers.filter(
-          (item) => item.id !== action.payload.id
-        );
+        state.allProjectMembers = state.allProjectMembers.filter(item => item.id !== action.payload.id);
+        state.projectMembers = state.projectMembers.filter(item => item.id !== action.payload.id);
       })
       .addCase(removeProjectMemberThunk.rejected, (state, action) => {
         state.loading = false;
@@ -521,14 +589,12 @@ const projectSlice = createSlice({
       })
       .addCase(cancelProjectRequestThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.projectRequests.findIndex(
-          (req) => req.id === action.payload.id
-        );
+        const index = state.projectRequests.findIndex(req => req.id === action.payload.id);
         if (index !== -1) {
           // Cập nhật request ở index tìm được bằng dữ liệu mới từ action.payload
           state.projectRequests[index] = {
             ...state.projectRequests[index],
-            ...action.payload,
+            ...action.payload
           };
         }
       })
@@ -541,14 +607,12 @@ const projectSlice = createSlice({
       })
       .addCase(approveJoinRequestThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.projectRequests.findIndex(
-          (req) => req.id === action.payload.id
-        );
+        const index = state.projectRequests.findIndex(req => req.id === action.payload.id);
         if (index !== -1) {
           // Cập nhật request ở index tìm được bằng dữ liệu mới từ action.payload
           state.projectRequests[index] = {
             ...state.projectRequests[index],
-            ...action.payload,
+            ...action.payload
           };
         }
       })
@@ -561,14 +625,12 @@ const projectSlice = createSlice({
       })
       .addCase(rejectJoinRequestThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.projectRequests.findIndex(
-          (req) => req.id === action.payload.id
-        );
+        const index = state.projectRequests.findIndex(req => req.id === action.payload.id);
         if (index !== -1) {
           // Cập nhật request ở index tìm được bằng dữ liệu mới từ action.payload
           state.projectRequests[index] = {
             ...state.projectRequests[index],
-            ...action.payload,
+            ...action.payload
           };
         }
       })
@@ -581,14 +643,12 @@ const projectSlice = createSlice({
       })
       .addCase(approveLeaveRequestThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.projectRequests.findIndex(
-          (req) => req.id === action.payload.id
-        );
+        const index = state.projectRequests.findIndex(req => req.id === action.payload.id);
         if (index !== -1) {
           // Cập nhật request ở index tìm được bằng dữ liệu mới từ action.payload
           state.projectRequests[index] = {
             ...state.projectRequests[index],
-            ...action.payload,
+            ...action.payload
           };
         }
       })
@@ -601,14 +661,12 @@ const projectSlice = createSlice({
       })
       .addCase(rejectLeaveRequestThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.projectRequests.findIndex(
-          (req) => req.id === action.payload.id
-        );
+        const index = state.projectRequests.findIndex(req => req.id === action.payload.id);
         if (index !== -1) {
           // Cập nhật request ở index tìm được bằng dữ liệu mới từ action.payload
           state.projectRequests[index] = {
             ...state.projectRequests[index],
-            ...action.payload,
+            ...action.payload
           };
         }
       })
@@ -616,7 +674,7 @@ const projectSlice = createSlice({
         state.loading = false;
         state.error = action.error;
       })
-      //spending plan
+      //spending plan 
       .addCase(fetchSpendingTemplateThunk.pending, (state) => {
         state.loading = true;
       })
@@ -751,9 +809,7 @@ const projectSlice = createSlice({
       })
       .addCase(updateSpendingItemThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.spendingItems.findIndex(
-          (item) => item.id === action.payload.id
-        );
+        const index = state.spendingItems.findIndex(item => item.id === action.payload.id);
         if (index !== -1) state.spendingItems[index] = action.payload;
       })
       .addCase(updateSpendingItemThunk.rejected, (state, action) => {
@@ -766,9 +822,7 @@ const projectSlice = createSlice({
       })
       .addCase(deleteSpendingItemThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.spendingItems = state.spendingItems.filter(
-          (item) => item.id !== action.meta.arg
-        );
+        state.spendingItems = state.spendingItems.filter(item => item.id !== action.meta.arg);
       })
       .addCase(deleteSpendingItemThunk.rejected, (state, action) => {
         state.loading = false;
@@ -941,9 +995,67 @@ const projectSlice = createSlice({
       .addCase(fetchProjectWallet.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error;
-      });
+      })
+      .addCase(sendConfirmReceiveRequestThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(sendConfirmReceiveRequestThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentConfirmRequest = action.payload;
+      })
+      .addCase(sendConfirmReceiveRequestThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
+      .addCase(getConfirmReceiveRequestByRequestThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getConfirmReceiveRequestByRequestThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentConfirmRequest = action.payload;
+      })
+      .addCase(getConfirmReceiveRequestByRequestThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
+
+      .addCase(getConfirmReceiveRequestByProjectThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getConfirmReceiveRequestByProjectThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentConfirmRequest = action.payload;
+      })
+      .addCase(getConfirmReceiveRequestByProjectThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
+      .addCase(confirmReceiveRequestThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(confirmReceiveRequestThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentConfirmRequest = action.payload;
+      })
+      .addCase(confirmReceiveRequestThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
+
+      .addCase(rejectReceiveRequestThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(rejectReceiveRequestThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentConfirmRequest = action.payload;
+      })
+      .addCase(rejectReceiveRequestThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
+      ;
+
   },
 });
-
-export const { setOrgProjects } = projectSlice.actions;
+export const { setCurrentConfirmRequest, setOrgProjects } = projectSlice.actions;
 export default projectSlice.reducer;

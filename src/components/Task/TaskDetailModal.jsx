@@ -1,149 +1,138 @@
-// src/components/TaskDetailModal/TaskDetailModal.js
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-// *** BỎ import 'Comment' từ 'antd' ***
-import { Modal, Row, Col, Typography, Button, Input, Select, DatePicker, Avatar, Tag, /*Comment,*/ List, Form, Divider, Spin, Alert, Tooltip } from 'antd';
-import { CloseOutlined, LockOutlined, UserOutlined, TagOutlined, CalendarOutlined, TeamOutlined, PaperClipOutlined, SendOutlined, EditOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime'; // Thêm plugin cho fromNow()
-dayjs.extend(relativeTime);
+import {
+  Modal, Typography, Spin, Alert,
+  Skeleton
+} from 'antd';
+import {
+  getSubtasksOfTask, getTaskById, getTasksOfProject, cancelTaskOfPhase,
+  updateTaskOfPhase
+} from '../../redux/project/timelineSlice';
+import { fetchAllProjectMembersThunk } from '../../redux/project/projectSlice';
+import { addTaskToPhase } from '../../redux/project/timelineSlice';
+import TaskDetailView from './TaskDetailView';
 import styled from 'styled-components';
+import { useDispatch, useSelector } from 'react-redux';
 
 const { Title, Text, Paragraph } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
 
-const ModalContentWrapper = styled.div` /* ... */ `;
+const ModalContentWrapper = styled.div``;
 
-const TaskDetailModal = ({ taskId, isOpen, onClose }) => {
-    const [taskDetails, setTaskDetails] = useState(// Ví dụ response từ getTaskDetailsApi('task-1')
-        {
-          "id": "task-1",
-          "phaseId": "phase-1", // ID của Phase chứa task này (nếu có)
-          "taskIdentifier": "BTS-3", // Mã định danh task (ví dụ: BTS-3)
-          "taskName": "(Sample) Fix Database Connection Errors",
-          "taskPlanDescription": "Users are experiencing database connection errors frequently, especially during peak hours. Need to investigate connection pool settings, database credentials validity, and potential network latency issues between the application server and the database server.",
-          "startTime": "2024-04-25T09:00:00Z", // ISO 8601 format (hoặc null)
-          "endTime": null, // ISO 8601 format (hoặc null nếu chưa có ngày hết hạn)
-          "createdAt": "2024-04-23T10:00:00Z", // Thời gian tạo
-          "updatedAt": "2024-04-24T15:30:00Z", // Thời gian cập nhật cuối
-          "status": { // Object chứa thông tin status
-            "id": "status-inprogress",
-            "name": "In Progress",
-            "color": "#ffa500" // Màu sắc (tùy chọn)
-          },
-          "assignee": { // Object chứa thông tin người được giao (hoặc null)
-            "id": "user-ab",
-            "name": "An Binh",
-            "avatar": "/avatars/ab.png" // Đường dẫn tới ảnh avatar
-          },
-          "reporter": { // Object chứa thông tin người báo cáo
-            "id": "user-cd",
-            "name": "Cao Thi Thanh Huyen (K18 DN)",
-            "avatar": "/avatars/cd.png"
-          },
-          "labels": [ // Mảng các object label (hoặc mảng rỗng)
-            {
-              "id": "lbl-1",
-              "name": "(SAMPLE) BACKEND BUGS",
-              "color": "#eadeff",      // Màu nền của tag
-              "textColor": "#5e4db2" // Màu chữ của tag (tùy chọn)
-            },
-            {
-              "id": "lbl-priority-high",
-              "name": "High Priority",
-              "color": "#ffccc7",
-              "textColor": "#a8071a"
-            }
-          ],
-          "parentTask": null, // ID của task cha (hoặc null)
-          "attachments": [ // Mảng các file đính kèm (ví dụ)
-              { "id": "att-1", "fileName": "error_log.txt", "url": "/attachments/error_log.txt", "uploadedAt": "2024-04-24T10:00:00Z" },
-              { "id": "att-2", "fileName": "screenshot.png", "url": "/attachments/screenshot.png", "uploadedAt": "2024-04-24T11:15:00Z" }
-          ]
-          // Thêm các trường khác nếu cần (ví dụ: points, estimated time, etc.)
-        });
-    const [comments, setComments] = useState([]); // Dữ liệu comments giả lập
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [newComment, setNewComment] = useState('');
-    const [isEditingDescription, setIsEditingDescription] = useState(false);
+const TaskDetailModal = ({ statuses, taskId, isOpen, setIsOpen, projectId, phaseId }) => {
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const mainTask = useSelector(state => state.timeline.currentTask);
+  const subtasks = useSelector(state => state.timeline.subtasks);
+  const tasks = useSelector(state => state.timeline.tasks);
+  const allProjectMembers = useSelector(state => state.project.allProjectMembers);
 
-    const currentUser = { id: 'user-current', name: 'Current User', avatar: '/avatars/current.png' };
+  const [currentTaskId, setCurrentTaskId] = useState(taskId);
 
-    // useEffect fetch data (giữ nguyên)
-    useEffect(() => {
-        if (isOpen && taskId) {
-           // ... (logic fetch data)
-            // Giả lập comments
-           setComments([
-               { id: 'cmt-1', author: { name: 'An Binh', avatar: '/avatars/ab.png' }, content: 'I\'ll take a look at this.', datetime: dayjs().subtract(1, 'hour') },
-               { id: 'cmt-2', author: { name: 'Current User', avatar: '/avatars/current.png' }, content: 'Thanks! Let me know if you need logs.', datetime: dayjs().subtract(30, 'minute') }
-           ]);
-           setLoading(false); // Giả lập xong fetch
-        }
-    }, [isOpen, taskId]);
+  const fetchData = async () => {
+    if (isOpen && currentTaskId && projectId) {
+      setLoading(true);
+      try {
+        const promises = [
+          dispatch(getTaskById(currentTaskId)),
+          dispatch(getTasksOfProject(projectId)),
+          dispatch(fetchAllProjectMembersThunk(projectId))
+        ];
+        await Promise.all(promises);
 
-    const handleAddComment = () => { /* ... (logic thêm comment giữ nguyên) ... */ };
-    const handleUpdateField = (fieldName, value) => { /* ... */ };
-    const renderDetailItem = (label, value, editable, fieldName, editComponent) => { /* ... */ };
+      } catch (error) {
+        console.error("Failed to fetch task data:", error);
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
+  useEffect(() => {
+    dispatch(getSubtasksOfTask(currentTaskId));
+  }, [mainTask])
 
-    return (
-        <Modal /* ... props ... */ >
-            {/* ... (Loading, Error, Row, Col setup) ... */}
-            {!loading && !error && taskDetails && (
-                 <Row gutter={0}>
-                      {/* Cột chính (Trái) */}
-                     <Col span={16} /* ... */ >
-                         <ModalContentWrapper>
-                              {/* ... (Title, Description, Attachments) ... */}
+  useEffect(() => {
+    console.log("dang set lai currs",taskId,currentTaskId)
+    setCurrentTaskId(taskId);
+  }, [taskId]);
 
-                             {/* Activity (Comments) */}
-                             <div className="detail-section">
-                                 <Title level={5}>Activity</Title>
-                                 <Divider style={{marginTop: '0.5rem', marginBottom: '1rem'}}/>
+  useEffect(() => {
+    console.log("fetch lai",taskId,currentTaskId)
+      fetchData();
+  }, [currentTaskId,taskId]);
 
-                                 {/* Comment Input (giữ nguyên) */}
-                                 {/* ... */}
+  const handleCreateSubtask = async (subtaskData) => {
+    console.log("ssss",statuses);
+    dispatch(addTaskToPhase({
+      phaseId: phaseId,
+      taskData: { ...subtaskData, parentTaskId: mainTask.id, taskPlanStatusId: statuses.find((x) => x.statusName === "TO DO").id }
+    })).then(() => {
+    }).catch((error) => {
+      console.error("Error creating subtask:", error);
+    });
+  };
 
-                                 {/* --- SỬA PHẦN HIỂN THỊ COMMENT --- */}
-                                 <List
-                                     style={{marginTop: '1rem'}}
-                                     dataSource={comments}
-                                     itemLayout="horizontal"
-                                     renderItem={item => (
-                                         <List.Item>
-                                             <List.Item.Meta
-                                                 avatar={<Avatar src={item.author.avatar} icon={<UserOutlined />} alt={item.author.name} />}
-                                                 title={ // Kết hợp tên và thời gian vào title
-                                                     <Space size="small">
-                                                         <a>{item.author.name}</a>
-                                                         <Tooltip title={item.datetime.format('YYYY-MM-DD HH:mm:ss')}>
-                                                             <Text type="secondary" style={{ fontSize: '0.8em' }}>{item.datetime.fromNow()}</Text>
-                                                         </Tooltip>
-                                                     </Space>
-                                                 }
-                                                 description={<Paragraph style={{ margin: 0 }}>{item.content}</Paragraph>} // Nội dung comment
-                                             />
-                                             {/* Có thể thêm actions cho comment ở đây */}
-                                             {/* <div><Button type="text" size="small">Reply</Button></div> */}
-                                         </List.Item>
-                                     )}
-                                 />
-                                {/* --- KẾT THÚC SỬA ĐỔI --- */}
-                             </div>
-                         </ModalContentWrapper>
-                     </Col>
-                     {/* Cột phụ (Phải) - Giữ nguyên */}
-                     <Col span={8} /* ... */ >{/* ... */}</Col>
-                 </Row>
-            )}
-             {/* ... (Phần xử lý lỗi/không có data) ... */}
-        </Modal>
-    );
+  const handleUpdateTaskField = async (taskIdToUpdate, field, value, oldUserId) => {
+    console.log(`Updating task ${taskIdToUpdate}: ${field} = ${value}`);
+    const taskData = { [field]: value };
+    if (field !== "userId") {
+      taskData.userId = oldUserId;
+    }
+    dispatch(updateTaskOfPhase({ taskId: taskIdToUpdate, taskData }))
+      .then(() => {
+      })
+      .catch(error => console.error("Error updating task:", error));
+  }
+  const handleCancelTask = (id) => {
+    dispatch(cancelTaskOfPhase(id)).then(() => {
+      setIsOpen(false);
+    })
+  };
+  const handleNavigateToTask = (id) => {
+    if (id && id !== currentTaskId) {
+      setCurrentTaskId(id);
+    }
+  };
+
+  const parentTaskName = mainTask?.parentTask?.id ? mainTask?.parentTask.taskName : null;
+
+  return (
+    <Modal open={isOpen} onCancel={() => {
+      setCurrentTaskId(null);
+      setIsOpen(false);
+    }} footer={null} width={1000} centered>
+      {loading && <Skeleton active paragraph={{ rows: 10 }} />}
+      {error && <Alert message="Error" description={error.message} type="error" showIcon />}
+      {!loading && !error && mainTask && (
+        <TaskDetailView
+          key={currentTaskId}
+          taskId={currentTaskId}
+          mainTask={mainTask}
+          subtasks={subtasks}
+          projectMembers={allProjectMembers}
+          statusOptions={statuses}
+          loading={loading}
+          onCancelTask={handleCancelTask}
+          onCreateSubtask={handleCreateSubtask}
+          onUpdateTaskField={handleUpdateTaskField}
+          onNavigateToTask={handleNavigateToTask}
+          parentTaskName={parentTaskName}
+        />
+      )}
+      {!loading && !mainTask && <div>Task not found or failed to load.</div>}
+    </Modal>
+  );
 };
 
-TaskDetailModal.propTypes = { /* ... */ };
+TaskDetailModal.propTypes = {
+  statuses: PropTypes.array,
+  taskId: PropTypes.string,
+  isOpen: PropTypes.bool,
+  setIsOpen: PropTypes.func,
+  projectId: PropTypes.string,
+  phaseId: PropTypes.string
+};
 
 export default TaskDetailModal;
