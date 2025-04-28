@@ -1,8 +1,51 @@
+:root {
+  --forum-intro-height: 31.5rem;
+  --forum-img-height: 13rem;
+  --forum-post-height: calc(var(--forum-intro-height) - var(--forum-img-height));
+}
+
+
+.forum-board {
+    max-width: 1200px;
+}
+
+.forum-intro {
+    background-image: url('../../assets/forum-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 100%;
+    border-radius: 8px;
+    position: relative;
+    min-height: 300px;
+}
+
+.text-overlay-forum {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    color: white;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+}
+
+.view-all-link {
+    color: #fff;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.view-all-link:hover {
+    color: #1890ff;
+}
 .forum-intro{
     background-image: url('./src/assets/communicate.jpg');
     background-size: cover;
     background-position: center;
-    height: 31.5rem;
+    height: 35rem;
     border-radius: 20px;
     display: flex;
     align-items: center;
@@ -29,13 +72,35 @@
 }
 
 
-.img-forum{
-    width: 100%;
+
+
+.post-card-wrapper {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.forum-content-container {
     height: 13rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.img-forum {
+    height: 13rem;
+    flex-shrink: 0;
+    width: 100%;
     object-fit: cover;
     border-radius: 20px;
-    position: relative;
-    background-size: cover;
-    background-position: center;
     border: 1px solid black;
 }
+
+.post-card-row {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+

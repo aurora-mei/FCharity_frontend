@@ -35,7 +35,9 @@ import {
   fetchAllCommentsByPostThunk
 } from "../../redux/post/commentSlice";
 import { votePostThunk } from "../../redux/post/postSlice";
-import { deletePosts } from '../../redux/post/postSlice'; // Điều chỉnh đường dẫn cho phù hợp
+import { deletePosts } from '../../redux/post/postSlice';
+import { reportPostThunk } from "../../redux/post/postSlice";
+import { hidePostThunk } from "../../redux/post/postSlice";
 const { Paragraph, Text } = Typography;
 
 
@@ -217,12 +219,14 @@ const Post = ({ currentPost }) => {
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
   const [newComment, setNewComment] = useState("");
-
+  const [selectedReason, setSelectedReason] = useState('');
+  const [customReason, setCustomReason] = useState(''); // Thêm state này
   const comments = useSelector((state) => state.comment.comments) || [];
   const allComments = useSelector((state) => state.comment.allComments) || [];
   const carouselRef = useRef(null);
   const commentEndRef = useRef(null);
-
+  const [hideConfirmVisible, setHideConfirmVisible] = useState(false);
+  const [hideLoading, setHideLoading] = useState(false);
 
   useEffect(() => {
     if (currentPost?.post?.id) {
@@ -231,17 +235,29 @@ const Post = ({ currentPost }) => {
     }
   }, [currentPost?.post?.id, dispatch]);
 
-  useEffect(() => {
-    commentEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [comments]);
-  // Post.jsx
+  const handleHidePost = async () => {
+        setHideLoading(true);
+        try {
+          await dispatch(hidePostThunk({ 
+            postId: currentPost.post.id,  // Changed from postResponse.post.id
+            userId: currentUser.id 
+          })).unwrap();
+          
+          message.success('Bài viết đã được ẩn');
+          setHideConfirmVisible(false);
+        } catch (error) {
+          message.error(error.message || 'Lỗi khi ẩn bài');
+        } finally {
+          setHideLoading(false);
+        }
+      };
 const handleDeletePost = async (e) => {
   e?.stopPropagation();
   try {
     await dispatch(deletePosts(currentPost?.post?.id)).unwrap();
     message.success("Xóa bài viết thành công");
     // Chuyển hướng sau 1 giây để đảm bảo state cập nhật
-    setTimeout(() => navigate("/"), 1000);
+    setTimeout(() => navigate("/forum"), 1000);
   } catch (error) {
     message.error(error.message || "Xóa bài viết thất bại");
   }
@@ -260,27 +276,57 @@ const handleDeletePost = async (e) => {
     }
   };
   const handleReportSubmit = async () => {
-    try {
-      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-      if (!currentUser?.id) return message.error("Vui lòng đăng nhập để báo cáo");
-
-      await postApi.reportPost(currentPost.post.id, {
-        reason: reportReason,
-        details: reportDetails,
-        reporterId: currentUser.id
-      });
-
-      message.success("Đã gửi báo cáo thành công");
-      setReportVisible(false);
-    } catch (error) {
-      message.error("Gửi báo cáo thất bại: " + error.message);
-    }
-  };
+      try {
+        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+        
+        if (!currentUser?.id) {
+          return message.error("Vui lòng đăng nhập");
+        }
+  
+        if (!selectedReason) {
+          return message.error("Vui lòng chọn lý do báo cáo");
+        }
+  
+        const finalReason = selectedReason === 'other' 
+          ? customReason 
+          : selectedReason;
+  
+        if (selectedReason === 'other' && !customReason.trim()) {
+          return message.error("Vui lòng nhập lý do cụ thể");
+        }
+  
+        await dispatch(reportPostThunk({
+          postId: currentPost.post.id,  // Changed from postResponse.post.id
+          reporterId: currentUser.id,
+          reason: finalReason
+        }));
+  
+        message.success("Báo cáo thành công!");
+        setReportVisible(false);
+        setSelectedReason('');
+        setCustomReason('');
+  
+      } catch (error) {
+        message.error(error.message || "Lỗi hệ thống");
+      }
+    };
   // SAU ĐÓ MỚI KHAI BÁO MENU
   const menu = (
     <Menu>
-      {isOwner ? (
-        <>
+          {isOwner ? (
+            <>
+        {currentPost?.post?.status !== "HIDDEN" && (  // Changed from postResponse
+                <Menu.Item 
+                  key="hide" 
+                  onClick={(e) => {
+                    e.domEvent.stopPropagation();
+                    e.domEvent.preventDefault(); // Thêm dòng này
+                    setHideConfirmVisible(true);
+                  }}
+                >
+                  Hide
+                </Menu.Item>
+              )}
           <Menu.Item 
             key="delete" 
             onClick={(e) => {
@@ -288,7 +334,7 @@ const handleDeletePost = async (e) => {
               handleDeletePost(e.domEvent);
             }}
           >
-            Xóa
+            Delete
           </Menu.Item>
           <Menu.Item 
             key="update" 
@@ -297,7 +343,7 @@ const handleDeletePost = async (e) => {
               setEditVisible(true);
             }}
           >
-            Chỉnh sửa
+            Edit
           </Menu.Item>
         </>
       ) : (
@@ -308,7 +354,7 @@ const handleDeletePost = async (e) => {
             setReportVisible(true);
           }}
         >
-          Báo cáo
+          Report
         </Menu.Item>
       )}
     </Menu>
@@ -353,11 +399,6 @@ const handleDeletePost = async (e) => {
   };
 
   const handleCreateReply = async (parentCommentId) => {
-    if (!replyContent.trim()) {
-      message.error("Vui lòng nhập nội dung phản hồi");
-      return;
-    }
-
     if (!replyContent.trim()) return message.error("Vui lòng nhập nội dung phản hồi");
     try {
       const currentUser = JSON.parse(localStorage.getItem("currentUser"));
@@ -557,42 +598,41 @@ const handleDeletePost = async (e) => {
 
       {/* Report Modal */}
       <Modal
-        title="Báo cáo bài viết"
+        title="Report bài viết"
         visible={reportVisible}
         onOk={handleReportSubmit}
         onCancel={() => setReportVisible(false)}
-        okText="Gửi báo cáo"
-        cancelText="Hủy"
+        okText="Send"
+        cancelText="Cancel"
       >
         <Radio.Group 
-          onChange={(e) => setReportReason(e.target.value)} 
-          value={reportReason}
-        >
-          <Space direction="vertical">
-            <Radio value="spam">Nội dung spam</Radio>
-            <Radio value="inappropriate">Nội dung không phù hợp</Radio>
-            <Radio value="harassment">Quấy rối hoặc bắt nạt</Radio>
-            <Radio value="other">Lý do khác</Radio>
-          </Space>
-        </Radio.Group>
+  onChange={(e) => setSelectedReason(e.target.value)} 
+  value={selectedReason}
+>
+  <Radio value="spam">Nội dung spam</Radio>
+  <Radio value="inappropriate">Nội dung không phù hợp</Radio>
+  <Radio value="harassment">Quấy rối</Radio>
+  <Radio value="other">Lý do khác</Radio>
+</Radio.Group>
         
-        {reportReason === "other" && (
-          <Input.TextArea
-            placeholder="Vui lòng mô tả chi tiết"
-            value={reportDetails}
-            onChange={(e) => setReportDetails(e.target.value)}
-            style={{ marginTop: 16 }}
-            rows={4}
-          />
+        {/* Thêm textarea cho lý do tùy chỉnh */}
+  {selectedReason === 'other' && (
+    <Input.TextArea
+      rows={4}
+      placeholder="Vui lòng nhập lý do cụ thể..."
+      value={customReason}
+      onChange={(e) => setCustomReason(e.target.value)}
+      style={{ marginTop: 16 }}
+    />
         )}
       </Modal>
       <Modal
-  title="Chỉnh sửa bài viết"
+  title="Edit bài viết"
   visible={editVisible}
   onOk={handleUpdatePost}
   onCancel={() => setEditVisible(false)}
-  okText="Lưu thay đổi"
-  cancelText="Hủy"
+  okText="Save"
+  cancelText="Cancel"
 >
   <Input.TextArea
     value={editContent}
@@ -600,6 +640,27 @@ const handleDeletePost = async (e) => {
     rows={4}
   />
 </Modal>
+{/* Hidden Confirmation Modal */}
+            <Modal
+  className="no-navigate"
+  title="Xác nhận ẩn bài viết"
+  visible={hideConfirmVisible}
+  onOk={(e) => {
+    e.stopPropagation();
+    handleHidePost();
+  }}
+  onCancel={(e) => {
+    e.stopPropagation();
+    setHideConfirmVisible(false);
+  }}
+              okText="Hide"
+              cancelText="Cancel"
+              okButtonProps={{ danger: true }}
+              confirmLoading={hideLoading}
+            >
+              <p>Bạn có chắc chắn muốn ẩn bài viết này?</p>
+              <p>Bài viết ẩn sẽ không hiển thị với người dùng khác.</p>
+            </Modal>
     </Card>
   );
 };

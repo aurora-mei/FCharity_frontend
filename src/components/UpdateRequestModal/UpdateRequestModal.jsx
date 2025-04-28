@@ -4,7 +4,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories } from "../../redux/category/categorySlice";
 import { fetchTags } from "../../redux/tag/tagSlice";
-import { uploadFileMedia } from "../../redux/helper/helperSlice";
+import { uploadFileHelper } from "../../redux/helper/helperSlice";
 
 const { Option } = Select;
 
@@ -192,9 +192,7 @@ const UpdateRequestModal = ({
     let uploadedFiles = [];
     for (const file of fileList) {
       try {
-        const response = await dispatch(uploadFileMedia({file: latestFile.originFileObj,
-          folderName: "images",
-          resourceType:"image"})).unwrap();
+        const response = await dispatch(uploadFileHelper(file.originFileObj, "images")).unwrap();
         uploadedFiles.push(response);
         message.success(`Uploaded ${file.name}`);
       } catch (error) {
@@ -216,10 +214,7 @@ const UpdateRequestModal = ({
     let uploadedFiles = [];
     for (const file of fileList) {
       try {
-        const response = await dispatch(uploadFileMedia( 
-          {file: latestFile.originFileObj,
-          folderName: "videos",
-          resourceType:"video"})).unwrap();
+        const response = await dispatch(uploadFileHelper(file.originFileObj, "videos")).unwrap();
         uploadedFiles.push(response);
         message.success(`Uploaded ${file.name}`);
       } catch (error) {

@@ -10,10 +10,20 @@ const fetchProjects = async () => {
         console.log("posts: " + response.data);
         return response.data;
     } catch (err) {
-        console.error("Error fetching posts:", err);
+        console.error("Error fetching projects:", err);
         throw err.response.data;
     }
 };
+const fetchProjectsNeedDonate = async()=>{
+    try {
+        const response = await APIPrivate.get('projects/need-donate');
+        console.log("posts: " + response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching project need donate:", err);
+        throw err.response.data;
+    }
+}
 const createProject = async (ProjectData) => {
     try {
         const response = await APIPrivate.post('projects/create', ProjectData);
@@ -40,7 +50,7 @@ const updateProject = async (ProjectData) => {
 
 const fetchProjectById = async (id) => {
     try {
-        
+
         const response = await APIPrivate.get(`projects/${id}`);
         return response.data;
     } catch (err) {
@@ -89,9 +99,9 @@ const fetchActiveProjectMembers = async (projectId) => {
         throw err.response.data;
     }
 }
-const addProjectMember = async ({projectId,userId,role}) => {
+const addProjectMember = async ({ projectId, userId, role }) => {
     try {
-        const response = await APIPrivate.post(`projects/members/add-member/${projectId}/${userId}/${role}`); 
+        const response = await APIPrivate.post(`projects/members/add-member/${projectId}/${userId}/${role}`);
         console.log("Project members:", response.data);
         return response.data;
     } catch (err) {
@@ -145,15 +155,15 @@ const getAllProjectRequest = async (projectId) => {
         throw err.response.data;
     }
 }
-const sendJoinRequest = async ({projectId,requestData}) => {
+const sendJoinRequest = async ({ projectId, requestData }) => {
     try {
-         console.log("Join request sentbb:", projectId, requestData);
+        console.log("Join request sentbb:", projectId, requestData);
         const response = await APIPrivate.post(`projects/requests/${projectId}/join`, requestData);
         console.log("Join request sent:", response.data);
         message.success("Join request sent successfully");
         setTimeout(() => {
             window.location.reload();
-        }, 2000); 
+        }, 2000);
         return response.data;
     } catch (err) {
         console.error("Error sending join request:", err);
@@ -161,7 +171,7 @@ const sendJoinRequest = async ({projectId,requestData}) => {
         throw err.response.data;
     }
 }
-const inviteProjectMember = async ({projectId, userId}) => {
+const inviteProjectMember = async ({ projectId, userId }) => {
     try {
         console.log("Invite request sent:", projectId, userId);
         const response = await APIPrivate.post(`projects/requests/${projectId}/invite/${userId}`);
@@ -174,7 +184,7 @@ const inviteProjectMember = async ({projectId, userId}) => {
         throw err.response.data;
     }
 }
-const cancelProjectRequest = async(requestId)=>{
+const cancelProjectRequest = async (requestId) => {
     try {
         const response = await APIPrivate.post(`projects/requests/${requestId}/cancel`);
         console.log("Project request cancelled:", response.data);
@@ -186,7 +196,7 @@ const cancelProjectRequest = async(requestId)=>{
         throw err.response.data;
     }
 }
-const approveJoinRequest = async(requestId)=>{
+const approveJoinRequest = async (requestId) => {
     try {
         const response = await APIPrivate.post(`projects/requests/${requestId}/approve-join`);
         console.log("Project request approved:", response.data);
@@ -198,7 +208,7 @@ const approveJoinRequest = async(requestId)=>{
         throw err.response.data;
     }
 }
-const rejectJoinRequest = async(requestId)=>{
+const rejectJoinRequest = async (requestId) => {
     try {
         const response = await APIPrivate.post(`projects/requests/${requestId}/reject-join`);
         console.log("Project request rejected:", response.data);
@@ -210,7 +220,7 @@ const rejectJoinRequest = async(requestId)=>{
         throw err.response.data;
     }
 }
-const approveLeaveRequest = async(requestId)=>{
+const approveLeaveRequest = async (requestId) => {
     try {
         const response = await APIPrivate.post(`projects/requests/${requestId}/approve-move-out`);
         console.log("Project request approved:", response.data);
@@ -222,7 +232,7 @@ const approveLeaveRequest = async(requestId)=>{
         throw err.response.data;
     }
 }
-const rejectLeaveRequest = async(requestId)=>{
+const rejectLeaveRequest = async (requestId) => {
     try {
         const response = await APIPrivate.post(`projects/requests/${requestId}/reject-move-out`);
         console.log("Project request rejected:", response.data);
@@ -237,7 +247,7 @@ const rejectLeaveRequest = async(requestId)=>{
 // ===== SPENDING PLAN =====
 export const getSpendingTemplate = async (projectId) => { // Rename for clarity
     try {
-        const response = await APIPrivate.get( 
+        const response = await APIPrivate.get(
             `projects/spending/${projectId}/download-template`,
             {
                 responseType: 'blob', // *** CRITICAL: Tell Axios to expect binary data (Blob) ***
@@ -257,7 +267,7 @@ export const getSpendingTemplate = async (projectId) => { // Rename for clarity
                 filename = matches[1].replace(/['"]/g, '');
             }
         }
-        console.log("filename",filename);
+        console.log("filename", filename);
         // 3. Use FileSaver.js (or manual method) to save the blob
         saveAs(blob, filename);
 
@@ -271,25 +281,25 @@ export const getSpendingTemplate = async (projectId) => { // Rename for clarity
         // Consider checking err.response.status or err.response.data if backend sends error details as JSON even on failure
         // If the response for an error is also a blob, you might need to read it differently
         if (err.response && err.response.data instanceof Blob && err.response.data.type.toLowerCase().indexOf('json') !== -1) {
-             // Try reading the Blob as JSON text if it's an error response
-             try {
+            // Try reading the Blob as JSON text if it's an error response
+            try {
                 const errorJson = await err.response.data.text();
                 const errorData = JSON.parse(errorJson);
                 console.error("Error details:", errorData);
-                 message.error(errorData.message || "An error occurred during download."); // Show more specific error
-                 throw errorData;
-             } catch (parseError) {
+                message.error(errorData.message || "An error occurred during download."); // Show more specific error
+                throw errorData;
+            } catch (parseError) {
                 console.error("Could not parse error blob:", parseError);
-                 throw new Error("An unknown error occurred during download.");
-             }
+                throw new Error("An unknown error occurred during download.");
+            }
         } else {
             // Throw original error or a generic one
-             throw err.response?.data || new Error("An unknown error occurred during download.");
+            throw err.response?.data || new Error("An unknown error occurred during download.");
         }
     }
 };
 
-export const importSpendingPlan = async ({file, projectId }) => {
+export const importSpendingPlan = async ({ file, projectId }) => {
     try {
         const formData = new FormData();
         formData.append('file', file);
@@ -346,7 +356,7 @@ export const getSpendingPlanById = async (planId) => {
     }
 };
 
-export const updateSpendingPlan = async ({planId, dto}) => {
+export const updateSpendingPlan = async ({ planId, dto }) => {
     try {
         const response = await APIPrivate.put(`projects/spending/plans/${planId}`, dto);
         message.success("Spending plan updated successfully");
@@ -370,15 +380,34 @@ export const deleteSpendingPlan = async (planId) => {
         throw err.response?.data;
     }
 };
-export const approveSpendingPlan = async(planId)=>{
-    try{
+export const approveSpendingPlan = async (planId) => {
+    try {
         const response = await APIPrivate.post(`projects/spending/plans/${planId}/approve`);
         console.log("Spending plan approved:", response.data);
         message.success("Spending plan approved successfully");
         return response.data;
-    }catch(err){
+    } catch (err) {
         console.error("Error approving spending plan:", err);
         message.error("Error approving spending plan");
+        throw err.response.data;
+    }
+
+}
+export const rejectSpendingPlan = async ({ planId, reason }) => {
+    try {
+        const response = await APIPrivate.post(`projects/spending/plans/${planId}/reject`, null,
+            {
+                params: {
+                    reason: reason
+                }
+            }
+        );
+        console.log("Spending plan rejected:", response.data);
+        message.success("Spending plan rejected successfully");
+        return response.data;
+    } catch (err) {
+        console.error("Error rejecting spending plan:", err);
+        message.error("Error rejecting spending plan");
         throw err.response.data;
     }
 
@@ -410,7 +439,7 @@ export const getSpendingItemById = async (itemId) => {
     }
 };
 
-export const updateSpendingItem = async ({itemId, dto}) => {
+export const updateSpendingItem = async ({ itemId, dto }) => {
     try {
         const response = await APIPrivate.put(`projects/spending/items/${itemId}`, dto);
         message.success("Spending item updated successfully");
@@ -460,7 +489,7 @@ export const getSpendingDetailsByProject = async (projectId) => {
 }
 export const createSpendingDetail = async (detailData) => {
     try {
-        const response = await APIPrivate.post(`projects/spending/details/create`,detailData);
+        const response = await APIPrivate.post(`projects/spending/details/create`, detailData);
         console.log("Spending detail create:", response.data);
         return response.data;
     } catch (err) {
@@ -468,9 +497,9 @@ export const createSpendingDetail = async (detailData) => {
         throw err.response.data;
     }
 }
-export const updateSpendingDetail = async ({id,detailData}) => {
+export const updateSpendingDetail = async ({ id, detailData }) => {
     try {
-        const response = await APIPrivate.put(`projects/spending/details/${id}`,detailData);
+        const response = await APIPrivate.put(`projects/spending/details/${id}`, detailData);
         console.log("Spending detail create:", response.data);
         return response.data;
     } catch (err) {
@@ -478,8 +507,9 @@ export const updateSpendingDetail = async ({id,detailData}) => {
         throw err.response.data;
     }
 }
-export const deleteSpendingDetail = async ({id}) => {
+export const deleteSpendingDetail = async (id) => {
     try {
+        console.log("idd", id);
         const response = await APIPrivate.delete(`projects/spending/details/${id}`);
         console.log("Spending detail create:", response.data);
         return response.data;
@@ -495,7 +525,7 @@ const createDonation = async (donationData) => {
         console.log("Donation created:", response.data);
         message.success("Donation created successfully");
         return response.data;
-    }catch (err) {
+    } catch (err) {
         console.error("Error creating donation:", err);
         message.error("Error creating donation");
         throw err.response.data;
@@ -511,14 +541,251 @@ const getDonationsOfProject = async (projectId) => {
         throw err.response.data;
     }
 }
+//extra fund request
 
-const projectApi = { fetchProjects, createProject, fetchProjectById, fetchMyProjects,updateProject,fetchProjectsByOrg,
-    getUserNotInProject, addProjectMember,fetchAllProjectMembers, fetchActiveProjectMembers,moveOutProjectMember,removeProjectMember,inviteProjectMember,
-    getAllProjectRequest, sendJoinRequest, cancelProjectRequest,approveJoinRequest,rejectJoinRequest,
-    approveLeaveRequest,rejectLeaveRequest,
-    getSpendingTemplate,importSpendingPlan,approveSpendingPlan,
-    createSpendingDetail,getSpendingDetailsByProject,updateSpendingDetail,deleteSpendingDetail,
+//withdraw request
+const getAllWithdrawRequest = async () => {
+    try {
+        const response = await APIPrivate.get(`/withdraw-requests`);
+        console.log("Project withdraw requests:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get withdraw requests:", err);
+        throw err.response.data;
+    }
+}
+const getWithdrawRequestByProjectId = async (reqId) => {
+    try {
+        const response = await APIPrivate.get(`/withdraw-requests/project/${reqId}`);
+        console.log("Project withdraw request by project id:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get withdraw request by project id:", err);
+        throw err.response.data;
+    }
+}
+const sendWithdrawRequest = async ({ projectId, bankInfo }) => {
+    try {
+        const response = await APIPrivate.post(`/withdraw-requests/create`, null, {
+            params: {
+                projectId: projectId,
+                bankBin: bankInfo.bankBin,
+                accountNumber: bankInfo.accountNumber,
+                accountHolder: bankInfo.accountHolder,
+            }
+        });
+        message.success("Send withdraw request successfully");
+        return response.data;
+    } catch (err) {
+        console.error("Error send withdraw req:", err);
+        message.error("Send withdraw request failed");
+        throw err.response.data;
+    }
+}
+const updateBankInfoWithdraw = async ({ reqId, bankInfo }) => {
+    try {
+        const response = await APIPrivate.put(`/withdraw-requests/${id}/update-bank-info`, null, {
+            params: {
+                bankBin: bankInfo.bankBin,
+                accountNumber: bankInfo.accountNumber,
+                accountHolder: bankInfo.accountHolder,
+            }
+        });
+        message.success("Update bank info successfully");
+        return response.data;
+    } catch (err) {
+        mess.error("Error update bank info:", err);
+        message.error("Update bank info failed");
+        throw err.response.data;
+    }
+}
+const updateConfirmWithdraw = async (id) => {
+    try {
+        const response = await APIPrivate.put(`withdraw-requests/${id}/update-confirm`);
+        message.success("Update confirm withdraw successfully");
+        return response.data;
+    } catch (err) {
+        message.error("Update confirm withdraw failed");
+        console.error("Error updating confirm withdraw:", err);
+        throw err.response.data;
+    }
+}
+
+const updateErrorWithdraw = async ({ id, note }) => {
+    try {
+        const response = await APIPrivate.put(`withdraw-requests/${id}/update-error`, null,
+            {
+                params: {
+                    note: note
+                }
+            }
+        );
+        message.success("Update error withdraw successfully");
+        return response.data;
+    } catch (err) {
+        message.error("Update error withdraw failed");
+        console.error("Error updating error withdraw:", err);
+        throw err.response.data;
+    }
+}
+
+export const getExpenseTemplate = async (projectId) => { // Rename for clarity
+    try {
+        const response = await APIPrivate.get(
+            `projects/spending/${projectId}/download-template-expense`,
+            {
+                responseType: 'blob', // *** CRITICAL: Tell Axios to expect binary data (Blob) ***
+            }
+        );
+        const blob = new Blob([response.data], {
+            type: response.headers['content-type'] || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // Get MIME type from header or default
+        });
+
+        // 2. Extract filename from Content-Disposition header (optional but recommended)
+        let filename = 'expense_template.xlsx'; // Default filename
+        const contentDisposition = response.headers['content-disposition'];
+        if (contentDisposition) {
+            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            const matches = filenameRegex.exec(contentDisposition);
+            if (matches != null && matches[1]) {
+                filename = matches[1].replace(/['"]/g, '');
+            }
+        }
+        console.log("filename", filename);
+        // 3. Use FileSaver.js (or manual method) to save the blob
+        saveAs(blob, filename);
+
+        // No need to return response.data here as it's handled by FileSaver
+        // message.success("Template downloaded successfully."); // Optional success message
+
+    } catch (err) {
+        message.error("Failed to download expense template");
+        console.error("Error downloading expense Template:", err);
+        // Handle specific error responses if needed
+        // Consider checking err.response.status or err.response.data if backend sends error details as JSON even on failure
+        // If the response for an error is also a blob, you might need to read it differently
+        if (err.response && err.response.data instanceof Blob && err.response.data.type.toLowerCase().indexOf('json') !== -1) {
+            // Try reading the Blob as JSON text if it's an error response
+            try {
+                const errorJson = await err.response.data.text();
+                const errorData = JSON.parse(errorJson);
+                console.error("Error details:", errorData);
+                message.error(errorData.message || "An error occurred during download."); // Show more specific error
+                throw errorData;
+            } catch (parseError) {
+                console.error("Could not parse error blob:", parseError);
+                throw new Error("An unknown error occurred during download.");
+            }
+        } else {
+            // Throw original error or a generic one
+            throw err.response?.data || new Error("An unknown error occurred during download.");
+        }
+    }
+};
+export const importExpenses = async ({ file, projectId }) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await APIPrivate.post(`projects/spending/${projectId}/save-expenses-from-template`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        message.success("Expenses imported successfully");
+        console.log("Imported Expenses:", response.data);
+        return response.data;
+    } catch (err) {
+        message.error(`Failed to import expenses: ${err.response?.data?.message || ""}`);
+        console.error("Error importing expenses:", err);
+        throw err.response?.data;
+    }
+};
+const getProjectWallet = async (walletId) => {
+    try {
+        const response = await APIPrivate.get(`projects/wallet/${walletId}`);
+        console.log("Project wallet:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get project wallet:", err);
+        throw err.response.data;
+    }
+}
+//confirm request
+
+const sendConfirmReceiveRequest = async (projectId) => {
+
+    try {
+        const response = await APIPrivate.post(`projects/confirmation-requests/${projectId}`);
+        console.log("Confirm receive request:", response.data);
+        message.success("Confirm receive request sent successfully");
+        return response.data;
+    } catch (err) {
+        console.error("Error send confirm receive request:", err);
+        message.error("Error sending confirm receive request");
+        throw err.response.data;
+    }
+}
+const confirmReceiveRequest = async ({ id, me }) => {
+
+    try {
+        const response = await APIPrivate.put(`projects/confirmation-requests/${id}/confirm`, {
+            message: me
+        });
+        console.log("Confirm receive request:", response.data);
+        message.success("Confirm receive request successfully!");
+        return response.data;
+    } catch (err) {
+        console.error("Error confirm receive request:", err);
+        message.error("Error confirming receive request");
+        throw err.response.data;
+    }
+}
+const getConfirmReceiveRequestByProject = async (projectId) => {
+    try {
+        const response = await APIPrivate.get(`projects/confirmation-requests/project/${projectId}`);
+        console.log("Confirm receive request:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get confirm receive request:", err);
+        throw err.response.data;
+    }
+}
+const getConfirmReceiveRequestByRequest = async (requestId) => {
+    try {
+        const response = await APIPrivate.get(`projects/confirmation-requests/request/${requestId}`);
+        console.log("Confirm receive request:", response.data);
+        return response.data;
+    } catch (err) {
+        console.error("Error get confirm receive request:", err);
+        throw err.response.data;
+    }
+}
+const rejectReceiveRequest = async ({ id, me }) => {
+    try {
+        const response = await APIPrivate.put(`projects/confirmation-requests/${id}/reject`, {
+            message: me
+        });
+        console.log("Confirm receive request:", response.data);
+        message.success("Confirm receive request rejected successfully! The project will be checked again before send you another confirm request!");
+        return response.data;
+    } catch (err) {
+        console.error("Error reject receive request:", err);
+        message.error("Error rejecting receive request");
+        throw err.response.data;
+    }
+}
+const projectApi = {
+    sendConfirmReceiveRequest, confirmReceiveRequest, getConfirmReceiveRequestByProject, getConfirmReceiveRequestByRequest,rejectReceiveRequest,
+    fetchProjects,fetchProjectsNeedDonate, createProject, fetchProjectById, fetchMyProjects, updateProject, fetchProjectsByOrg,
+    getUserNotInProject, addProjectMember, fetchAllProjectMembers, fetchActiveProjectMembers, moveOutProjectMember, removeProjectMember, inviteProjectMember,
+    getAllProjectRequest, sendJoinRequest, cancelProjectRequest, approveJoinRequest, rejectJoinRequest,
+    approveLeaveRequest, rejectLeaveRequest,
+    getSpendingTemplate, importSpendingPlan, approveSpendingPlan, rejectSpendingPlan,
+    createSpendingDetail, getSpendingDetailsByProject, updateSpendingDetail, deleteSpendingDetail,
     getSpendingPlanOfProject, createSpendingPlan, getSpendingPlanById, updateSpendingPlan, deleteSpendingPlan,
-    createSpendingItem,getSpendingItemById,updateSpendingItem,deleteSpendingItem,getItemsByPlan,
-     createDonation,getDonationsOfProject};
+    createSpendingItem, getSpendingItemById, updateSpendingItem, deleteSpendingItem, getItemsByPlan,
+    createDonation, getDonationsOfProject,
+    getExpenseTemplate, importExpenses,
+    getWithdrawRequestByProjectId, sendWithdrawRequest, updateBankInfoWithdraw, updateConfirmWithdraw, updateErrorWithdraw, getProjectWallet
+};
 export default projectApi;

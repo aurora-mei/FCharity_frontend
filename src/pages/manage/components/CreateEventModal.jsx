@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -6,16 +6,72 @@ import "react-datepicker/dist/react-datepicker.css";
 import { IoClose } from "react-icons/io5";
 import { IoChevronDownOutline } from "react-icons/io5";
 
+import Checkbox from "@mui/material/Checkbox";
+import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addOrganizationEvent,
+  createIncludesExcludes,
+  getAllMembersInOrganization,
+  getAllUsersNotInOrganization,
+} from "../../../redux/organization/organizationSlice";
+
+const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
+const checkedIcon = <CheckBoxIcon fontSize="small" />;
+
 const CreateEventModal = ({
   isCreateModalOpen,
   setIsCreateModalOpen,
   newEvent,
   setNewEvent,
-  errors,
-  handleInputChange,
-  handleCreateEvent,
 }) => {
+  const dispatch = useDispatch();
+
+  const usersOutsideOrganization = useSelector(
+    (state) => state.organization.usersOutsideOrganization
+  );
+
+  const currentOrganization = useSelector(
+    (state) => state.organization.currentOrganization
+  );
+
+  const currentOrganizationMembers = useSelector(
+    (state) => state.organization.currentOrganizationMembers
+  );
+
+  const [errors, setErrors] = useState([]);
+
+  // danh sách người dùng trên hệ thống
+  const usersList = [
+    ...usersOutsideOrganization,
+    ...[...currentOrganizationMembers].map((member) => member.user),
+  ];
+
+  const memberList = [...currentOrganizationMembers]
+    .filter((member) => member.memberRole == "MEMBER")
+    .map((member) => member.user);
+
+  const managerList = [...currentOrganizationMembers]
+    .filter((member) => member.memberRole == "MANAGER")
+    .map((member) => member.user);
+
+  const ceoList = [...currentOrganizationMembers]
+    .filter((member) => member.memberRole == "CEO")
+    .map((member) => member.user);
+
+  // lưu trạng thái cho audienceGroups, sử dụng cho excludeUsers
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  // const [targetAudienceGroups, setTargetAudienceGroups] = useState([]);
+
   const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
+
+  const [includeUsers, setIncludeUsers] = useState([]);
+
+  const [excludeUsers, setExcludeUsers] = useState([]); // sử dụng với selectedUsers
+
   const colorOptions = [
     { value: "#3788d8", label: "Blue", color: "#3788d8" },
     { value: "#28a745", label: "Green", color: "#28a745" },
@@ -24,16 +80,217 @@ const CreateEventModal = ({
     { value: "#6f42c1", label: "Purple", color: "#6f42c1" },
   ];
 
-  const mapEventTypeToDisplayName = (eventType) => {
-    const eventTypeMap = {
-      COMMUNITY_SUPPORT: "Community Support",
-      SEMINAR: "Seminar",
-      VOLUNTEER: "Volunteer",
-      FUNDRAISING: "Fundraising",
-      TRAINING: "Training",
-    };
-    return eventTypeMap[eventType] || eventType;
+  const handleInputChange = (e) => {
+    const { name, value, checked } = e.target;
+
+    if (name?.startsWith("audienceGroups")) {
+      if (name === "audienceGroupsAll") {
+        if (checked) {
+          setNewEvent({
+            ...newEvent,
+            targetAudienceGroups: ["ALL", "MEMBER", "MANAGER", "CEO"],
+          });
+
+          setSelectedUsers([...usersList]);
+          setIncludeUsers([]);
+          setExcludeUsers([]);
+        } else {
+          setNewEvent({
+            ...newEvent,
+            targetAudienceGroups: [],
+          });
+
+          setSelectedUsers([]);
+          setIncludeUsers([]);
+          setExcludeUsers([]);
+        }
+      }
+      if (name === "audienceGroupsMember") {
+        if (checked) {
+          setNewEvent({
+            ...newEvent,
+            targetAudienceGroups: [...newEvent.targetAudienceGroups, "MEMBER"],
+          });
+
+          setSelectedUsers((prev) => [...prev, ...memberList]);
+
+          setIncludeUsers((prev) =>
+            prev.filter((user) => !memberList.includes(user))
+          );
+        } else {
+          setNewEvent({
+            ...newEvent,
+            targetAudienceGroups: newEvent.targetAudienceGroups.filter(
+              (group) => group !== "MEMBER"
+            ),
+          });
+
+          setSelectedUsers((prev) =>
+            prev.filter((user) => !memberList.includes(user))
+          );
+
+          setExcludeUsers((prev) =>
+            prev.filter((user) => !memberList.includes(user))
+          );
+        }
+      }
+      if (name === "audienceGroupsManager") {
+        if (checked) {
+          setNewEvent({
+            ...newEvent,
+            targetAudienceGroups: [...newEvent.targetAudienceGroups, "MANAGER"],
+          });
+
+          setSelectedUsers((prev) => [...prev, ...managerList]);
+
+          setIncludeUsers((prev) =>
+            prev.filter((user) => !managerList.includes(user))
+          );
+        } else {
+          setNewEvent({
+            ...newEvent,
+            targetAudienceGroups: newEvent.targetAudienceGroups.filter(
+              (group) => group !== "MANAGER"
+            ),
+          });
+
+          setSelectedUsers((prev) =>
+            prev.filter((user) => !managerList.includes(user))
+          );
+
+          setExcludeUsers((prev) =>
+            prev.filter((user) => !managerList.includes(user))
+          );
+        }
+      }
+
+      if (name === "audienceGroupsCeo") {
+        if (checked) {
+          setNewEvent({
+            ...newEvent,
+            targetAudienceGroups: [...newEvent.targetAudienceGroups, "CEO"],
+          });
+
+          setSelectedUsers((prev) => [...prev, ...ceoList]);
+
+          setIncludeUsers((prev) =>
+            prev.filter((user) => !ceoList.includes(user))
+          );
+        } else {
+          setNewEvent({
+            ...newEvent,
+            targetAudienceGroups: newEvent.targetAudienceGroups.filter(
+              (group) => group !== "CEO"
+            ),
+          });
+
+          setSelectedUsers((prev) =>
+            prev.filter((user) => !ceoList.includes(user))
+          );
+
+          setExcludeUsers((prev) =>
+            prev.filter((user) => !ceoList.includes(user))
+          );
+        }
+      }
+    } else {
+      setNewEvent({ ...newEvent, [name]: value });
+    }
   };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!newEvent.title) newErrors.title = "Title cannot be blank";
+    if (!newEvent.start) newErrors.start = "Start time cannot be blank";
+    if (!newEvent.end) newErrors.end = "End time cannot be blank";
+    if (newEvent.start && newEvent.end && newEvent.start >= newEvent.end) {
+      newErrors.end = "The end time must be after the start time.";
+    }
+    if (!newEvent.location) newErrors.location = "Location cannot be empty";
+    if (!newEvent.eventType) newErrors.eventType = "Event type cannot be blank";
+
+    if (!newEvent.targetAudienceGroups)
+      newErrors.targetAudienceGroups = "Participants cannot be left blank";
+    if (!newEvent.summary) newErrors.summary = "Summary cannot be left blank";
+    if (!newEvent.fullDescription)
+      newErrors.fullDescription = "Details cannot be left blank";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCreateEvent = async () => {
+    if (!validateForm()) return;
+
+    const newEventData = {
+      organizerId: currentOrganization.organizationId,
+      title: newEvent.title,
+      startTime: newEvent.start,
+      endTime: newEvent.end,
+      backgroundColor: newEvent.backgroundColor || "#3788d8",
+      borderColor: newEvent.borderColor || "#3788d8",
+      textColor: newEvent.textColor,
+      location: newEvent.location,
+      meetingLink: newEvent.meetingLink,
+      eventType: newEvent.eventType,
+      organizer: newEvent.organizer,
+
+      targetAudienceGroups: newEvent.targetAudienceGroups.join(","),
+
+      summary: newEvent.summary,
+      fullDescription: newEvent.fullDescription,
+    };
+
+    console.log("New Event Data: 🧊🧊", newEventData);
+    console.log("Organizer: ", currentOrganization);
+
+    const eventCreatedResponse = await dispatch(
+      addOrganizationEvent(newEventData)
+    ).unwrap();
+
+    console.log("eventCreatedResponse: ", eventCreatedResponse);
+
+    dispatch(
+      createIncludesExcludes({
+        includes: [...includeUsers.map((user) => user.email)],
+        excludes: [...excludeUsers.map((user) => user.email)],
+        organizationEventId: eventCreatedResponse.organizationEventId,
+      })
+    );
+
+    //TODO: gửi mail tới người được mời tham gia (tự dộng gửi khi dispatch createIncludesExcludes)
+
+    setIsCreateModalOpen(false);
+
+    setNewEvent({
+      // các thuộc tính mặc định
+      title: "",
+      start: null,
+      end: null,
+      backgroundColor: "",
+      borderColor: "",
+      textColor: "",
+      // các thuộc tính mở rộng
+      location: "",
+      meetingLink: "",
+      eventType: "",
+      targetAudienceGroups: [],
+      summary: "",
+      fullDescription: "",
+    });
+
+    setErrors({});
+  };
+
+  // console.log("usersOutsideOrganization 🍎🍎", usersOutsideOrganization);
+  console.log("currentOrganizationMembers ⚓⚓", currentOrganizationMembers);
+
+  console.log("targetAudienceGroups: ", newEvent.targetAudienceGroups);
+  console.log("selectedUsers: ", selectedUsers);
+
+  console.log("includeUsers: ", includeUsers);
+  console.log("excludeUsers: ", excludeUsers);
+
   return (
     <Modal
       isOpen={isCreateModalOpen}
@@ -70,7 +327,16 @@ const CreateEventModal = ({
         </p>
         <button
           className="focus:outline-none hover:cursor-pointer"
-          onClick={() => setIsCreateModalOpen(false)}
+          onClick={() => {
+            setIsCreateModalOpen(false);
+            setNewEvent({
+              ...newEvent,
+              targetAudienceGroups: [],
+            });
+            setIncludeUsers([]);
+            setExcludeUsers([]);
+            setSelectedUsers([]);
+          }}
         >
           <IoClose className="text-gray-500 hover:text-gray-700 " />
         </button>
@@ -263,21 +529,202 @@ const CreateEventModal = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <h3 className="mb-4 font-semibold text-gray-900">
                 Target audience
-              </label>
-              <input
-                type="text"
-                name="targetAudience"
-                value={newEvent.targetAudience}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-              />
-              {errors.targetAudience && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.targetAudience}
-                </p>
-              )}
+                <span className="text-sm text-gray-500">
+                  (For sending invitation emails)
+                </span>
+              </h3>
+              <div className="flex flex-col items-end">
+                <ul
+                  className="items-center w-[500px] text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex"
+                  style={{ marginBottom: "0" }}
+                >
+                  <li className="w-full border-b border-gray-200 sm:border-b-0 sm:border-r">
+                    <div className="flex items-center ps-3">
+                      <input
+                        name="audienceGroupsAll"
+                        type="checkbox"
+                        value="ALL"
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500"
+                        style={{ color: "blue" }}
+                        onChange={handleInputChange}
+                        checked={newEvent.targetAudienceGroups.includes("ALL")}
+                      />
+                      <label
+                        for="vue-checkbox-list"
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900"
+                      >
+                        All users
+                      </label>
+                    </div>
+                  </li>
+                  <li className="w-full border-b border-gray-200 sm:border-b-0 sm:border-r ">
+                    <div className="flex items-center ps-3">
+                      <input
+                        name="audienceGroupsMember"
+                        type="checkbox"
+                        value="MEMBER"
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
+                        onChange={handleInputChange}
+                        disabled={newEvent.targetAudienceGroups.includes("ALL")}
+                        checked={newEvent.targetAudienceGroups.includes(
+                          "MEMBER"
+                        )}
+                      />
+                      <label
+                        for="react-checkbox-list"
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900 "
+                      >
+                        Members
+                      </label>
+                    </div>
+                  </li>
+                  <li className="w-full border-b border-gray-200 sm:border-b-0 sm:border-r ">
+                    <div className="flex items-center ps-3">
+                      <input
+                        name="audienceGroupsManager"
+                        type="checkbox"
+                        value="MANAGER"
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
+                        onChange={handleInputChange}
+                        disabled={newEvent.targetAudienceGroups.includes("ALL")}
+                        checked={newEvent.targetAudienceGroups.includes(
+                          "MANAGER"
+                        )}
+                      />
+                      <label
+                        for="angular-checkbox-list"
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900 "
+                      >
+                        Managers
+                      </label>
+                    </div>
+                  </li>
+                  <li className="w-full">
+                    <div className="flex items-center ps-3">
+                      <input
+                        name="audienceGroupsCeo"
+                        type="checkbox"
+                        value="CEO"
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 "
+                        onChange={handleInputChange}
+                        disabled={newEvent.targetAudienceGroups.includes("ALL")}
+                        checked={newEvent.targetAudienceGroups.includes("CEO")}
+                      />
+                      <label
+                        for="laravel-checkbox-list"
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900"
+                      >
+                        CEOs
+                      </label>
+                    </div>
+                  </li>
+                </ul>
+
+                <div className="mt-4">
+                  <h4 className="text-gray-800 text-md">Include</h4>
+                  <Autocomplete
+                    multiple
+                    id="checkboxes-tags-demo"
+                    options={usersList.filter(
+                      (user) => !selectedUsers.includes(user)
+                    )}
+                    disableCloseOnSelect
+                    value={includeUsers}
+                    getOptionLabel={(option) => option.fullName}
+                    filterOptions={(options, { inputValue }) =>
+                      options.filter(
+                        (option) =>
+                          option.fullName
+                            .toLowerCase()
+                            .includes(inputValue.toLowerCase()) ||
+                          option.email
+                            .toLowerCase()
+                            .includes(inputValue.toLowerCase())
+                      )
+                    }
+                    renderOption={(props, option, { selected }) => {
+                      const { key, ...optionProps } = props;
+                      return (
+                        <li key={key} {...optionProps}>
+                          <Checkbox
+                            icon={icon}
+                            checkedIcon={checkedIcon}
+                            style={{ marginRight: 8 }}
+                            checked={selected}
+                          />
+                          {option.fullName} {"  "} ({option.email})
+                        </li>
+                      );
+                    }}
+                    style={{ width: 500 }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Includes users"
+                        placeholder="Includes users"
+                      />
+                    )}
+                    onChange={(event, newValue) => {
+                      console.log("Users include list selected:", newValue);
+                      setIncludeUsers(newValue);
+                    }}
+                  />
+                </div>
+                <div className="mt-4">
+                  <h4 className="text-gray-800 text-md">Exclude</h4>
+                  <Autocomplete
+                    multiple
+                    id="checkboxes-tags-demo"
+                    options={selectedUsers}
+                    disableCloseOnSelect
+                    value={excludeUsers}
+                    getOptionLabel={(option) => option.fullName}
+                    filterOptions={(options, { inputValue }) =>
+                      options.filter(
+                        (option) =>
+                          option.fullName
+                            .toLowerCase()
+                            .includes(inputValue.toLowerCase()) ||
+                          option.email
+                            .toLowerCase()
+                            .includes(inputValue.toLowerCase())
+                      )
+                    }
+                    renderOption={(props, option, { selected }) => {
+                      const { key, ...optionProps } = props;
+                      return (
+                        <li key={key} {...optionProps}>
+                          <Checkbox
+                            icon={icon}
+                            checkedIcon={checkedIcon}
+                            style={{ marginRight: 8 }}
+                            checked={selected}
+                          />
+                          {option.fullName} {"  "} ({option.email})
+                        </li>
+                      );
+                    }}
+                    style={{ width: 500 }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Excludes users"
+                        placeholder="Excludes users"
+                      />
+                    )}
+                    onChange={(event, newValue) => {
+                      setExcludeUsers(newValue);
+                    }}
+                  />
+                </div>
+                {errors.targetAudience && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.targetAudience}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -320,18 +767,29 @@ const CreateEventModal = ({
       </div>
 
       <div className="bg-gray-100 p-4 border-t border-gray-200 flex justify-end items-center gap-8">
-        <button
-          onClick={() => setIsCreateModalOpen(false)}
+        <div
+          onClick={() => {
+            setIsCreateModalOpen(false);
+            setNewEvent({
+              ...newEvent,
+              targetAudienceGroups: [],
+            });
+            setIncludeUsers([]);
+            setExcludeUsers([]);
+            setSelectedUsers([]);
+          }}
           className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors hover:cursor-pointer"
         >
           Cancel
-        </button>
-        <button
-          onClick={handleCreateEvent}
+        </div>
+        <div
+          onClick={() => {
+            handleCreateEvent();
+          }}
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors  hover:cursor-pointer"
         >
           Create
-        </button>
+        </div>
       </div>
     </Modal>
   );

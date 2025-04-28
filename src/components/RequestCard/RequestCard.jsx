@@ -1,19 +1,6 @@
 import React, { useState } from "react";
-// Modal, Button, etc., imports remain the same
-import {
-  Button,
-  Typography,
-  Form,
-  Select,
-  message,
-  Flex,
-  Badge,
-  Input,
-  Tag,
-  Tooltip,
-  Modal,
-} from "antd";
-import { Link, useNavigate } from "react-router-dom";
+import { Button, Typography, Form, Select, message, Flex, Badge, Input } from "antd";
+import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { deleteRequest, updateRequest } from "../../redux/request/requestSlice";
 import MoreOptions from "../MoreOptions/MoreOptions";
@@ -26,331 +13,204 @@ const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 
 const RequestCard = ({ requestData, showActions = true }) => {
-  // State and hooks (remain the same)
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [isReasonModalVisible, setIsReasonModalVisible] = useState(false);
-  const [currentRequestData, setCurrentRequestData] = useState(null);
-  const [attachments, setAttachments] = useState({ images: [], videos: [] });
-  const [form] = Form.useForm();
-  const storedUser = localStorage.getItem("currentUser");
-  let currentUser = {};
-  try {
-    currentUser = storedUser ? JSON.parse(storedUser) : {};
-  } catch (error) {
-    console.error("Error parsing currentUser:", error);
-    currentUser = {};
-  }
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-  // Destructuring (remains the same)
-  const {
-    helpRequest,
-    requestTags = [],
-    attachments: requestAttachments = [],
-  } = requestData || {};
-  const {
-    id,
-    title = "No Title",
-    content = "No Content",
-    phone = "N/A",
-    email = "No Email",
-    location = "N/A",
-    provinceCode = null,
-    districtCode = null,
-    communeCode = null,
-    category = { id: null, categoryName: "N/A" },
-    user = { id: null },
-    status = "unknown",
-    reason = null,
-    isEmergency = false,
-    userId = null,
-  } = helpRequest || {};
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [currentRequestData, setCurrentRequestData] = useState(null);
+    const [attachments, setAttachments] = useState({ images: [], videos: [] });
+    const [form] = Form.useForm();
+    const storedUser = localStorage.getItem("currentUser");
+    let currentUser = {};
 
-  // Essential Data Check (remains the same)
-  if (!id) {
-    console.warn("Invalid requestData: Missing ID.", requestData);
-    return null;
-  }
-
-  // Flags (remains the same)
-  const isRejected = status?.toLowerCase() === "rejected";
-  const isPendingOrApproved =
-    status?.toLowerCase() === "pending" || status?.toLowerCase() === "approved";
-  const isOwner = currentUser?.id === user?.id;
-
-  // CRUD Handlers (remain the same)
-  const handleDelete = async () => {
-    if (!isPendingOrApproved) {
-      message.warning("Only Pending/Approved requests can be deleted.");
-      return;
-    }
     try {
-      await dispatch(deleteRequest(id)).unwrap();
-      message.success("Request deleted");
-      window.location.reload();
+        currentUser = storedUser ? JSON.parse(storedUser) : {};
     } catch (error) {
-      console.error("Err delete:", error);
-      message.error("Failed to delete: " + (error?.message || "Err"));
+        console.error("Error parsing currentUser from localStorage:", error);
     }
-  };
-  const handleEdit = () => {
-    if (!isPendingOrApproved) {
-      message.warning("Only Pending/Approved requests can be edited.");
-      return;
+    if (!requestData || !requestData.helpRequest?.id) {
+        console.warn("Invalid requestData:", requestData);
+        return null;
     }
-    setCurrentRequestData(requestData);
-    setIsEditModalVisible(true);
-    const initialValues = {
-      title,
-      content,
-      phone,
-      email,
-      location,
-      province: provinceCode,
-      district: districtCode,
-      commune: communeCode,
-      categoryId: category?.id,
-      requestTags: requestTags?.map((t) => t?.tag?.id).filter(Boolean) || [],
+
+    // Xử lý xóa
+    const handleDelete = async (id) => {
+        if (requestData.helpRequest.status !== "PENDING" && requestData.helpRequest.status !== "APPROVED") {
+            message.warning("Only Pending requests can be deleted.");
+            return;
+        }
+        try {
+            console.log("Deleting request with ID:", id);
+            await dispatch(deleteRequest(id)).unwrap();
+            message.success("Request deleted successfully");
+            window.location.reload();
+        } catch (error) {
+            console.error("Error deleting request:", error);
+            message.error("Failed to delete request: " + (error.message || "Unknown error"));
+        }
     };
-    const imgUrls =
-      requestAttachments?.filter(
-        (url) => typeof url === "string" && url.match(/\.(jpeg|jpg|png|gif)$/i)
-      ) || [];
-    const vidUrls =
-      requestAttachments?.filter(
-        (url) => typeof url === "string" && url.match(/\.(mp4|webm|ogg)$/i)
-      ) || [];
-    setAttachments({ images: imgUrls, videos: vidUrls });
-    form.setFieldsValue(initialValues);
-  };
-  const handleCancelEdit = () => {
-    setIsEditModalVisible(false);
-    setCurrentRequestData(null);
-    form.resetFields();
-    setAttachments({ images: [], videos: [] });
-  };
-  const handleUpdate = async (values) => {
-    if (!currentRequestData?.helpRequest?.id) {
-      message.error("Cannot update: Data missing.");
-      return;
-    }
-    const currentId = currentRequestData.helpRequest.id;
-    const payload = {
-      userId: currentRequestData.helpRequest.userId,
-      title: values.title,
-      content: values.content,
-      phone: values.phone,
-      email: values.email,
-      location: values.location,
-      province: values.province,
-      district: values.district,
-      commune: values.commune,
-      imageUrls: attachments.images,
-      videoUrls: attachments.videos,
-      isEmergency: currentRequestData.helpRequest.isEmergency,
-      categoryId: values.categoryId,
-      tagIds: values.requestTags,
-      status: currentRequestData.helpRequest.status,
+    
+
+    // Mở modal Edit
+    const handleEdit = (data) => {
+        if (requestData.helpRequest.status !== "PENDING" && requestData.helpRequest.status !== "APPROVED") {
+            message.warning("Only Pending requests can be edited.");
+            return;
+        }
+        setCurrentRequestData(data);
+        setIsModalVisible(true);
+
+        // Cập nhật các trường province/district/commune từ API (giả sử API trả về các mã này)
+        const initialValues = {
+            title: data.helpRequest.title,
+            content: data.helpRequest.content,
+            phone: data.helpRequest.phone,
+            email: data.helpRequest.email,
+            location: data.helpRequest.location,
+            province: data.helpRequest.provinceCode, // Mã tỉnh
+            district: data.helpRequest.districtCode, // Mã quận/huyện
+            commune: data.helpRequest.communeCode,   // Mã xã/phường
+            categoryId: data.helpRequest.category.id,
+            requestTags: data.requestTags?.map((taggable) => taggable.tag.id) || [],
+            attachment: data.attachments || [],
+        };
+        const imageUrls = data.attachments?.filter((url) =>
+            url.match(/\.(jpeg|jpg|png|gif)$/i)
+        ) || [];
+        const videoUrls = data.attachments?.filter((url) =>
+            url.match(/\.(mp4|webm|ogg)$/i)
+        ) || [];
+        setAttachments({
+            images: imageUrls,
+            videos: videoUrls
+        });
+        console.log("Initial form values:", initialValues);
+        form.setFieldsValue(initialValues);
     };
-    try {
-      await dispatch(
-        updateRequest({ id: currentId, requestData: payload })
-      ).unwrap();
-      message.success("Request updated");
-      handleCancelEdit();
-      window.location.reload();
-    } catch (error) {
-      console.error("Err update:", error);
-      message.error("Failed to update: " + (error?.message || "Err"));
-    }
-  };
 
-  // Reason Modal Handlers (remain the same)
-  const showReasonModal = (e) => {
-    e.stopPropagation(); // Prevent card click event if button is clicked
-    setIsReasonModalVisible(true);
-  };
-  const handleReasonModalClose = () => {
-    setIsReasonModalVisible(false);
-  };
+    const handleCancel = () => {
+        setIsModalVisible(false);
+    };
 
-  return (
-    <div>
-      {/* Full Card */}
-      <Flex vertical gap={5} className="request-card">
-        {/* Image and Badges Section */}
-        <div style={{ position: "relative" }}>
-          {" "}
-          {/* Parent MUST have position: relative */}
-          {/* Image */}
-          {requestAttachments &&
-          requestAttachments.length > 0 &&
-          typeof requestAttachments[0] === "string" ? (
-            <img
-              src={requestAttachments[0]}
-              alt={title}
-              style={{
-                height: "11rem",
-                width: "100%",
-                objectFit: "cover",
-                borderTopLeftRadius: "1rem",
-                borderTopRightRadius: "1rem",
-                display: "block",
-              }}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src =
-                  "https://via.placeholder.com/300x176?text=Img+Error";
-              }}
+    // Cập nhật request (bao gồm các trường province, district, commune)
+    const handleUpdate = async (values) => {
+        console.log("currentRequestData.helpRequest.id", currentRequestData.helpRequest.id);
+        const updatedRequest = {
+            id: currentRequestData.helpRequest.id,
+            userId: currentRequestData.helpRequest.userId,
+            title: values.title,
+            content: values.content,
+            phone: values.phone,
+            email: values.email,
+            location: values.location,
+            province: values.province, // Mã tỉnh cập nhật
+            district: values.district, // Mã quận/huyện cập nhật
+            commune: values.commune,   // Mã xã/phường cập nhật
+            imageUrls: attachments.images,
+            videoUrls: attachments.videos,
+            isEmergency: currentRequestData.helpRequest.isEmergency,
+            categoryId: values.categoryId,
+            tagIds: values.requestTags,
+            status: currentRequestData.helpRequest.status,
+        };
+
+        try {
+            console.log("Updating request:", updatedRequest);
+            await dispatch(updateRequest({ id: currentRequestData.helpRequest.id, requestData: updatedRequest })).unwrap();
+            message.success("Request updated successfully");
+            setIsModalVisible(false);
+            setCurrentRequestData(null);
+        } catch (error) {
+            console.error("Error updating request:", error);
+            message.error("Failed to update request: " + (error.message || "Unknown error"));
+        }
+    };
+
+    return (
+        <div>
+            {/* Full Card */}
+            <Flex vertical gap={5} className="request-card" >
+                <div style={{ position: "relative" }}>
+                    {requestData.attachments && requestData.attachments.length > 0 ? (
+                        <img
+                            src={requestData.attachments[0]}
+                            alt="Request"
+                            style={{ height: "11rem", width: "100%", borderTopLeftRadius: "1rem", borderTopRightRadius: "1rem" }}
+                        />
+                    ) : (
+                        <img
+                            src="https://via.placeholder.com/50"
+                            alt="Placeholder"
+                            style={{ height: "11rem", width: "100%", borderTopLeftRadius: "1rem", borderTopRightRadius: "1rem" }}
+                        />
+                    )}
+                    <div className="category-badge">
+                        {requestData.helpRequest.category.categoryName}
+                    </div>
+                    {currentUser.id === requestData.helpRequest.user.id && (
+                        <div className="menu-badge">
+                            <MoreOptions onEdit={() => handleEdit(requestData)} onDelete={() => handleDelete(requestData.helpRequest.id)} />
+                        </div>)}
+                </div>
+                {/* Nội dung */}
+                {/* onClick={() => navigate(`/requests/${requestData.request.id}`)} */}
+                <div style={{ padding: "1rem" }} >
+                    <a style={{ fontWeight: "bold", color: "black" }} href={`/requests/${requestData.helpRequest.id}`} >{requestData.helpRequest.title}</a>
+                    <p style={{ height: "3rem" }}><Paragraph ellipsis={{ tooltip: requestData.helpRequest.content, rows: 2, expandable: false }}>{requestData.helpRequest.content}</Paragraph ></p>
+                    <p className="text-gray-600 text-sm">Contact: {requestData.helpRequest.email}</p>
+
+                    <div className="tags">
+                        {requestData.requestTags.map((tag) => (
+                            <span key={tag.id}>
+                                <div className="donation-badge">
+                                    {tag.tag.tagName}
+                                </div>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            </Flex>
+            <UpdateRequestModal
+                form={form}
+                isOpen={isModalVisible}
+                attachments={attachments}
+                setAttachments={setAttachments}
+                handleUpdate={handleUpdate}
+                handleCancel={handleCancel}
             />
-          ) : (
-            <img
-              src="https://via.placeholder.com/300x176?text=No+Image"
-              alt="Placeholder"
-              style={{
-                height: "11rem",
-                width: "100%",
-                objectFit: "cover",
-                borderTopLeftRadius: "1rem",
-                borderTopRightRadius: "1rem",
-                display: "block",
-              }}
-            />
-          )}
-          {/* Category Badge */}
-          <div className="category-badge">
-            {category?.categoryName || "N/A"}
-          </div>
-          {/* More Options Menu */}
-          {isOwner && showActions && (
-            <div className="menu-badge">
-              <MoreOptions onEdit={handleEdit} onDelete={handleDelete} />
-            </div>
-          )}
-          {/* --- Conditionally add Reason Button CENTERED OVER the image --- */}
-          {isRejected && reason && (
-            <Button
-              className="category-badge" // Add a class for styling if needed
-              type="primary" // Make it a solid button
-              danger // Make it red
-              size="small"
-              onClick={showReasonModal} // Open modal on click
-              style={{
-                position: "absolute", // Position absolutely within the relative parent
-                top: "50%", // Move top edge to center
-                left: "50%", // Move left edge to center
-                transform: "translate(-50%, -50%)", // Shift button back by half its size
-                zIndex: 10, // Ensure it's above the image/badges
-                // Optional: Add slight transparency if desired
-                // opacity: 0.9,
-              }}
-            >
-              View Reject Reason
-            </Button>
-          )}
-          {/* --- End Reason Button --- */}
         </div>
-
-        {/* Content Section */}
-        <div style={{ padding: "1rem" }}>
-          {/* Title */}
-          <Link
-            style={{
-              fontWeight: "bold",
-              color: "black",
-              display: "block",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              marginBottom: "4px",
-            }}
-            to={`/requests/${id}`}
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(`/requests/${id}`);
-            }}
-            title={title}
-          >
-            {" "}
-            {title}{" "}
-          </Link>
-          {/* Content */}
-          <Paragraph
-            style={{ height: "3em", lineHeight: "1.5em", marginBottom: "8px" }}
-            ellipsis={{
-              tooltip: content || "No content details",
-              rows: 2,
-              expandable: false,
-            }}
-          >
-            {" "}
-            {content || "No content provided."}{" "}
-          </Paragraph>
-          {/* Contact */}
-          <p className="text-gray-600 text-sm" style={{ marginBottom: "8px" }}>
-            {" "}
-            Contact: {email}{" "}
-          </p>
-          {/* Tags */}
-          <div
-            className="tags"
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: "4px",
-            }}
-          >
-            {requestTags.map(
-              (taggable) =>
-                taggable?.tag?.id && (
-                  <Tag key={taggable.tag.id} color="blue">
-                    {" "}
-                    {taggable.tag.tagName}{" "}
-                  </Tag>
-                )
-            )}
-            {/* Button is NO LONGER here */}
-          </div>
-        </div>
-      </Flex>
-
-      {/* Edit Modal (remains the same) */}
-      {isOwner && isEditModalVisible && (
-        <UpdateRequestModal
-          form={form}
-          isOpen={isEditModalVisible}
-          attachments={attachments}
-          setAttachments={setAttachments}
-          handleUpdate={handleUpdate}
-          handleCancel={handleCancelEdit}
-        />
-      )}
-
-      {/* Reason Modal (remains the same) */}
-      <Modal
-        title="Rejection Reason"
-        open={isReasonModalVisible}
-        onOk={handleReasonModalClose}
-        onCancel={handleReasonModalClose}
-        footer={[
-          <Button key="ok" type="primary" onClick={handleReasonModalClose}>
-            {" "}
-            OK{" "}
-          </Button>,
-        ]}
-      >
-        <Paragraph>{reason}</Paragraph>
-      </Modal>
-    </div>
-  );
+    );
 };
 
-// --- PropTypes (remain the same) ---
 RequestCard.propTypes = {
-  /* ... */
+    requestData: PropTypes.shape({
+        helpRequest: PropTypes.shape({
+            id: PropTypes.string,
+            title: PropTypes.string.isRequired,
+            content: PropTypes.string.isRequired,
+            phone: PropTypes.string.isRequired,
+            email: PropTypes.string.isRequired,
+            location: PropTypes.string.isRequired,
+            provinceCode: PropTypes.string,  // Mã tỉnh (nếu có)
+            districtCode: PropTypes.string,  // Mã quận/huyện (nếu có)
+            communeCode: PropTypes.string,   // Mã xã/phường (nếu có)
+            category: PropTypes.shape({
+                id: PropTypes.string.isRequired,
+                categoryName: PropTypes.string.isRequired,
+            }).isRequired,
+        }).isRequired,
+        requestTags: PropTypes.arrayOf(
+            PropTypes.shape({
+                id: PropTypes.string.isRequired,
+                tag: PropTypes.shape({
+                    id: PropTypes.string.isRequired,
+                    tagName: PropTypes.string.isRequired,
+                }).isRequired,
+            })
+        ),
+        attachments: PropTypes.arrayOf(PropTypes.string),
+    }).isRequired,
+    showActions: PropTypes.bool,
 };
-RequestCard.defaultProps = { showActions: true };
 
 export default RequestCard;

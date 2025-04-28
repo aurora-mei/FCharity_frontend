@@ -16,11 +16,17 @@ const uploadFile = async ({ file, folderName = "default-folder" }) => {
   formData.append("file", file);
   formData.append("upload_preset", PRESET_NAME);
   formData.append("folder", folderName); // 🌟 Thêm folder tùy chỉnh
+  formData.append("resource_type", resourceType);
 
   const isVideo = file.type.startsWith("video/");
-  const uploadUrl = isVideo
+  let uploadUrl = isVideo
     ? `${CLOUDINARY_URL.replace("/image/", "/video/")}`
     : CLOUDINARY_URL;
+    if (resourceType === "video") {
+      uploadUrl = CLOUDINARY_URL.replace("/image/", "/video/");
+    } else if (resourceType === "raw") {
+      uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw/");
+    }
   console.log("up url", uploadUrl);
   try {
     const res = await axios.post(uploadUrl, formData, {
@@ -34,7 +40,11 @@ const uploadFile = async ({ file, folderName = "default-folder" }) => {
     return null;
   }
 };
-const uploadFileMedia = async ({ file, folderName = "default-folder",resourceType }) => {
+const uploadFileMedia = async ({
+  file,
+  folderName = "default-folder",
+  resourceType,
+}) => {
   console.log("Uploading file:", file);
 
   const formData = new FormData();
@@ -42,17 +52,13 @@ const uploadFileMedia = async ({ file, folderName = "default-folder",resourceTyp
   formData.append("upload_preset", PRESET_NAME);
   formData.append("folder", folderName); // 🌟 Thêm folder tùy chỉnh
   formData.append("resource_type", resourceType);
-
+ let uploadUrl = CLOUDINARY_URL;
   if (resourceType === "video") {
     uploadUrl = CLOUDINARY_URL.replace("/image/", "/video/");
   } else if (resourceType === "raw") {
-    uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw");
+    uploadUrl = CLOUDINARY_URL.replace("/image/", "/raw/");
   }
 
-  const isVideo = file.type.startsWith("video/");
-  const uploadUrl = isVideo
-    ? `${CLOUDINARY_URL.replace("/image/", "/video/")}`
-    : CLOUDINARY_URL;
   console.log("up url", uploadUrl);
   try {
     const res = await axios.post(uploadUrl, formData, {
@@ -88,5 +94,5 @@ const getListBank = async () => {
     throw error;
   }
 };
-const helperApi = { uploadFile, getPaymentLink,uploadFileMedia,getListBank };
+const helperApi = { uploadFile, getPaymentLink, uploadFileMedia, getListBank };
 export default helperApi;

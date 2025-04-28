@@ -13,13 +13,10 @@ import { Flex } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation, Trans } from "react-i18next";
 import OrganizationSlider from "../../pages/manage/components/OrganizationSlider";
+import OrganizationRankingsOverview from "../../pages/manage/components/OrganizationRankingsOverview";
 
 const HomeContainer = () => {
-  const projects = useSelector((state) => state.project.projects);
-  const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(fetchProjectsThunk());
-  }, [dispatch]);
+
   const { t, i18n } = useTranslation();
   return (
     <div>
@@ -30,9 +27,10 @@ const HomeContainer = () => {
         <Noting />
         <Flex vertical={true} gap="4rem" style={{ margin: "4rem 10rem" }}>
           <RequestActiveCarousel />
-          <FundraiserBoard projects={projects} />
+          <FundraiserBoard />
           <EventBoard />
           <OrganizationSlider />
+          <OrganizationRankingsOverview />
         </Flex>
         <NotingGreen
           message={

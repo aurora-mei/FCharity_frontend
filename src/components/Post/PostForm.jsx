@@ -4,7 +4,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import "antd/dist/reset.css";
 import { useDispatch, useSelector } from 'react-redux';
 import { createPosts } from '../../redux/post/postSlice.js';
-import { uploadFileMedia } from "../../redux/helper/helperSlice";
+import { uploadFileHelper } from "../../redux/helper/helperSlice";
 import { fetchTags } from '../../redux/tag/tagSlice';
 import { useNavigate } from "react-router-dom";
 import LoadingModal from "../LoadingModal/index.jsx";
@@ -70,7 +70,7 @@ const PostForm = () => {
         const latestFile = fileList[fileList.length - 1];
 
         try {
-            const response = await dispatch(uploadFileMedia({ file: latestFile.originFileObj, folderName: "images",resourceType:"image" })).unwrap();
+            const response = await dispatch(uploadFileHelper({ file: latestFile.originFileObj, folderName: "images" })).unwrap();
             console.log("response", response);
             latestFile.url = response;
             setUploadedImages((prevImages) => {
@@ -101,7 +101,7 @@ const PostForm = () => {
         const latestFile = fileList[fileList.length - 1];
 
         try {
-            const response = await dispatch(uploadFileMedia({ file: latestFile.originFileObj, folderName: "videos",resourceType:"video" })).unwrap();
+            const response = await dispatch(uploadFileHelper({ file: latestFile.originFileObj, folderName: "videos" })).unwrap();
             console.log("response", response);
             latestFile.url = response;
             setUploadedVideos((prevVideos) => {

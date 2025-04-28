@@ -13,21 +13,24 @@ const UserRolePieChart = ({ currentOrganizationMembers }) => {
   const data = [
     {
       name: "CEO",
-      value: currentOrganizationMembers.filter(
-        (member) => member.memberRole === "CEO"
-      ).length,
+      value:
+        currentOrganizationMembers?.filter(
+          (member) => member.memberRole === "CEO"
+        ).length || 0,
     },
     {
       name: "Manager",
-      value: currentOrganizationMembers.filter(
-        (member) => member.memberRole === "MANAGER"
-      ).length,
+      value:
+        currentOrganizationMembers?.filter(
+          (member) => member.memberRole === "MANAGER"
+        ).length || 0,
     },
     {
       name: "Member",
-      value: currentOrganizationMembers.filter(
-        (member) => member.memberRole === "MEMBER"
-      ).length,
+      value:
+        currentOrganizationMembers?.filter(
+          (member) => member.memberRole === "MEMBER"
+        ).length || 0,
     },
   ];
 
