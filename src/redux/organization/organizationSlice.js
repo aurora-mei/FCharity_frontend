@@ -56,7 +56,7 @@ const initialState = {
   totalExpense: 0,
 
   organizationTransactions: [],
-  toOrganizationDonations: [],
+  extraFundRequests: [],
 
   currentRole: null,
 
@@ -600,17 +600,18 @@ export const getTotalExpense = createAsyncThunk(
   }
 );
 
-export const getDonatesByOrganizationId = createAsyncThunk(
-  "organizations/getDonatesByOrganizationId",
+export const getExtraFundRequestsByOrganizationId = createAsyncThunk(
+  "organizations/getExtraFundRequestsByOrganizationId",
   async (organizationId, { rejectWithValue }) => {
     try {
-      const response = await organizationApi.getDonatesByOrganizationId(
-        organizationId
-      );
+      const response =
+        await organizationApi.getExtraFundRequestsByOrganizationId(
+          organizationId
+        );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "Error getting donates by organization"
+        error.response?.data || "Error getting extra fund requests"
       );
     }
   }
@@ -637,6 +638,34 @@ export const createTransaction = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Error creating transaction"
+      );
+    }
+  }
+);
+
+export const approveExtraFundRequest = createAsyncThunk(
+  "organizations/approveExtraFundRequest",
+  async (dataInfo, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.approveExtraFundRequest(dataInfo);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error approving extra fund request"
+      );
+    }
+  }
+);
+
+export const rejectExtraFundRequest = createAsyncThunk(
+  "organizations/rejectExtraFundRequest",
+  async (dataInfo, { rejectWithValue }) => {
+    try {
+      const response = await organizationApi.rejectExtraFundRequest(dataInfo);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error rejecting extra fund request"
       );
     }
   }
@@ -1620,18 +1649,24 @@ export const organizationSlice = createSlice({
         state.error = action.payload;
       })
 
-      .addCase(getDonatesByOrganizationId.pending, (state) => {
+      .addCase(getExtraFundRequestsByOrganizationId.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getDonatesByOrganizationId.fulfilled, (state, action) => {
-        state.loading = false;
-        state.toOrganizationDonations = action.payload;
-      })
-      .addCase(getDonatesByOrganizationId.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+      .addCase(
+        getExtraFundRequestsByOrganizationId.fulfilled,
+        (state, action) => {
+          state.loading = false;
+          state.extraFundRequests = action.payload;
+        }
+      )
+      .addCase(
+        getExtraFundRequestsByOrganizationId.rejected,
+        (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
 
       .addCase(getTransactionsByOrganizationId.pending, (state) => {
         state.loading = true;

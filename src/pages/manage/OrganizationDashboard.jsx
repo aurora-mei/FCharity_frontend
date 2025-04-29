@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   getAllMembersInOrganization,
   getArticleByOrganizationId,
-  getDonatesByOrganizationId,
+  getExtraFundRequestsByOrganizationId,
   getOrganizationEvents,
   getTotalExpense,
   getTotalIncome,
@@ -15,6 +15,44 @@ import MemberOverTimeChart from "./components/charts/MemberOverTimeChart";
 import ProjectStatusChart from "./components/charts/ProjectStatusChart";
 import { Link } from "react-router-dom";
 import { Empty } from "antd";
+import { Paper } from "@mui/material";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import { ImArrowDown } from "react-icons/im";
+import { ImArrowUp } from "react-icons/im";
+
+const transactionColumns = [
+  { id: "name", label: "Organization", minWidth: 170 },
+  { id: "code", label: "Project", minWidth: 170 },
+  {
+    id: "amount",
+    label: "Amount",
+    minWidth: 70,
+    format: (value) => value.toFixed(2),
+  },
+  {
+    id: "message",
+    label: "Message",
+    minWidth: 170,
+  },
+  {
+    id: "transactionType",
+    label: "Transaction type",
+    minWidth: 70,
+  },
+  {
+    id: "time",
+    label: "Time",
+    minWidth: 120,
+    format: (value) => value.toLocaleString("en-US"),
+  },
+];
+
 const OrganizationDashboard = () => {
   const dispatch = useDispatch();
 
@@ -41,9 +79,8 @@ const OrganizationDashboard = () => {
     (state) => state.organization.organizationTransactions
   );
 
-  const toOrganizationDonations = useSelector(
-    (state) => state.organization.toOrganizationDonations
-  );
+  const [transactionPage, setTransactionPage] = useState(0);
+  const [rowsPerTransactionPage, setRowsPerTransactionPage] = useState(10);
 
   useEffect(() => {
     if (currentOrganization) {
@@ -54,7 +91,7 @@ const OrganizationDashboard = () => {
 
       dispatch(getTotalIncome(currentOrganization.organizationId));
       dispatch(getTotalExpense(currentOrganization.organizationId));
-      dispatch(getDonatesByOrganizationId(currentOrganization.organizationId));
+
       dispatch(
         getTransactionsByOrganizationId(currentOrganization.organizationId)
       );
@@ -63,12 +100,20 @@ const OrganizationDashboard = () => {
 
   const [showManagerInfo, setShowManagerInfo] = useState(-1);
 
+  const handleChangeTransactionPage = (event, newPage) => {
+    setTransactionPage(newPage);
+  };
+
+  const handleChangeRowsPerTransactionPage = (event) => {
+    setRowsPerTransactionPage(+event.target.value);
+    setTransactionPage(0);
+  };
+
   // console.log("current Organization", currentOrganization);
   // console.log("projects", projects);
   // console.log("totalIncome", totalIncome);
   // console.log("totalExpense", totalExpense);
-  console.log("toOrganizationDonations", toOrganizationDonations);
-  console.log("organizationTransactions", organizationTransactions);
+  // console.log("organizationTransactions", organizationTransactions);
 
   return (
     <div>
@@ -286,33 +331,40 @@ const OrganizationDashboard = () => {
                     Top big expenses
                   </p>
                   <div className="mt-2 flex flex-col gap-1 h-[180px] overflow-y-scroll border border-gray-300 rounded-sm p-1">
-                    {organizationTransactions.map((transaction) => (
-                      <div
-                        key={transaction.id}
-                        title={transaction.message}
-                        className="hover:cursor-pointer shadow-md rounded-md p-2 flex flex-col gap-1 hover:bg-gray-100 transition-all duration-500 ease-in-out text-sm"
-                      >
-                        <p style={{ margin: 0 }}>
-                          To project: {"  "}
-                          <span>{transaction.project.projectName}</span>
-                        </p>
-                        <p style={{ margin: 0 }}>
-                          Amount: <span>$ {transaction.amount}</span>
-                        </p>
-                        <p style={{ margin: 0 }}>
-                          Type:{" "}
-                          <span className="text-xs font-semibold">
-                            {transaction.transactionType}
-                          </span>
-                        </p>
-                        <p style={{ margin: 0 }}>
-                          Date:{" "}
-                          <span>
-                            {transaction.transactionTime.split(".")[0]}
-                          </span>
-                        </p>
-                      </div>
-                    ))}
+                    {organizationTransactions
+                      .filter(
+                        (transaction) =>
+                          transaction.transactionType === "ALLOCATE_EXTRA_COST"
+                      )
+                      .sort((a, b) => b.amount - a.amount)
+                      .slice(0, 5)
+                      .map((transaction) => (
+                        <div
+                          key={transaction.id}
+                          title={transaction.message}
+                          className="hover:cursor-pointer shadow-md rounded-md p-2 flex flex-col gap-1 hover:bg-gray-100 transition-all duration-500 ease-in-out text-sm"
+                        >
+                          <p style={{ margin: 0 }}>
+                            To project: {"  "}
+                            <span>{transaction.project.projectName}</span>
+                          </p>
+                          <p style={{ margin: 0 }}>
+                            Amount: <span>$ {transaction.amount}</span>
+                          </p>
+                          <p style={{ margin: 0 }}>
+                            Type:{" "}
+                            <span className="text-xs font-semibold">
+                              {transaction.transactionType}
+                            </span>
+                          </p>
+                          <p style={{ margin: 0 }}>
+                            Date:{" "}
+                            <span>
+                              {transaction.transactionTime.split(".")[0]}
+                            </span>
+                          </p>
+                        </div>
+                      ))}
                   </div>
                 </div>
               </div>
@@ -324,135 +376,80 @@ const OrganizationDashboard = () => {
               </div>
             </div>
 
-            <div className=" p-4 mt-3 min-h-[300px]">
-              <p
-                style={{ margin: 0 }}
-                className="text-xl font-semibold text-gray-700"
+            <div className=" p-4 mt-3 bg-white shadow-md rounded-md">
+              <h2 style={{ margin: 0 }} className="text-xl text-gray-700">
+                Recent transactions history
+              </h2>
+              <Paper
+                sx={{ width: "100%", overflow: "hidden" }}
+                className="mt-3"
               >
-                Recent transaction history
-              </p>
+                <TableContainer sx={{ maxHeight: 440 }}>
+                  <Table stickyHeader aria-label="sticky table">
+                    <TableHead>
+                      <TableRow>
+                        {transactionColumns.map((column) => (
+                          <TableCell
+                            key={column.id}
+                            align={column.align}
+                            style={{ minWidth: column.minWidth }}
+                          >
+                            {column.label}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {organizationTransactions
+                        .slice(0, 50)
+                        .slice(
+                          transactionPage * rowsPerTransactionPage,
+                          transactionPage * rowsPerTransactionPage +
+                            rowsPerTransactionPage
+                        )
+                        .map((row, index) => {
+                          return (
+                            <TableRow
+                              hover
+                              role="checkbox"
+                              tabIndex={-1}
+                              key={index}
+                            >
+                              <TableCell>
+                                <div className="flex gap-2 items-center">
+                                  {row.organization.organizationName}
+                                  {row.transactionType ===
+                                  "EXTRACT_EXTRA_COST" ? (
+                                    <ImArrowDown className="text-green-500" />
+                                  ) : (
+                                    <ImArrowUp className="text-red-500" />
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>{row.project.projectName}</TableCell>
+                              <TableCell>{row.amount}</TableCell>
 
-              <div className="shadow-md rounded-md p-4  bg-white flex flex-col mt-6 h-[400px]">
-                <p style={{ margin: 0 }} className="text-md text-gray-700">
-                  Donations
-                </p>
-                <div className="grid grid-cols-9 w-full bg-gray-300 px-4 py-2 rounded-t-md mt-3">
-                  <div className="col-span-2 font-semibold text-gray-600">
-                    From user
-                  </div>
-                  <div className="col-span-2 font-semibold text-gray-600">
-                    To organization
-                  </div>
-                  <div className="col-span-2 font-semibold text-gray-600">
-                    Message
-                  </div>
-                  <div className="col-span-1 font-semibold text-gray-600">
-                    Amount
-                  </div>
-                  <div className="col-span-2 font-semibold text-gray-600">
-                    Date
-                  </div>
-                </div>
-                <div className="border border-gray-300 rounded-b-md grow-1 overflow-y-scroll px-1 py-2 flex flex-col gap-1">
-                  {toOrganizationDonations.map((donation) => (
-                    <div
-                      key={donation.id}
-                      className="w-full h-[35px] border-b-2 border-gray-300 grid grid-cols-9 pl-3 pt-1"
-                    >
-                      <div className="col-span-2">
-                        <p
-                          style={{ margin: 0 }}
-                          className="font-semibold text-gray-600"
-                        >
-                          {donation.user.fullName}
-                        </p>
-                      </div>
-                      <div className="col-span-2">
-                        <p
-                          style={{ margin: 0 }}
-                          className="font-semibold text-gray-600"
-                        >
-                          {donation.organization.organizationName}
-                        </p>
-                      </div>
-                      <div className="col-span-2">
-                        <p style={{ margin: 0 }} className="text-sm">
-                          {donation.message}
-                        </p>
-                      </div>
-                      <div className="col-span-1">
-                        <p style={{ margin: 0 }}>$ {donation.amount}</p>
-                      </div>
-                      <div className="col-span-2">
-                        <p style={{ margin: 0 }}>
-                          {donation.donationTime.split(".")[0]}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="shadow-md rounded-md p-4  bg-white flex flex-col mt-6 h-[400px]">
-                <p style={{ margin: 0 }} className="text-md text-gray-700">
-                  Transactions
-                </p>
-                <div className="grid grid-cols-9 w-full bg-gray-300 px-4 py-2 rounded-t-md mt-3">
-                  <div className="col-span-2 font-semibold text-gray-600">
-                    From organization
-                  </div>
-                  <div className="col-span-2 font-semibold text-gray-600">
-                    To project
-                  </div>
-                  <div className="col-span-2 font-semibold text-gray-600">
-                    Type
-                  </div>
-                  <div className="col-span-1 font-semibold text-gray-600">
-                    Amount
-                  </div>
-                  <div className="col-span-2 font-semibold text-gray-600">
-                    Date
-                  </div>
-                </div>
-                <div className="border border-gray-300 rounded-b-md grow-1 overflow-y-scroll px-1 py-2 flex flex-col gap-1">
-                  {organizationTransactions.map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className="w-full h-[35px] border-b-2 border-gray-300 grid grid-cols-9 pl-3 pt-1"
-                    >
-                      <div className="col-span-2">
-                        <p
-                          style={{ margin: 0 }}
-                          className="font-semibold text-gray-600"
-                        >
-                          {transaction.organization.organizationName}
-                        </p>
-                      </div>
-                      <div className="col-span-2">
-                        <p
-                          style={{ margin: 0 }}
-                          className="font-semibold text-gray-600"
-                        >
-                          {transaction.project.projectName}
-                        </p>
-                      </div>
-                      <div className="col-span-2">
-                        <p style={{ margin: 0 }} className="text-sm">
-                          {transaction.transactionType}
-                        </p>
-                      </div>
-                      <div className="col-span-1">
-                        <p style={{ margin: 0 }}>$ {transaction.amount}</p>
-                      </div>
-                      <div className="col-span-2">
-                        <p style={{ margin: 0 }}>
-                          {transaction.transactionTime.split(".")[0]}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                              <TableCell>{row.message}</TableCell>
+                              <TableCell>{row.transactionType}</TableCell>
+                              <TableCell>
+                                {row.transactionTime.split(".")[0]}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination
+                  rowsPerPageOptions={[10, 25, 100]}
+                  component="div"
+                  count={organizationTransactions.length}
+                  rowsPerPage={rowsPerTransactionPage}
+                  page={transactionPage}
+                  onPageChange={handleChangeTransactionPage}
+                  onRowsPerPageChange={handleChangeRowsPerTransactionPage}
+                />
+              </Paper>
             </div>
           </div>
         </div>

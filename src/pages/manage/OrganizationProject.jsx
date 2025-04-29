@@ -18,6 +18,7 @@ import {
   fetchSpendingItemOfPlan,
   approveSpendingPlanThunk,
   rejectSpendingPlanThunk,
+  setOrgProjects,
   // setOrgProjects,
 } from "../../redux/project/projectSlice";
 import { useDispatch, useSelector } from "react-redux";

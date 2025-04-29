@@ -1,5 +1,6 @@
 import { data } from "react-router-dom";
 import api from "../../services/api";
+import { APIPrivate } from "../../config/API/api";
 
 const organizationApi = {
   // -------------------- For Admin ---------------------
@@ -85,13 +86,19 @@ const organizationApi = {
     api.get(`/finance/organizations/${organizationId}/totalIncome`),
   getTotalExpense: (organizationId) =>
     api.get(`/finance/organizations/${organizationId}/totalExpense`),
-  getDonatesByOrganizationId: (organizationId) =>
-    api.get(`/finance/organizations/${organizationId}/donates`),
+  getExtraFundRequestsByOrganizationId: (organizationId) =>
+    api.get(`/finance/organizations/${organizationId}/extraFundRequests`),
   getTransactionsByOrganizationId: (organizationId) =>
     api.get(`/finance/organizations/${organizationId}/transactions`),
 
   createTransaction: (transactionData) =>
     api.post(`/finance/organizations/transactions`, transactionData),
+
+  approveExtraFundRequest: (dataInfo) =>
+    APIPrivate.put(`/extra-fund-requests/approve`, dataInfo),
+
+  rejectExtraFundRequest: (dataInfo) =>
+    APIPrivate.put(`/extra-fund-requests/reject`, dataInfo),
 
   // ---------------------------  End OrganizationFinance RestController ------------------------------
 
