@@ -341,10 +341,18 @@ const Navbar = () => {
                   {/* Added specific class for potential user button styling */}
                   <Button className="btn-custom btn-user" type="text">
                     <img
-                      src={currentUser?.avatar ?? avatar} // Use optional chaining
+                      src={
+                        currentUser?.avatar ||
+                        avatar ||
+                        "https://avatar.iran.liara.run/public"
+                      } // Use optional chaining
                       alt="User avatar" // Better alt text
                       className="user-avatar" // Add class for styling
+                      onError={(e) =>
+                        (e.target.src = "https://avatar.iran.liara.run/public")
+                      }
                     />
+
                     {/* Wrap name in span for styling/hiding on small screens */}
                     <span className="user-name">{currentUser?.fullName}</span>
                   </Button>

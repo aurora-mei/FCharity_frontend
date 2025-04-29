@@ -10,6 +10,14 @@ const OrganizationsView = () => {
   );
 
   const [organizations, setOrganizations] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, []);
 
   useEffect(() => {
     if (recommendedOrganizations.length == 0)
@@ -41,15 +49,40 @@ const OrganizationsView = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto mt-10 mb-52">
-      <h1 className="text-3xl font-bold mb-4">Recommended Organizations</h1>
-      <div className="flex flex-wrap gap-4 max-w-[1000px] mt-12 mx-auto">
-        {organizations.map((org) => (
-          <OrganizationCard
-            key={org.organizationId}
-            org={org}
-            handleJoinOrganization={handleJoinOrganization}
-          />
-        ))}
+      <h1 className="text-3xl font-bold">Recommended Organizations</h1>
+      <div className="mt-10 flex items-center gap-3">
+        <label className="block text-gray-700 font-bold mb-2">Search:</label>
+        <input
+          type="text"
+          placeholder="Search by related keywords"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 w-[500px]"
+        />
+      </div>
+      <div className="flex flex-wrap gap-4 max-w-[1000px] mt-7 mx-auto max-h-[2000px] overflow-y-auto">
+        {organizations
+          .filter((organization) => {
+            if (
+              searchTerm === "" ||
+              organization.organizationName
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+              organization.organizationDescription
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+            ) {
+              return true;
+            }
+            return false;
+          })
+          .map((org) => (
+            <OrganizationCard
+              key={org.organizationId}
+              org={org}
+              handleJoinOrganization={handleJoinOrganization}
+            />
+          ))}
       </div>
     </div>
   );

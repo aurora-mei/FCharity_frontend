@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -176,6 +177,9 @@ const OrganizationSlider = () => {
             </button>
           )}
         </div>
+      </div>
+      <div className="flex justify-end items-center mt-3 mr-3">
+        <Link to="/organizations">Discover more organizations &gt;&gt;</Link>
       </div>
     </div>
   );
